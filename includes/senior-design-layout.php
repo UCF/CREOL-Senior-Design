@@ -6,7 +6,7 @@ function senior_design_display() {
         'post_type'      => 'post',
         
         'post_status'    => 'publish',
-        'category_name'  => 'Senior Design Projects',
+        'category_name'  => 'Fall 2019',
     ));
 
     if (!empty($post_list)) {
