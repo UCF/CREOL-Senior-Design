@@ -12,6 +12,7 @@ function senior_design_display() {
             ],
         ],
         'post_status'    => 'publish',
+        'category'       => 0,
     ));
 
     if (!empty($post_list)) {
