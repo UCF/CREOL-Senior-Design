@@ -4,13 +4,6 @@ function senior_design_display() {
     $post_list = get_posts(array(
         'posts_per_page' => -1,
         'post_type'      => 'post',
-        'tax_query' => [
-            [
-                'taxonomy' => 'senior-design-project',
-                'terms' => 318,
-                'include_children' => false
-            ],
-        ],
         'post_status'    => 'publish',
         'category'       => 0,
     ));
