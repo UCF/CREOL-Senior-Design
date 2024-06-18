@@ -5,10 +5,14 @@ function senior_design_display() {
         'posts_per_page' => -1,
         'post_type'      => 'person',
         'post_status'    => 'publish',
+        'category_name'  => $slug, 
         'meta_key'       => 'person_orderby_name',
-        'orderby'        => 'menu_order',
+        'orderby'        => 'meta_value',
         'order'          => 'ASC'
     ));
+
+    
+
     echo '<pre>';
     print_r($post_list);
     echo '</pre>';
