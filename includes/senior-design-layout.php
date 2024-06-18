@@ -4,7 +4,8 @@ function senior_design_display() {
 
     $post_list = get_posts( array(
         'orderby'    => 'menu_order',
-        'sort_order' => 'asc'
+        'sort_order' => 'asc',
+        'category'   => '318'
     ) );
 
     if (!empty($post_list)) {
