@@ -3,8 +3,13 @@
 function senior_design_display() {
     $post_list = get_posts(array(
         'orderby'    => 'menu_order',
-        'order'      => 'ASC'
+        'order'      => 'ASC',
+        'category_name' => 'senior-design-projects'
     ));
+
+    echo '<pre>';
+    print_r($post_list);
+    echo '</pre>';
 
     if (!empty($post_list)) {
         echo '<div class="row mb-5">';
@@ -35,32 +40,4 @@ function senior_design_display() {
     } else {
         echo 'No posts found.';
     }
-
-    $posts = array();
-
-    foreach ($post_list as $post) {
-        $posts[] = $post->ID;
-    }
-
-    $current = array_search(get_the_ID(), $posts);
-    $prevID = $posts[$current - 1] ?? null;
-    $nextID = $posts[$current + 1] ?? null;
-
-    echo '<div class="navigation">';
-    if (!empty($prevID)) {
-        echo '<div class="alignleft">';
-        echo '<a href="' . get_permalink($prevID) . '" alt="' . get_the_title($prevID) . '">';
-        _e('Previous', 'textdomain');
-        echo '</a>';
-        echo '</div>';
-    }
-
-    if (!empty($nextID)) {
-        echo '<div class="alignright">';
-        echo '<a href="' . get_permalink($nextID) . '" alt="' . get_the_title($nextID) . '">';
-        _e('Next', 'textdomain');
-        echo '</a>';
-        echo '</div>';
-    }
-    echo '</div>';
 }
