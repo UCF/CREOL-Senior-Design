@@ -6,7 +6,7 @@ function senior_design_display() {
         'post_type'      => 'post',
         
         'post_status'    => 'publish',
-        'category_name'       => 'News',
+        'category_name'  => 'Course',
     ));
 
     if (!empty($post_list)) {
