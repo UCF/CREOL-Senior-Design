@@ -3,8 +3,7 @@
 function senior_design_display() {
     $post_list = get_posts(array(
         'orderby'    => 'menu_order',
-        'order'      => 'ASC',
-        'category__in' => array(318)  // Correct parameter for category
+        'order'      => 'ASC'
     ));
 
     if (!empty($post_list)) {
