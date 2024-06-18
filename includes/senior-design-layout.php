@@ -3,8 +3,8 @@
 function senior_design_display() {
     $post_list = get_posts(array(
         'posts_per_page' => -1,
+        'post_type'      => 'person',
         'post_status'    => 'publish',
-        'category_name'  => 'senior-design-projects', 
         'meta_key'       => 'person_orderby_name',
         'orderby'        => 'menu_order',
         'order'          => 'ASC'
