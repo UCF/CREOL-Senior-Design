@@ -1,15 +1,13 @@
 <?php
 
 function senior_design_display() {
-
-    $post_list = get_posts( array(
+    $post_list = get_posts(array(
         'orderby'    => 'menu_order',
-        'sort_order' => 'asc',
-        'category'   => '318'
-    ) );
+        'order'      => 'ASC',
+        'category__in' => array(318)  // Correct parameter for category
+    ));
 
     if (!empty($post_list)) {
-            
         echo '<div class="row mb-5">';
         foreach ($post_list as $post) {
             setup_postdata($post);
@@ -41,32 +39,29 @@ function senior_design_display() {
 
     $posts = array();
 
-    foreach ( $post_list as $post ) {
-    $posts[] += $post->ID;
+    foreach ($post_list as $post) {
+        $posts[] = $post->ID;
     }
 
-    $current = array_search( get_the_ID(), $posts );
+    $current = array_search(get_the_ID(), $posts);
+    $prevID = $posts[$current - 1] ?? null;
+    $nextID = $posts[$current + 1] ?? null;
 
-    $prevID = $posts[ $current-1 ];
-    $nextID = $posts[ $current+1 ];
-    ?>
+    echo '<div class="navigation">';
+    if (!empty($prevID)) {
+        echo '<div class="alignleft">';
+        echo '<a href="' . get_permalink($prevID) . '" alt="' . get_the_title($prevID) . '">';
+        _e('Previous', 'textdomain');
+        echo '</a>';
+        echo '</div>';
+    }
 
-    <div class="navigation">
-    <?php if ( ! empty( $prevID ) ): ?>
-        <div class="alignleft">
-            <a href="<?php echo get_permalink( $prevID ); ?>" alt="<?php echo get_the_title( $prevID ); ?>">
-                <?php _e( 'Previous', 'textdomain' ); ?>
-            </a>
-        </div>
-    <?php endif;
-
-    if ( ! empty( $nextID ) ) : ?>
-        <div class="alignright">
-            <a href="<?php echo get_permalink( $nextID ); ?>" alt="<?php echo get_the_title( $nextID ); ?>">
-                <?php _e( 'Next', 'textdomain' ); ?>
-            </a>
-        </div>
-    <?php endif; ?>
-    </div>
-    <?php
+    if (!empty($nextID)) {
+        echo '<div class="alignright">';
+        echo '<a href="' . get_permalink($nextID) . '" alt="' . get_the_title($nextID) . '">';
+        _e('Next', 'textdomain');
+        echo '</a>';
+        echo '</div>';
+    }
+    echo '</div>';
 }
