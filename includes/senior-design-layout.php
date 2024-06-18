@@ -11,9 +11,10 @@ function senior_design_display() {
     if (!empty($post_list)) {
         echo '<style>
                 .custom-card {
-                    border-radius: 15px; /* Rounded border */
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: adds shadow for better visibility */
-                    margin-bottom: 20px; /* Space between cards */
+                    border-radius: 15px;
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+                    margin-bottom: 20px;
+                    padding: 20px;
                 }
               </style>';
 
