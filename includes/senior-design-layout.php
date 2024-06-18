@@ -6,7 +6,7 @@ function senior_design_display() {
         'post_type'      => 'post',
         
         'post_status'    => 'publish',
-        'category_name'  => 'Course',
+        'category_name'  => 'Senior Design Projects',
     ));
 
     if (!empty($post_list)) {
