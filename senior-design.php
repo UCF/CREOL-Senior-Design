@@ -12,6 +12,6 @@ if ( ! defined( 'WPINC' ) ) {
     die;
 }
 
-require_once 'includes/people-layout.php';
+require_once 'includes/senior-design-layout.php';
 
 add_shortcode( 'senior-design', 'senior_design_display');
