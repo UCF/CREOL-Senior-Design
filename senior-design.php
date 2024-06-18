@@ -14,4 +14,4 @@ if ( ! defined( 'WPINC' ) ) {
 
 require_once 'includes/people-layout.php';
 
-add_shortcode( 'senior-design', 'people_display');
+add_shortcode( 'senior-design', 'senior_design_display');
