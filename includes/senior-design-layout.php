@@ -4,8 +4,9 @@ function senior_design_display() {
     $post_list = get_posts(array(
         'posts_per_page' => -1,
         'post_type'      => 'post',
+        
         'post_status'    => 'publish',
-        'category'       => 0,
+        'category_name'       => 'News',
     ));
 
     if (!empty($post_list)) {
