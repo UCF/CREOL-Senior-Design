@@ -27,8 +27,9 @@ function senior_design_display() {
             setup_postdata($post);
             $permalink = get_permalink($post);
             
-            echo '<a href="' . $permalink . '">';
+            
             echo '<div class="card-box col-12">';
+            echo '<a href="' . $permalink . '">';
             echo '<div class="card custom-card">';
             
             echo '<div class="card-body">';
@@ -36,8 +37,9 @@ function senior_design_display() {
             echo '</div>';
             
             echo '</div>';
-            echo '</div>';
             echo '</a>';
+            echo '</div>';
+            
         }
         echo '</div>';
         wp_reset_postdata();
