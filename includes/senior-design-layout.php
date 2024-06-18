@@ -8,12 +8,6 @@ function senior_design_display() {
         'category_name'  => $slug,
     ));
 
-    
-
-    echo '<pre>';
-    print_r($post_list);
-    echo '</pre>';
-
     if (!empty($post_list)) {
         echo '<div class="row mb-5">';
         foreach ($post_list as $post) {
