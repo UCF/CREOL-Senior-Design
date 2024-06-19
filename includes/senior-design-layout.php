@@ -5,7 +5,7 @@ function senior_design_display() {
         'posts_per_page' => -1,
         'post_type'      => 'post',
         'post_status'    => 'publish',
-        'category_name'  => 'Spring 2023',
+        'category_name'  => 'Fall 2019',
     ));
 
     if (!empty($post_list)) {
