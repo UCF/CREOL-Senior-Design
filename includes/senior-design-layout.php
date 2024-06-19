@@ -5,7 +5,7 @@ function senior_design_display() {
         'posts_per_page' => -1,
         'post_type'      => 'post',
         'post_status'    => 'publish',
-        'cat'  => '318',
+        'category__and'  => array(318, 330),
     ));
 
     if (!empty($post_list)) {
