@@ -5,7 +5,7 @@ function senior_design_display() {
         'posts_per_page' => -1,
         'post_type'      => 'post',
         'post_status'    => 'publish',
-        'category__in'  => array(318, 330),
+        'category_name'  => array('Senior Design Projects+Fall 2019'),
     ));
 
     if (!empty($post_list)) {
