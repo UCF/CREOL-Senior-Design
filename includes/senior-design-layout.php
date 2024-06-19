@@ -1,17 +1,49 @@
 <?php
 
 function senior_design_display() {
-    $the_query = new WP_Query( array( 'category_name' => 'Fall 2019' ) );
-    if ( $the_query->have_posts() ) {
-        echo '<ul>';
-        while ( $the_query->have_posts() ) {
-            $the_query->the_post();
-            echo '<li>' . esc_html( get_the_title() ) . '</li>';
+    $post_list = get_posts(array(
+        'posts_per_page' => -1,
+        'post_type'      => 'post',
+        'post_status'    => 'publish',
+        'category_name'  => 'Spring 2023',
+    ));
+
+    if (!empty($post_list)) {
+        echo '<style>
+                .custom-card {
+                    border-radius: 15px;
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+                    margin-bottom: 20px;
+                    padding: 20px;
+                    transition: box-shadow 0.3s ease-in-out;
+                }
+                .custom-card:hover {
+                    box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+                }
+              </style>';
+
+        echo '<div class="row mb-5">';
+        foreach ($post_list as $post) {
+            setup_postdata($post);
+            $permalink = get_permalink($post);
+            
+            
+            echo '<div class="card-box col-12">';
+            echo '<a href="' . $permalink . '">';
+            echo '<div class="card custom-card">';
+            
+            echo '<div class="card-body">';
+            echo '<h5 class="card-title">' . get_the_title($post) . '</h5>';
+            echo '</div>';
+            
+            echo '</div>';
+            echo '</a>';
+            echo '</div>';
+            
         }
-        echo '</ul>';
+        echo '</div>';
+        wp_reset_postdata();
     } else {
-        esc_html_e( 'Sorry, no posts matched your criteria.' );
+        echo 'No posts found.';
     }
-    // Restore original Post Data.
-    wp_reset_postdata();
 }
