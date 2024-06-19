@@ -42,7 +42,7 @@ function senior_design_display() {
         <select id="categorySelector" onchange="updatePostsByCategory()">
             <option value="">Select a Category</option>
             <?php
-            $categories = get_categories(array('include' => '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
+            $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
             foreach ($categories as $category_option) {
                 $selected = ($category_option->term_id == $category) ? ' selected' : '';
                 echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
