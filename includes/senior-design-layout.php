@@ -16,7 +16,6 @@ function senior_design_display() {
         's'              => $search_term  // Search parameter
     );
 
-    // If a category is selected, filter posts by that category
     if (!empty($category)) {
         $args['cat'] = $category;
     } else {
@@ -40,10 +39,9 @@ function senior_design_display() {
                 }
               </style>';
 
-        // Search and category selection form
         ?>
         <form action="" method="GET">
-            <input type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
+            
             <select id="categorySelector" name="category" onchange="this.form.submit()">
                 <option value="">All Semesters</option>
                 <?php
@@ -54,7 +52,15 @@ function senior_design_display() {
                 }
                 ?>
             </select>
-            <button type="submit">Search</button>
+            <div class="col-xs-12 col-sm-6 col-md-6 form-group">
+                <div class="input-group" style="width: 100%;">
+                    <input type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
+                    <span class="input-group-btn">
+                        <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                    </span>
+                </div>
+            </div>
+            
         </form>
 
         <script>
