@@ -39,7 +39,7 @@ function senior_design_display() {
                 }
               </style>';
 
-        echo '<div class="container">
+        echo '<div class="container mb-2" >
                 <div class="row">
                     <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: space-between;">
                         
