@@ -39,7 +39,7 @@ function senior_design_display() {
                 }
               </style>';
 
-        echo '<div class="container mb-2" >
+        echo '<div class="container mb-4" >
                 <div class="row">
                     <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: space-between;">
                         
@@ -54,7 +54,7 @@ function senior_design_display() {
                             echo '</select>
                         </div>
 
-                        <div class="form-group" style="flex-grow: 2;">
+                        <div class="form-group" style="flex-grow: 1;">
                             <div class="input-group" style="width: 100%;">
                                 <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '">
                                 <span class="input-group-btn">
