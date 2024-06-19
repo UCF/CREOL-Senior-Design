@@ -3,11 +3,15 @@
 function senior_design_display() {
     // Determine the current page
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+
+    // Retrieve the category from the URL parameter
+    $category = isset($_GET['category']) ? $_GET['category'] : '';
+
     $args = array(
         'posts_per_page' => 5,
         'paged'          => $paged,
         'post_type'      => 'post',
-        'post_status'    => 'publish',
+        'post_status'    => 'publish'
     );
 
     // If a category is selected, filter posts by that category
@@ -35,22 +39,23 @@ function senior_design_display() {
               </style>';
 
         ?>
-            <select id="categorySelector" onchange="updatePostsByCategory()">
+        <select id="categorySelector" onchange="updatePostsByCategory()">
             <option value="">Select a Category</option>
             <?php
             $categories = get_categories(array('include' => '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
-            foreach ($categories as $category) {
-                echo '<option value="' . esc_attr($category->term_id) . '">' . esc_html($category->name) . '</option>';
+            foreach ($categories as $category_option) {
+                $selected = ($category_option->term_id == $category) ? ' selected' : '';
+                echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
             }
             ?>
-            </select>
+        </select>
 
-            <script>
-            function updatePostsByCategory() {
-                var selectedCategory = document.getElementById('categorySelector').value;
-                window.location.href = '?category=' + selectedCategory;
-            }
-            </script>
+        <script>
+        function updatePostsByCategory() {
+            var selectedCategory = document.getElementById('categorySelector').value;
+            window.location.href = '?category=' + selectedCategory;
+        }
+        </script>
         <?php
 
         echo '<div class="row mb-5">';
