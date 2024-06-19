@@ -4,14 +4,16 @@ function senior_design_display() {
     // Determine the current page
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
-    // Retrieve the category from the URL parameter
+    // Retrieve the category and search term from the URL parameter
     $category = isset($_GET['category']) ? $_GET['category'] : '';
+    $search_term = isset($_GET['search']) ? $_GET['search'] : '';
 
     $args = array(
         'posts_per_page' => 5,
         'paged'          => $paged,
         'post_type'      => 'post',
-        'post_status'    => 'publish'
+        'post_status'    => 'publish',
+        's'              => $search_term  // Search parameter
     );
 
     // If a category is selected, filter posts by that category
@@ -38,23 +40,27 @@ function senior_design_display() {
                 }
               </style>';
 
+        // Search and category selection form
         ?>
-        <select id="categorySelector" onchange="updatePostsByCategory()">
-            <option value="">Select a Category</option>
-            <?php
-            $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
-            foreach ($categories as $category_option) {
-                $selected = ($category_option->term_id == $category) ? ' selected' : '';
-                echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
-            }
-            ?>
-        </select>
+        <form action="" method="GET">
+            <input type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
+            <select id="categorySelector" name="category" onchange="this.form.submit()">
+                <option value="">All Semesters</option>
+                <?php
+                $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
+                foreach ($categories as $category_option) {
+                    $selected = ($category_option->term_id == $category) ? ' selected' : '';
+                    echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+                }
+                ?>
+            </select>
+            <button type="submit">Search</button>
+        </form>
 
         <script>
-        function updatePostsByCategory() {
-            var selectedCategory = document.getElementById('categorySelector').value;
-            window.location.href = '?category=' + selectedCategory;
-        }
+        document.getElementById('categorySelector').onchange = function() {
+            this.form.submit();
+        };
         </script>
         <?php
 
@@ -79,20 +85,4 @@ function senior_design_display() {
         $total_pages = ceil($total_posts / 5);
         if ($total_pages > 1){
             $current_page = max(1, get_query_var('paged'));
-            echo '<div class="pagination">';
-            echo paginate_links(array(
-                'base'      => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
-                'format'    => '?paged=%#%',
-                'current'   => $current_page,
-                'total'     => $total_pages,
-                'prev_text' => __('&laquo; Prev'),
-                'next_text' => __('Next &raquo;'),
-            ));
-            echo '</div>';
-        }
-
-        wp_reset_postdata();
-    } else {
-        echo 'No posts found.';
-    }
-}
+            echo '<
