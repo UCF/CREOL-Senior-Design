@@ -59,7 +59,7 @@ function senior_design_display() {
 
                     <div class="col-xs-12 col-sm-6 col-md-6 form-group">
                         <div class="input-group" style="width: 100%;">
-                            <input type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
+                            <input class="form-control" type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
                             <span class="input-group-btn">
                                 <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                             </span>
