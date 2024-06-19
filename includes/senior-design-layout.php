@@ -40,29 +40,35 @@ function senior_design_display() {
               </style>';
 
         ?>
-        <form action="" method="GET">
-            
-            <select id="categorySelector" name="category" onchange="this.form.submit()">
-                <option value="">All Semesters</option>
-                <?php
-                $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
-                foreach ($categories as $category_option) {
-                    $selected = ($category_option->term_id == $category) ? ' selected' : '';
-                    echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
-                }
-                ?>
-            </select>
-            <div class="col-xs-12 col-sm-6 col-md-6 form-group">
-                <div class="input-group" style="width: 100%;">
-                    <input type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
-                    <span class="input-group-btn">
-                        <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-                    </span>
-                </div>
-            </div>
-            
-        </form>
+        <div class="container">
+		    <div class="row">
+                <form action="" method="GET">
+                    
+                    <div class="col-xs-12 col-sm-6 col-md-2 form-group">
+                        <select id="categorySelector" name="category" onchange="this.form.submit()">
+                            <option value="">All Semesters</option>
+                            <?php
+                            $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
+                            foreach ($categories as $category_option) {
+                                $selected = ($category_option->term_id == $category) ? ' selected' : '';
+                                echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+                            }
+                            ?>
+                        </select>
+                    </div>
 
+                    <div class="col-xs-12 col-sm-6 col-md-6 form-group">
+                        <div class="input-group" style="width: 100%;">
+                            <input type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
         <script>
         document.getElementById('categorySelector').onchange = function() {
             this.form.submit();
