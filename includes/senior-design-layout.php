@@ -1,17 +1,17 @@
 <?php
 
-$the_query = new WP_Query( array( 'category_name' => 'Fall 2019' ) );
-
-// The Loop.
-if ( $the_query->have_posts() ) {
-	echo '<ul>';
-	while ( $the_query->have_posts() ) {
-		$the_query->the_post();
-		echo '<li>' . esc_html( get_the_title() ) . '</li>';
-	}
-	echo '</ul>';
-} else {
-	esc_html_e( 'Sorry, no posts matched your criteria.' );
+function senior_design_display() {
+    $the_query = new WP_Query( array( 'category_name' => 'staff,news' ) );
+    if ( $the_query->have_posts() ) {
+        echo '<ul>';
+        while ( $the_query->have_posts() ) {
+            $the_query->the_post();
+            echo '<li>' . esc_html( get_the_title() ) . '</li>';
+        }
+        echo '</ul>';
+    } else {
+        esc_html_e( 'Sorry, no posts matched your criteria.' );
+    }
+    // Restore original Post Data.
+    wp_reset_postdata();
 }
-// Restore original Post Data.
-wp_reset_postdata();
