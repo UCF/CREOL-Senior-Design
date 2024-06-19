@@ -1,7 +1,7 @@
 <?php
 
 function senior_design_display() {
-    $the_query = new WP_Query( array( 'cat' => '330' ) );
+    $the_query = new WP_Query( array( 'category_name' => '330' ) );
     if ( $the_query->have_posts() ) {
         echo '<ul>';
         while ( $the_query->have_posts() ) {
