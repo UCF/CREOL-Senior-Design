@@ -39,42 +39,33 @@ function senior_design_display() {
                 }
               </style>';
 
-        ?>
-        <div class="container">
-		    <div class="row">
-                <form action="" method="GET">
-                    
-                    <div class="col-xs-12 col-sm-6 col-md-2 form-group" style="width:100%;">
-                        <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width:800%;">
-                            <option value="">All Semesters</option>
-                            <?php
-                            $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
-                            foreach ($categories as $category_option) {
-                                $selected = ($category_option->term_id == $category) ? ' selected' : '';
-                                echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
-                            }
-                            ?>
-                        </select>
-                    </div>
-
-                    <div class="col-xs-12 col-sm-6 col-md-6 form-group">
-                        <div class="input-group" style="width: 200%;">
-                            <input class="form-control" type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
-                            <span class="input-group-btn">
-                                <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-                            </span>
+        echo '<div class="container">
+                <div class="row">
+                    <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: space-between;">
+                        
+                        <div class="form-group" style="flex-grow: 1; margin-right: 8px;">
+                            <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width: 100%;">
+                                <option value="">All Semesters</option>';
+                                $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
+                                foreach ($categories as $category_option) {
+                                    $selected = ($category_option->term_id == $category) ? ' selected' : '';
+                                    echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+                                }
+                            echo '</select>
                         </div>
-                    </div>
-                    
-                </form>
-            </div>
-        </div>
-        <script>
-        document.getElementById('categorySelector').onchange = function() {
-            this.form.submit();
-        };
-        </script>
-        <?php
+
+                        <div class="form-group" style="flex-grow: 2;">
+                            <div class="input-group" style="width: 100%;">
+                                <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                                </span>
+                            </div>
+                        </div>
+                        
+                    </form>
+                </div>
+            </div>';
 
         echo '<div class="row mb-5">';
         foreach ($post_list as $post) {
@@ -95,7 +86,7 @@ function senior_design_display() {
         
         // Pagination
         $total_pages = ceil($total_posts / 5);
-        if ($total_pages > 1){
+        if ($total_pages > 1) {
             $current_page = max(1, get_query_var('paged'));
             echo '<div class="pagination">';
             echo paginate_links(array(
