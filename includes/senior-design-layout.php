@@ -2,7 +2,7 @@
 
 function senior_design_display() {
     $post_list = get_posts(array(
-        'posts_per_page' => -1,
+        'posts_per_page' => 5,
         'post_type'      => 'post',
         'post_status'    => 'publish',
         'cat'  => '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330',
