@@ -44,7 +44,7 @@ function senior_design_display() {
 		    <div class="row">
                 <form action="" method="GET">
                     
-                    <div class="col-xs-12 col-sm-6 col-md-2 form-group">
+                    <div class="col-xs-12 col-sm-6 col-md-2 form-group" style="width:100%;">
                         <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width:100%;">
                             <option value="">All Semesters</option>
                             <?php
@@ -58,7 +58,7 @@ function senior_design_display() {
                     </div>
 
                     <div class="col-xs-12 col-sm-6 col-md-6 form-group">
-                        <div class="input-group" style="width: 100%;">
+                        <div class="input-group" style="width: 200%;">
                             <input class="form-control" type="text" name="search" placeholder="Search by title..." value="<?php echo esc_attr($search_term); ?>">
                             <span class="input-group-btn">
                                 <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
