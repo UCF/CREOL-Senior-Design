@@ -85,4 +85,20 @@ function senior_design_display() {
         $total_pages = ceil($total_posts / 5);
         if ($total_pages > 1){
             $current_page = max(1, get_query_var('paged'));
-            echo '<
+            echo '<div class="pagination">';
+            echo paginate_links(array(
+                'base'      => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
+                'format'    => '?paged=%#%',
+                'current'   => $current_page,
+                'total'     => $total_pages,
+                'prev_text' => __('&laquo; Prev'),
+                'next_text' => __('Next &raquo;'),
+            ));
+            echo '</div>';
+        }
+
+        wp_reset_postdata();
+    } else {
+        echo 'No posts found.';
+    }
+}
