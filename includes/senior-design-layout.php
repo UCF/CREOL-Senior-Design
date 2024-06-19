@@ -3,14 +3,19 @@
 function senior_design_display() {
     // Determine the current page
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-
     $args = array(
         'posts_per_page' => 5,
         'paged'          => $paged,
         'post_type'      => 'post',
         'post_status'    => 'publish',
-        'cat'            => '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330'
     );
+
+    // If a category is selected, filter posts by that category
+    if (!empty($category)) {
+        $args['cat'] = $category;
+    } else {
+        $args['cat'] = '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330'; // Default categories
+    }
 
     $post_list = get_posts($args);
     $total_posts = count(get_posts(array_merge($args, ['posts_per_page' => -1])));
@@ -28,6 +33,25 @@ function senior_design_display() {
                     box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
                 }
               </style>';
+
+        ?>
+            <select id="categorySelector" onchange="updatePostsByCategory()">
+            <option value="">Select a Category</option>
+            <?php
+            $categories = get_categories(array('include' => '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
+            foreach ($categories as $category) {
+                echo '<option value="' . esc_attr($category->term_id) . '">' . esc_html($category->name) . '</option>';
+            }
+            ?>
+            </select>
+
+            <script>
+            function updatePostsByCategory() {
+                var selectedCategory = document.getElementById('categorySelector').value;
+                window.location.href = '?category=' + selectedCategory;
+            }
+            </script>
+        <?php
 
         echo '<div class="row mb-5">';
         foreach ($post_list as $post) {
