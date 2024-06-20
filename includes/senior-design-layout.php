@@ -41,7 +41,7 @@ function senior_design_display() {
 
         echo '<div class="container mb-4" >
                 <div class="row">
-                    <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: space-between;">
+                    <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
                         
                         <div class="form-group" style="flex-grow: 1; margin-right: 8px;">
                             <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width: 100%;">
