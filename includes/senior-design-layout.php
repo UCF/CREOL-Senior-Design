@@ -67,40 +67,54 @@ function senior_design_display() {
                 </div>
             </div>';
 
-        echo '<div class="row mb-5">';
-        foreach ($post_list as $post) {
-            setup_postdata($post);
-            $permalink = get_permalink($post);
+            echo '<div class="row mb-5">';
+            foreach ($post_list as $post) {
+                setup_postdata($post);
+                $permalink = get_permalink($post);
+                echo '<div class="card-box col-12">';
+                echo '<a href="' . $permalink . '">';
+                echo '<div class="card custom-card">';
+                echo '<div class="card-body">';
+                echo '<h5 class="card-title">' . get_the_title($post) . '</h5>';
+                echo '</div>';
+                echo '</div>';
+                echo '</a>';
+                echo '</div>';
+            }
+            echo '</div>';
             
-            echo '<div class="card-box col-12">';
-            echo '<a href="' . $permalink . '">';
-            echo '<div class="card custom-card">';
-            echo '<div class="card-body">';
-            echo '<h5 class="card-title">' . get_the_title($post) . '</h5>';
-            echo '</div>';
-            echo '</div>';
-            echo '</a>';
-            echo '</div>';
-        }
-        echo '</div>';
-        
-        // Pagination
-        $total_pages = ceil($total_posts / 5);
-        if ($total_pages > 1) {
-            $current_page = max(1, get_query_var('paged'));
-            echo '<div class="pagination">';
-            echo paginate_links(array(
-                'base'      => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
-                'format'    => '?paged=%#%',
-                'current'   => $current_page,
-                'total'     => $total_pages,
-                'prev_text' => __('&laquo; Prev'),
-                'next_text' => __('Next &raquo;'),
-            ));
-            echo '</div>';
-        }
-
-        wp_reset_postdata();
+            // Custom pagination
+            if ($total_pages > 1) {
+                echo '<nav aria-label="Page navigation example">';
+                echo '<ul class="pagination">';
+    
+                $base_link = esc_url(get_pagenum_link(1));
+                $current_page = max(1, get_query_var('paged'));
+    
+                // Previous link
+                if ($current_page > 1) {
+                    echo '<li class="page-item"><a class="page-link" href="' . add_query_arg('paged', $current_page - 1, $base_link) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
+                }
+    
+                // Page numbers
+                for ($i = 1; $i <= $total_pages; $i++) {
+                    if ($i == $current_page) {
+                        echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
+                    } else {
+                        echo '<li class="page-item"><a class="page-link" href="' . add_query_arg('paged', $i, $base_link) . '">' . $i . '</a></li>';
+                    }
+                }
+    
+                // Next link
+                if ($current_page < $total_pages) {
+                    echo '<li class="page-item"><a class="page-link" href="' . add_query_arg('paged', $current_page + 1, $base_link) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
+                }
+    
+                echo '</ul>';
+                echo '</nav>';
+            }
+    
+            wp_reset_postdata();
     } else {
         echo 'No posts found.';
     }
