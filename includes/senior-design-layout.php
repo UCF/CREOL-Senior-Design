@@ -43,7 +43,7 @@ function senior_design_display() {
                 <div class="row">
                     <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
                         
-                        <div class="form-group" style="flex-grow: 1; margin-right: 8px;">
+                        <div class="form-group" style= margin-right: 8px;">
                             <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width: 100%;">
                                 <option value="">All Semesters</option>';
                                 $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
@@ -54,7 +54,7 @@ function senior_design_display() {
                             echo '</select>
                         </div>
 
-                        <div class="form-group" style="flex-grow: 1;">
+                        <div class="form-group" >
                             <div class="input-group" style="width: 100%;">
                                 <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '">
                                 <span class="input-group-btn">
