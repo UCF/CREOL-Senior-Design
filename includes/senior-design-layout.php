@@ -45,7 +45,7 @@ function senior_design_display() {
                     <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
                         
                         <div class="form-group mr-4">
-                            <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width: 100%;">
+                            <select class="form-control" id="categorySelector" name="category" onchange="submitFormResetPage()" style="width: 100%;">
                                 <option value="">All Semesters</option>';
                                 $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
                                 echo '<script>console.log(' . json_encode($categories) . ');</script>';
@@ -58,7 +58,7 @@ function senior_design_display() {
 
                         <div class="form-group" >
                             <div class="input-group" style="width: 100%;">
-                                <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">
+                                <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '" onchange="submitFormResetPage()" style="line-height: 1.15 !important;">
                                 <span class="input-group-btn">
                                     <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                                 </span>
