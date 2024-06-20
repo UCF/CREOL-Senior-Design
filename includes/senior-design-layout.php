@@ -17,12 +17,14 @@ function senior_design_display() {
     if (!empty($category)) {
         $args['cat'] = $category;
     } else {
-        $args['cat'] = '319, 320, 321, 322, 323, 324, 325, 326, 337, 328, 329, 330';
+        $args['cat'] = '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330';
     }
 
     $post_list = get_posts($args);
     $total_posts = count(get_posts(array_merge($args, ['posts_per_page' => -1])));
     $total_pages = ceil($total_posts / $args['posts_per_page']);
+
+    
 
     if (!empty($post_list)) {
         echo '<style>
@@ -46,6 +48,7 @@ function senior_design_display() {
                             <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width: 100%;">
                                 <option value="">All Semesters</option>';
                                 $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
+                                echo '<script>console.log(' . json_encode($categories) . ');</script>';
                                 foreach ($categories as $category_option) {
                                     $selected = ($category_option->term_id == $category) ? ' selected' : '';
                                     echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
