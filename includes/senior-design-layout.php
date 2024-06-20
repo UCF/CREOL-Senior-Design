@@ -33,13 +33,14 @@ function senior_design_display() {
         echo '<style>
             .custom-card {
                 border-radius: 12px;
+                border-style: none;
                 box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
                 margin-bottom: 20px;
                 padding: 20px;
                 transition: box-shadow 0.3s ease-in-out;
             }
             .custom-card:hover {
-                box-shadow: 0 0 12px 0 rgba(0,0,0,.15);
+                box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
             }
         </style>';
 
