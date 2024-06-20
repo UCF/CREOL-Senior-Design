@@ -124,14 +124,8 @@ function senior_design_display() {
         }
         function addQueryParam(url, key, value) {
             var newParam = key + "=" + value,
-                params = "?" + newParam;
-
-            if (url.indexOf("?") !== -1) {
-                params = "&" + newParam;
-            }
-
-            var newUrl = url.split("?")[0] + params;
-            return newUrl;
+                params = url.indexOf("?") !== -1 ? "&" : "?";
+            return url.split("?")[0] + params + newParam;
         }
     </script>';
 }
