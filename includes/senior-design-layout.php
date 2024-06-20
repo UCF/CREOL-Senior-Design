@@ -32,14 +32,14 @@ function senior_design_display() {
         // Inline CSS for card styling
         echo '<style>
             .custom-card {
-                border-radius: 15px;
-                box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+                border-radius: 12px;
+                box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
                 margin-bottom: 20px;
                 padding: 20px;
                 transition: box-shadow 0.3s ease-in-out;
             }
             .custom-card:hover {
-                box-shadow: 0 4px 8px rgba(0,0,0,0.3); 
+                box-shadow: 0 0 12px 0 rgba(0,0,0,.15);
             }
         </style>';
 
