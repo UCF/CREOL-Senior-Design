@@ -9,7 +9,7 @@ function senior_design_display() {
     $search_term = isset($_GET['search']) ? $_GET['search'] : '';
 
     $args = array(
-        'posts_per_page' => 5,
+        'posts_per_page' => 10,
         'paged'          => $paged,
         'post_type'      => 'post',
         'post_status'    => 'publish',
