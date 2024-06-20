@@ -49,7 +49,7 @@ function senior_design_display() {
                     <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
 
                         <div class="form-group mr-4">
-                            <select class="form-control" id="categorySelector" name="category" onchange="submitFormResetPage()" style="width: 100%;">
+                            <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
                                 <option value="">All Semester</option>';
         // Fetch categories and populate dropdown
         $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
@@ -62,7 +62,7 @@ function senior_design_display() {
 
                         <div class="form-group">
                             <div class="input-group" style="width: 100%;">
-                                <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" onchange="submitFormResetPage()" style="line-height: 1.15 !important;">
+                                <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">
                                 <span class="input-group-btn">
                                     <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                                 </span>
@@ -122,17 +122,26 @@ function senior_design_display() {
         echo 'No posts found.';
     }
 
-    // JavaScript function to handle form submission and reset page number
-    echo '<script>
-        function submitFormResetPage() {
-            var form = document.querySelector("form");
-            form.action = addQueryParam(form.action, "paged", "1");
-            form.submit();
-        }
-        function addQueryParam(url, key, value) {
-            var newParam = key + "=" + value,
-                params = url.indexOf("?") !== -1 ? "&" : "?";
-            return url.split("?")[0] + params + newParam;
-        }
-    </script>';
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categorySelector = document.getElementById('categorySelector');
+            const searchInput = document.querySelector('input[name=\"search\"]');
+            
+            categorySelector.addEventListener('change', function () {
+                updateURLParams();
+            });
+            
+            searchInput.addEventListener('change', function () {
+                updateURLParams();
+            });
+
+            function updateURLParams() {
+                const url = new URL(window.location);
+                url.searchParams.set('paged', '1');
+                url.searchParams.set('category', categorySelector.value);
+                url.searchParams.set('search', searchInput.value);
+                window.location.href = url.href;
+            }
+        });
+        </script>";
 }
