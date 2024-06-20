@@ -43,7 +43,7 @@ function senior_design_display() {
                 <div class="row">
                     <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
                         
-                        <div class="form-group" style= margin-right: 8px;">
+                        <div class="form-group mr-4">
                             <select class="form-control" id="categorySelector" name="category" onchange="this.form.submit()" style="width: 100%;">
                                 <option value="">All Semesters</option>';
                                 $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 337, 328, 329, 330'));
