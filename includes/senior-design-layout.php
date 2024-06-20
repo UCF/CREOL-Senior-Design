@@ -116,4 +116,22 @@ function senior_design_display() {
     } else {
         echo 'No posts found.';
     }
+    echo '<script>
+        function submitFormResetPage() {
+            var form = document.querySelector("form");
+            form.action = addQueryParam(form.action, "paged", "1");
+            form.submit();
+        }
+        function addQueryParam(url, key, value) {
+            var newParam = key + "=" + value,
+                params = "?" + newParam;
+
+            if (url.indexOf("?") !== -1) {
+                params = "&" + newParam;
+            }
+
+            var newUrl = url.split("?")[0] + params;
+            return newUrl;
+        }
+    </script>';
 }
