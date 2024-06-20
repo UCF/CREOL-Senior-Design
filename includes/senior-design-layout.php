@@ -24,6 +24,7 @@ function senior_design_display() {
 
     $post_list = get_posts($args);
     $total_posts = count(get_posts(array_merge($args, ['posts_per_page' => -1])));
+    $total_pages = ceil($total_posts / $args['posts_per_page']);
 
     if (!empty($post_list)) {
         echo '<style>
