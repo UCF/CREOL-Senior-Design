@@ -76,7 +76,7 @@ function senior_design_display() {
                 echo '<a href="' . $permalink . '">';
                 echo '<div class="card custom-card">';
                 echo '<div class="card-body">';
-                echo '<h5 class="card-title" style="margin-bottom: -2px;">' . get_the_title($post) . '</h5>';
+                echo '<h5 class="card-title mb-4">' . get_the_title($post) . '</h5>';
                 echo '</div>';
                 echo '</div>';
                 echo '</a>';
