@@ -84,20 +84,17 @@ function senior_design_display() {
             }
             echo '</div>';
             
-            // Custom pagination
             if ($total_pages > 1) {
-                echo '<nav aria-label="Page navigation example">';
-                echo '<ul class="pagination">';
+                echo '<nav aria-label="Page navigation">';
+                echo '<ul class="pagination justify-content-center">';
     
                 $base_link = esc_url(get_pagenum_link(1));
                 $current_page = max(1, get_query_var('paged'));
     
-                // Previous link
                 if ($current_page > 1) {
                     echo '<li class="page-item"><a class="page-link" href="' . add_query_arg('paged', $current_page - 1, $base_link) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
                 }
     
-                // Page numbers
                 for ($i = 1; $i <= $total_pages; $i++) {
                     if ($i == $current_page) {
                         echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
@@ -106,7 +103,6 @@ function senior_design_display() {
                     }
                 }
     
-                // Next link
                 if ($current_page < $total_pages) {
                     echo '<li class="page-item"><a class="page-link" href="' . add_query_arg('paged', $current_page + 1, $base_link) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
                 }
