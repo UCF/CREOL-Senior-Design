@@ -40,34 +40,32 @@ function senior_design_display() {
             }
             </style>';
 
-        echo '<div class="container mb-4" >
-                <div class="row">
-                    <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
-                        
-                        <div class="form-group mr-4">
-                            <select class="form-control" id="categorySelector" name="category" onchange="submitFormResetPage()" style="width: 100%;">
-                                <option value="">All Semesters</option>';
-                                $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
-                                echo '<script>console.log(' . json_encode($categories) . ');</script>';
-                                foreach ($categories as $category_option) {
-                                    $selected = ($category_option->term_id == $category) ? ' selected' : '';
-                                    echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
-                                }
-                            echo '</select>
-                        </div>
+            echo '<div class="container mb-4">
+            <div class="row">
+                <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
+                    
+                    <div class="form-group mr-4">
+                        <select class="form-control" id="categorySelector" name="category" onchange="submitFormResetPage()" style="width: 100%;">
+                            <option value="">All Semesters</option>';
+                            $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
+                            foreach ($categories as $category_option) {
+                                $selected = ($category_option->term_id == $category) ? ' selected' : '';
+                                echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+                            }
+                        echo '</select>
+                    </div>
 
-                        <div class="form-group" >
-                            <div class="input-group" style="width: 100%;">
-                                <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '" onchange="submitFormResetPage()" style="line-height: 1.15 !important;">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-                                </span>
-                            </div>
+                    <div class="form-group" >
+                        <div class="input-group" style="width: 100%;">
+                            <input class="form-control" type="text" name="search" placeholder="Search by title..." value="' . esc_attr($search_term) . '" onchange="submitFormResetPage()" style="line-height: 1.15 !important;">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                            </span>
                         </div>
-                        
-                    </form>
-                </div>
-            </div>';
+                    </div>
+                </form>
+            </div>
+        </div>';
 
             echo '<div class="row mb-5">';
             foreach ($post_list as $post) {
