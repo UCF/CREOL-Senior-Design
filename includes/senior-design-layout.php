@@ -56,7 +56,7 @@ function senior_design_display() {
 
                         <div class="form-group mr-4">
                             <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
-                                <option value="">All Semesters</option>';
+                                <option value="">All Semester</option>';
         // Fetch categories and populate dropdown
         $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
         foreach ($categories as $category_option) {
@@ -141,7 +141,7 @@ function senior_design_display() {
             });
             
             searchInput.addEventListener('change', function () {
-                // updateURLParams();
+                updateURLParams();
             });
 
             function updateURLParams() {
