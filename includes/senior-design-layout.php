@@ -51,7 +51,7 @@ function senior_design_display() {
 
                         <div class="form-group mr-4">
                             <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
-                                <option value="">All Semesters</option>';
+                                <option value="">All Semester</option>';
         // Fetch categories and populate dropdown
         $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
         foreach ($categories as $category_option) {
@@ -92,28 +92,26 @@ function senior_design_display() {
 
         // Pagination controls
         if ($total_pages > 1) {
-            echo '<nav aria-label="Page navigation"><ul class="pagination justify-content-center">';
+            echo '<nav aria-label="Page navigation">';
+            echo '<ul class="pagination justify-content-center">';
 
-            $base_link = esc_url(remove_query_arg('paged', get_pagenum_link(1)));
+            $base_link = esc_url(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
             if ($current_page > 1) {
-                $prev_link = htmlspecialchars($base_link . '?paged=' . ($current_page - 1) . '&category=' . urlencode($category) . '&search=' . urlencode($search_term));
-                echo '<li class="page-item"><a class="page-link" href="' . $prev_link . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
+                echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg(['paged' => $current_page - 1], $base_link)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
             }
 
             for ($i = 1; $i <= $total_pages; $i++) {
-                $page_link = htmlspecialchars($base_link . '?paged=' . $i . '&category=' . urlencode($category) . '&search=' . urlencode($search_term));
                 if ($i == $current_page) {
                     echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
                 } else {
-                    echo '<li class="page-item"><a class="page-link" href="' . $page_link . '">' . $i . '</a></li>';
+                    echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg(['paged' => $i], $base_link)) . '">' . $i . '</a></li>';
                 }
             }
 
             if ($current_page < $total_pages) {
-                $next_link = htmlspecialchars($base_link . '?paged=' . ($current_page + 1) . '&category=' . urlencode($category) . '&search=' . urlencode($search_term));
-                echo '<li class="page-item"><a class="page-link" href="' . $next_link . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
+                echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg(['paged' => $current_page + 1], $base_link)) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
             }
 
             echo '</ul></nav>';
