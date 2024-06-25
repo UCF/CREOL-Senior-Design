@@ -32,54 +32,53 @@ function senior_design_display() {
     $total_posts = count(get_posts(array_merge($args, ['posts_per_page' => -1])));
     $total_pages = ceil($total_posts / $args['posts_per_page']);
 
-    // Check if there are any posts returned by the query
-    if (!empty($post_list)) {
-        // Inline CSS for card styling
-        echo '<style>
-            .custom-card {
-                border-radius: 12px;
-                border-style: none;
-                box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
-                margin-bottom: 20px;
-                padding: 20px;
-                transition: box-shadow 0.3s ease-in-out;
-            }
-            .custom-card:hover {
-                box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
-            }
-        </style>';
 
-        // Form setup for category selection and search functionality
-        echo '<div class="container mb-4">
-                <div class="row">
-                    <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
-
-                        <div class="form-group mr-4">
-                            <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
-                                <option value="">All Semester</option>';
-        // Fetch categories and populate dropdown
-        $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
-        foreach ($categories as $category_option) {
-            $selected = ($category_option->term_id == $category) ? ' selected' : '';
-            echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+    echo '<style>
+        .custom-card {
+            border-radius: 12px;
+            border-style: none;
+            box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: box-shadow 0.3s ease-in-out;
         }
-        echo '</select>
-                        </div>
+        .custom-card:hover {
+            box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
+        }
+    </style>';
 
-                        <div class="form-group">
-                            <div class="input-group" style="width: 100%;">
-                                <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>';
+    // Form setup for category selection and search functionality
+    echo '<div class="container mb-4">
+            <div class="row">
+                <form action="" method="GET" class="form-inline" style="width: 100%; display: flex; justify-content: end;">
 
-        // Display posts
-        echo '<div class="row mb-5">';
+                    <div class="form-group mr-4">
+                        <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
+                            <option value="">All Semester</option>';
+    // Fetch categories and populate dropdown
+    $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
+    foreach ($categories as $category_option) {
+        $selected = ($category_option->term_id == $category) ? ' selected' : '';
+        echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+    }
+    echo '</select>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="input-group" style="width: 100%;">
+                            <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>';
+
+    // Display posts
+    echo '<div class="row mb-5">';
+    if (!empty($post_list)) {
         foreach ($post_list as $post) {
             setup_postdata($post);
             $permalink = get_permalink($post);
