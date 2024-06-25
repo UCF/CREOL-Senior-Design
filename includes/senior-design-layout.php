@@ -56,7 +56,7 @@ function senior_design_display() {
 
                         <div class="form-group mr-4">
                             <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
-                                <option value="">All Semesters</option>';
+                                <option value="">All Semester</option>';
         // Fetch categories and populate dropdown
         $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
         foreach ($categories as $category_option) {
@@ -132,25 +132,31 @@ function senior_design_display() {
     }
 
     echo "<script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const categorySelector = document.getElementById('categorySelector');
-            const searchInput = document.querySelector('input[name=\"search\"]');
-            
-            categorySelector.addEventListener('change', function () {
-                updateURLParams();
-            });
-            
-            searchInput.addEventListener('change', function () {
-                updateURLParams();
-            });
+        document.addEventListener('DOMContentLoaded', function() {
+        const categorySelector = document.getElementById('categorySelector');
+        const searchInput = document.querySelector('input[name=\"search\"]');
 
-            function updateURLParams() {
-                const url = new URL(window.location);
-                url.searchParams.set('paged', '1');
-                url.searchParams.set('category', categorySelector.value);
-                url.searchParams.set('search', searchInput.value);
-                window.location.href = url.href;
-            }
+        categorySelector.addEventListener('change', function() {
+            updateURLParams();
         });
+
+        searchInput.addEventListener('input', function() {
+            updateURLParams();
+        });
+
+        function updateURLParams() {
+            const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
+
+            params.set('paged', '1');
+            params.set('category', categorySelector.value);
+            params.set('search', searchInput.value);
+
+            url.search = params.toString();
+            window.location.href = url;
+        }
+    });
         </script>";
 }
+
+
