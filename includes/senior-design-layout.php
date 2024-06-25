@@ -51,7 +51,7 @@ function senior_design_display() {
 
                         <div class="form-group mr-4">
                             <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
-                                <option value="">All Semester</option>';
+                                <option value="">All Semesters</option>';
         // Fetch categories and populate dropdown
         $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
         foreach ($categories as $category_option) {
@@ -95,7 +95,7 @@ function senior_design_display() {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
 
-            $base_link = esc_url_raw(emove_query_arg(['paged'], get_pagenum_link(1)));
+            $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
             $link_with_params = add_query_arg(['category' => $category], $base_link);
