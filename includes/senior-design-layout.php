@@ -98,7 +98,7 @@ function senior_design_display() {
             $base_link = esc_url(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $link_with_params = add_query_arg(['category' => $category, 'search' => $search_term], $base_link);
+            $link_with_params = add_query_arg(['category' => $category], $base_link);
             
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
