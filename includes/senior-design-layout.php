@@ -95,7 +95,7 @@ function senior_design_display() {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
 
-            $base_link = remove_query_arg(['paged'], get_pagenum_link(1));
+            $base_link = esc_url_raw(emove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
             $link_with_params = add_query_arg(['category' => $category], $base_link);
