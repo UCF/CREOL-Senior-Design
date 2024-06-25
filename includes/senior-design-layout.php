@@ -94,18 +94,21 @@ function senior_design_display() {
         if ($total_pages > 1) {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
-
-            $base_link = esc_url(remove_query_arg(['paged'], get_pagenum_link(1)));
+        
+            $base_link = esc_url(remove_query_arg('paged', get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
-
-            $link_with_params = add_query_arg(['category' => $category, 'search' => $search_term], $base_link);
-            
+        
+            $link_with_params = add_query_arg([
+                'category' => $category,
+                'search' => $search_term
+            ], $base_link);
+        
             if ($current_page > 1) {
-                echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
+                echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg('paged', $current_page - 1, $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
             }
         
             for ($i = 1; $i <= $total_pages; $i++) {
-                $page_link = esc_url(add_query_arg(['paged' => $i], $link_with_params));
+                $page_link = esc_url(add_query_arg('paged', $i, $link_with_params));
                 if ($i == $current_page) {
                     echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
                 } else {
@@ -114,7 +117,7 @@ function senior_design_display() {
             }
         
             if ($current_page < $total_pages) {
-                echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg(['paged' => $current_page + 1], $link_with_params)) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
+                echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg('paged', $current_page + 1, $link_with_params)) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
             }
         
             echo '</ul></nav>';
