@@ -51,7 +51,7 @@ function senior_design_display() {
 
                         <div class="form-group mr-4">
                             <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
-                                <option value="">All Semesters</option>';
+                                <option value="">All Semester</option>';
         // Fetch categories and populate dropdown
         $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
         foreach ($categories as $category_option) {
@@ -63,7 +63,7 @@ function senior_design_display() {
 
                         <div class="form-group">
                             <div class="input-group" style="width: 100%;">
-                                <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">
+                                <input class="form-control" type="text" name="search" id="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">
                                 <span class="input-group-btn">
                                     <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>
                                 </span>
@@ -95,13 +95,12 @@ function senior_design_display() {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
         
-            $base_link = esc_url(remove_query_arg('paged', get_pagenum_link(1)));
-            $current_page = max(1, get_query_var('paged'));
-        
-            $link_with_params = add_query_arg([
-                'category' => $category,
-                'search' => $search_term
-            ], $base_link);
+        $base_link = esc_url(remove_query_arg('paged', get_pagenum_link(1)));
+
+        $link_with_params = add_query_arg([
+            'category' => $category,
+            'search' => $search_term
+        ], $base_link);
         
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url(add_query_arg('paged', $current_page - 1, $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
@@ -130,24 +129,29 @@ function senior_design_display() {
 
     echo "<script>
         document.addEventListener('DOMContentLoaded', function () {
-            const categorySelector = document.getElementById('categorySelector');
-            const searchInput = document.querySelector('input[name=\"search\"]');
-            
-            categorySelector.addEventListener('change', function () {
-                updateURLParams();
-            });
-            
-            searchInput.addEventListener('change', function () {
-                updateURLParams();
-            });
-
-            function updateURLParams() {
-                const url = new URL(window.location);
-                url.searchParams.set('paged', '1');
-                url.searchParams.set('category', categorySelector.value);
-                url.searchParams.set('search', searchInput.value);
-                window.location.href = url.href;
-            }
+        const categorySelector = document.getElementById('categorySelector');
+        const searchInput = document.getElementById('search');
+        
+        categorySelector.addEventListener('change', function () {
+            updateURLParams();
         });
+        
+        searchInput.addEventListener('change', function () {
+            updateURLParams();
+        });
+
+        function updateURLParams() {
+            const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
+
+            params.set('paged', '1');
+            params.set('category', categorySelector.value);
+            params.set('search', searchInput.value);
+
+            // Properly build the URL with updated search params
+            url.search = params.toString();
+            window.location.href = url.href;
+        }
+    });
         </script>";
 }
