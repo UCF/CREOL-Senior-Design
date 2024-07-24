@@ -24,7 +24,7 @@ function senior_design_display() {
     if (!empty($category)) {
         $args['cat'] = $category;
     } else {
-        $args['cat'] = '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341';
+        $args['cat'] = '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342';
     }
 
     // Retrieve the list of posts based on the arguments
@@ -56,7 +56,7 @@ function senior_design_display() {
                         <select class="form-control" id="categorySelector" name="category" style="width: 100%;">
                             <option value="">All Semester</option>';
     // Fetch categories and populate dropdown
-    $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330'));
+    $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330, 342'));
     foreach ($categories as $category_option) {
         $selected = ($category_option->term_id == $category) ? ' selected' : '';
         echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
