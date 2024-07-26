@@ -1,6 +1,6 @@
 <?php
 
-function so_handle_038($content) {
+function new_so_handle_038($content) {
     $content = str_replace(array("#038;","&amp;"), "&", $content); 
     return $content;
 }
@@ -131,11 +131,11 @@ function new_senior_design_display() {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $link_with_params = so_handle_038(add_query_arg(['category' => $category], $base_link));
+            $link_with_params = new_so_handle_038(add_query_arg(['category' => $category], $base_link));
             
             
             if ($current_page > 1) {
-                echo '<li class="page-item"><a class="page-link" href="' . so_handle_038(esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params))) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
+                echo '<li class="page-item"><a class="page-link" href="' . new_so_handle_038(esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params))) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
             }
         
             for ($i = 1; $i <= $total_pages; $i++) {
