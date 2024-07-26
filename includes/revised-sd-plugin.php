@@ -113,7 +113,7 @@ function new_senior_design_display() {
             $permalink = get_permalink($post);
             $short_report = get_field('short_report', $post->ID);
             $long_report = get_field('long_report', $post->ID);
-            $presentation_slides = get_field('presentation_slides', $post->ID);            
+            $presentation_slides = get_field('presentation_slides', $post->ID);
 
             echo '<div class="card-box col-12">';
             // echo '<a href="' . $permalink . '">';
@@ -122,10 +122,14 @@ function new_senior_design_display() {
             echo '<h5 class="card-title mb-1" style="margin-top: 2px;">' . get_the_title($post) . '</h5>';
             echo '<div class="project-reports">';
             if($short_report || $long_report || $presentation_slides) {
-                echo 'View: <a href="' . $short_report . '">8-Page Report</a> | ';
-                echo '<a href="' . $long_report . '">100-Page Report</a> | ';
-                echo '<a href="' . $presentation_slides . '">Presentation Slides</a> | ';
-            }
+                echo 'View: ';
+                if($short_report)
+                    echo '<a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
+                if($long_report)
+                    echo '<a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
+                if($presentation_slides)
+                    echo '<a href="' . esc_url($presentation_slides) . '" target="_blank">Presentation Slides</a>';
+            } 
             echo '</div>';
             echo '</div>';
             echo '</div>';
