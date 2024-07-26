@@ -111,7 +111,7 @@ function new_senior_design_display() {
         foreach ($post_list as $post) {
             setup_postdata($post);
             $permalink = get_permalink($post);
-            $short_report = get_field('field_short_report');
+            $short_report = get_field('short_report');
             $long_report = get_field('field_long_report');
             $presentation_slides = get_field('field_presentation_slides');
 
@@ -121,7 +121,7 @@ function new_senior_design_display() {
             echo '<div class="card-body">';
             echo '<h5 class="card-title mb-1" style="margin-top: 2px;">' . get_the_title($post) . '</h5>';
             echo '<div class="project-reports">';
-                echo '<a href="' . $short_report . '">8-Page Report</a> | ';
+                echo 'View: <a href="' . $short_report . '">8-Page Report</a> | ';
                 echo '<a href="' . $long_report . '">100-Page Report</a> | ';
                 echo '<a href="' . $presentation_slides . '">Presentation Slides</a> | ';
             echo '</div>';
