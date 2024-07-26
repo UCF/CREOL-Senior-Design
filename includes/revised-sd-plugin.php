@@ -111,14 +111,26 @@ function new_senior_design_display() {
         foreach ($post_list as $post) {
             setup_postdata($post);
             $permalink = get_permalink($post);
+            $short_report = get_field('field_short_report');
+            $long_report = get_field('field_long_report');
+            $presentation_slides = get_field('field_presentation_slides');
+
             echo '<div class="card-box col-12">';
-            echo '<a href="' . $permalink . '">';
+            // echo '<a href="' . $permalink . '">';
             echo '<div class="card custom-card">';
             echo '<div class="card-body">';
             echo '<h5 class="card-title mb-1" style="margin-top: 2px;">' . get_the_title($post) . '</h5>';
+            echo '<div class="project-reports">';
+            if ($short_report)
+                echo '<a href="' . $short_report . '">8-Page Report</a>';
+            if ($long_report)
+                echo '<a href="' . $long_report . '">100-Page Report</a>';
+            if ($presentation_slides)
+                echo '<a href="' . $presentation_slides . '">Presentation Slides</a>';
             echo '</div>';
             echo '</div>';
-            echo '</a>';
+            echo '</div>';
+            // echo '</a>';
             echo '</div>';
         }
         echo '</div>';
