@@ -121,11 +121,8 @@ function new_senior_design_display() {
             echo '<div class="card-body">';
             echo '<h5 class="card-title mb-1" style="margin-top: 2px;">' . get_the_title($post) . '</h5>';
             echo '<div class="project-reports">';
-            if ($short_report)
                 echo '<a href="' . $short_report . '">8-Page Report</a>';
-            if ($long_report)
                 echo '<a href="' . $long_report . '">100-Page Report</a>';
-            if ($presentation_slides)
                 echo '<a href="' . $presentation_slides . '">Presentation Slides</a>';
             echo '</div>';
             echo '</div>';
