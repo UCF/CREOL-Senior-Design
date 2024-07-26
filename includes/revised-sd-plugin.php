@@ -111,9 +111,9 @@ function new_senior_design_display() {
         foreach ($post_list as $post) {
             setup_postdata($post);
             $permalink = get_permalink($post);
-            $short_report = get_field('short_report');
-            $long_report = get_field('long_report');
-            $presentation_slides = get_field('presentation_slides');
+            $short_report = get_field('short_report', $post->ID);
+            $long_report = get_field('long_report', $post->ID);
+            $presentation_slides = get_field('presentation_slides', $post->ID);            
 
             echo '<div class="card-box col-12">';
             // echo '<a href="' . $permalink . '">';
