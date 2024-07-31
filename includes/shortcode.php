@@ -50,6 +50,20 @@ function sd_project_display($atts) {
 
     $query = new WP_Query($args);
 
+    echo '<style>
+        .custom-card {
+            border-radius: 12px;
+            border-style: none;
+            box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .custom-card:hover {
+            box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
+        }
+    </style>';
+
     if ($query->have_posts()) :
         echo '<div class="sd-projects">';
         while ($query->have_posts()) : $query->the_post();
@@ -58,11 +72,31 @@ function sd_project_display($atts) {
             $presentation = get_field('presentation_slides_file');
             $contributors = get_field('project_contributors');
 
-            echo '<h1>' . get_the_title() . '</h1>';
-            echo '<p>Contributors: ' . esc_html($contributors) . '</p>';
-            echo '<p>Short Report: <a href="' . esc_url($short_report) . '">Download</a></p>';
-            echo '<p>Long Report: <a href="' . esc_url($long_report) . '">Download</a></p>';
-            echo '<p>Presentation Slides: <a href="' . esc_url($presentation) . '">Download</a></p>';
+            echo '<div class="card-box col-12">';
+            echo '<div class="card custom-card">';
+            echo '    <div class="card-body">';
+            echo '        <h5 class="card-title my-1">' . get_the_title() . '</h5>';
+            if ($contributors)
+                echo '        <p>' . esc_html($contributors) . '</p>';
+            if ($short_report || $long_report || $presentation) {
+                echo '        <p><strong>View: </strong>';
+                if ($short_report)
+                    echo '            <a href="' . esc_url($short_report) . '">Short Report</a> | ';
+                if ($long_report)
+                    echo '            <a href="' . esc_url($long_report) . '">Short Report</a> | ';
+                if ($presentation)
+                    echo '            <a href="' . esc_url($presentation) . '">Short Report</a>';
+            };
+            echo '        </p>';
+            echo '    </div>';
+            echo '</div>';
+            echo '</div>';
+
+            // echo '<h1>' . get_the_title() . '</h1>';
+            // echo '<p>Contributors: ' . esc_html($contributors) . '</p>';
+            // echo '<p>Short Report: <a href="' . esc_url($short_report) . '">Download</a></p>';
+            // echo '<p>Long Report: <a href="' . esc_url($long_report) . '">Download</a></p>';
+            // echo '<p>Presentation Slides: <a href="' . esc_url($presentation) . '">Download</a></p>';
             echo get_the_content();
         endwhile;
         echo '</div>';
