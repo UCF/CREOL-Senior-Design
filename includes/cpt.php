@@ -1,6 +1,8 @@
 <?php
 // Register Custom Post Type
 function sd_register_post_type() {
+    if (post_type_exists('sd_project')) return;
+    
     $args = array(
         'labels' => array(
             'name' => 'Senior Design Projects',
