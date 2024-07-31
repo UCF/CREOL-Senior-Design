@@ -75,11 +75,11 @@ function sd_project_display($atts) {
             echo '<div class="card-box col-12">';
             echo '<div class="card custom-card">';
             echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-1">' . get_the_title() . '</h5>';
+            echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
             if ($contributors)
-                echo '        <p>' . esc_html($contributors) . '</p>';
+                echo '        <p class="my-3">' . esc_html($contributors) . '</p>';
             if ($short_report || $long_report || $presentation) {
-                echo '        <p><strong>View: </strong>';
+                echo '        <p class="my-3"><strong>View: </strong>';
                 if ($short_report)
                     echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
                 if ($long_report)
