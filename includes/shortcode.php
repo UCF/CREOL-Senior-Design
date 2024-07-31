@@ -77,7 +77,7 @@ function sd_project_display($atts) {
             echo '    <div class="card-body">';
             echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
             if ($contributors)
-                echo '        <p class="my-2">' . esc_html($contributors) . '</p>';
+                echo '        <p class="my-1">' . esc_html($contributors) . '</p>';
             if ($short_report || $long_report || $presentation) {
                 echo '        <p class="my-1"><strong>View: </strong>';
                 if ($short_report)
