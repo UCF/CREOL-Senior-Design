@@ -13,7 +13,5 @@ if ( ! defined( 'WPINC' ) ) {
 }
 
 require_once 'includes/senior-design-layout.php';
-require_once 'includes/revised-sd-plugin.php';
 
 add_shortcode( 'senior-design', 'senior_design_display');
-add_shortcode( 'new-senior-design', 'new_senior_design_display');
