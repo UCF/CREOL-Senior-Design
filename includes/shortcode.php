@@ -79,7 +79,7 @@ function sd_project_display($atts) {
             if ($contributors)
                 echo '        <p class="my-3">' . esc_html($contributors) . '</p>';
             if ($short_report || $long_report || $presentation) {
-                echo '        <p class="my-3"><strong>View: </strong>';
+                echo '        <p class="my-1"><strong>View: </strong>';
                 if ($short_report)
                     echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
                 if ($long_report)
