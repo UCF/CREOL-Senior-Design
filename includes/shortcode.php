@@ -56,9 +56,10 @@ function sd_project_display($atts) {
             $short_report = get_field('short_report_file');
             $long_report = get_field('long_report_file');
             $presentation = get_field('presentation_slides_file');
+            $contributors = get_field('project_contributors');
 
             echo '<h1>' . get_the_title() . '</h1>';
-            echo '<p>Contributors: ' . get_field('project_contributors') . '</p>';
+            echo '<p>Contributors: ' . esc_html($contributors) . '</p>';
             echo '<p>Short Report: <a href="' . esc_url($short_report) . '">Download</a></p>';
             echo '<p>Long Report: <a href="' . esc_url($long_report) . '">Download</a></p>';
             echo '<p>Presentation Slides: <a href="' . esc_url($presentation) . '">Download</a></p>';
