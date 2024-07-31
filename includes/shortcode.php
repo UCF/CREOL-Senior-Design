@@ -91,12 +91,7 @@ function sd_project_display($atts) {
             echo '    </div>';
             echo '</div>';
             echo '</div>';
-
-            // echo '<h1>' . get_the_title() . '</h1>';
-            // echo '<p>Contributors: ' . esc_html($contributors) . '</p>';
-            // echo '<p>Short Report: <a href="' . esc_url($short_report) . '">Download</a></p>';
-            // echo '<p>Long Report: <a href="' . esc_url($long_report) . '">Download</a></p>';
-            // echo '<p>Presentation Slides: <a href="' . esc_url($presentation) . '">Download</a></p>';
+            
             echo get_the_content();
         endwhile;
         echo '</div>';
