@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Senior Design
+Plugin Name: Senior Design V2
 Description: Displays Senior Design projects with search and filter functionality.
 Version: 0.0.0
 Author: UCF Web Communications
