@@ -1,15 +1,16 @@
 <?php
 /*
-Plugin Name: Senior Design Projects
+Plugin Name: Senior Design
 Description: Displays Senior Design projects with search and filter functionality.
-Version: 1.0
-Author: Your Name
+Version: 0.0.0
+Author: UCF Web Communications
 License: GPL3
+GitHub Plugin URI: UCF/CREOL-Senior-Design
 */
 
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
-    exit;
+    die;
 }
 
 // Include required files
