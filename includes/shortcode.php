@@ -91,8 +91,6 @@ function sd_project_display($atts) {
             echo '    </div>';
             echo '</div>';
             echo '</div>';
-            
-            echo get_the_content();
         endwhile;
         echo '</div>';
 
