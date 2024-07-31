@@ -81,11 +81,11 @@ function sd_project_display($atts) {
             if ($short_report || $long_report || $presentation) {
                 echo '        <p><strong>View: </strong>';
                 if ($short_report)
-                    echo '            <a href="' . esc_url($short_report) . '">Short Report</a> | ';
+                    echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
                 if ($long_report)
-                    echo '            <a href="' . esc_url($long_report) . '">Short Report</a> | ';
+                    echo '            <a href="' . esc_url($long_report) . '" target="_blank">Short Report</a> | ';
                 if ($presentation)
-                    echo '            <a href="' . esc_url($presentation) . '">Short Report</a>';
+                    echo '            <a href="' . esc_url($presentation) . '" target="_blank">Short Report</a>';
             };
             echo '        </p>';
             echo '    </div>';
