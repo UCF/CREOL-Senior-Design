@@ -64,7 +64,7 @@ function sd_project_display($atts) {
         }
     </style>';
 
-    if ($query->have_posts()) :
+    if ($query->have_posts()) {
         echo '<div class="sd-projects">';
         while ($query->have_posts()) : $query->the_post();
             $short_report = get_field('short_report_file');
