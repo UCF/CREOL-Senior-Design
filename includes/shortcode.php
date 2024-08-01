@@ -48,6 +48,7 @@ function sd_project_display($atts) {
         's' => $search,
     );
 
+    echo 'console.log("Semester value: "' . esc_attr($semester). ')';
     if ($semester) {
         $args['tax_query'] = array(
             array(
@@ -74,8 +75,8 @@ function sd_project_display($atts) {
         }
     </style>';
 
+    echo '<div class="sd-projects">';
     if ($query->have_posts()) {
-        echo '<div class="sd-projects">';
         while ($query->have_posts()) : $query->the_post();
             $short_report = get_field('short_report_file');
             $long_report = get_field('long_report_file');
@@ -139,6 +140,35 @@ function sd_project_display($atts) {
     } else {
         echo '<p>No projects found.</p>';
     }
+
+    echo "<script>
+        document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.form-inline');
+        const semesterSelector = document.getElementById('semesterSelector');
+        const searchInput = document.querySelector('input[name=\"search\"]');
+
+        form.addEventListener('submit', function(event) {
+            updateURLParams();
+            event.preventDefault();
+        });
+
+        semesterSelector.addEventListener('change', function() {
+            updateURLParams();
+        });
+
+        function updateURLParams() {
+            const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
+
+            params.set('paged', '1');
+            params.set('category', semesterSelector.value);
+            params.set('search', searchInput.value);
+
+            url.search = params.toString();
+            window.location.href = url.toString();
+        }
+    });
+        </script>";
 
     return ob_get_clean();
 }
