@@ -143,20 +143,24 @@ function sd_project_display($atts) {
 
     echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded');
             const form = document.getElementById('utility-bar');
             const semesterSelector = document.getElementById('semesterSelector');
             const searchInput = document.getElementById('searchFilter');
 
             form.addEventListener('submit', function(event) {
-                updateURLParams();
+                console.log('Form submitted');
                 event.preventDefault();
+                updateURLParams();
             });
 
             semesterSelector.addEventListener('change', function() {
+                console.log('Semester changed');
                 updateURLParams();
             });
 
             function updateURLParams() {
+                console.log('Updating URL parameters');
                 const url = new URL(window.location);
                 const params = new URLSearchParams(url.search);
 
@@ -165,10 +169,11 @@ function sd_project_display($atts) {
                 params.set('search', searchInput.value);
 
                 url.search = params.toString();
+                console.log('Redirecting to:', url.toString());
                 window.location.href = url.toString();
             }
         });
-        </script>";
+    </script>";
 
     return ob_get_clean();
 }
