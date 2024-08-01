@@ -18,7 +18,7 @@ function sd_project_display($atts) {
     echo '  <div class="row">';
     echo '    <form class="form-inline" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
     echo '      <div class="form-group mr-4">';
-    echo '          <select class="form-control" id="categorySelector" name="category" style="width: 100%;">';
+    echo '          <select class="form-control" id="categorySelector" name="semester" style="width: 100%;">'; // Updated 'category' to 'semester'
     echo '              <option value="">All Semesters</option>';
     
     foreach ($terms as $term) {
@@ -75,14 +75,14 @@ function sd_project_display($atts) {
     </style>';
 
     if ($query->have_posts()) {
-        echo '<div class="sd-projects">';
+        echo '<div class="row sd-projects">'; // Updated to 'row' for Bootstrap grid
         while ($query->have_posts()) : $query->the_post();
             $short_report = get_field('short_report_file');
             $long_report = get_field('long_report_file');
             $presentation = get_field('presentation_slides_file');
             $contributors = get_field('project_contributors');
 
-            echo '<div class="card-box col-12">';
+            echo '<div class="col-md-4 col-sm-6 mb-4">'; // Bootstrap column classes
             echo '<div class="card custom-card">';
             echo '    <div class="card-body">';
             echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
@@ -135,7 +135,6 @@ function sd_project_display($atts) {
             echo '</ul></nav>';
         }
 
-
         wp_reset_postdata();
     } else {
         echo '<p>No projects found.</p>';
@@ -144,3 +143,4 @@ function sd_project_display($atts) {
     return ob_get_clean();
 }
 add_shortcode('sd_project_display', 'sd_project_display');
+?>
