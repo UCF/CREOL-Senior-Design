@@ -5,7 +5,7 @@ function sd_project_display($atts) {
 
     // Get query variables
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
-    $search = isset($_GET['search']) ? ($_GET['search']) : '';
+    $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Display semester dropdown
@@ -114,7 +114,7 @@ function sd_project_display($atts) {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester], $base_link));
+            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'search' => $search], $base_link));
 
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
@@ -147,7 +147,7 @@ function sd_project_display($atts) {
             const semesterSelector = document.getElementById('semesterSelector');
             const searchInput = document.getElementById('searchFilter');
 
-            form.addEventListener('submit', function(event) {
+            form.addEventListener('submit', function() {
                 updateURLParams();
             });
 
