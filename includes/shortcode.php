@@ -7,17 +7,16 @@ function sd_project_display($atts) {
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-
+    
     // Query arguments
     $args = array(
         'post_type' => 'sd_project',
         'posts_per_page' => 10,
         'paged' => $paged,
         's' => $search,
-        'orderby' => 'date', // Default order by date
-        'order' => 'DESC',   // Default order descending
     );
 
+    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
     if ($semester) {
         $args['tax_query'] = array(
             array(
@@ -27,14 +26,9 @@ function sd_project_display($atts) {
             ),
         );
     }
-
-    // Get posts
-    $post_list = get_posts($args);
-    $total_posts = wp_count_posts('sd_project')->publish; // Get total posts count
-    $total_pages = ceil($total_posts / 10); // Calculate total pages
-
-    echo '<script>console.log("Semester value: ' . esc_attr($semester). '")</script>';
-
+    
+    $query = new WP_Query($args);
+    
     echo '<style>
         .custom-card {
             border-radius: 12px;
@@ -81,10 +75,10 @@ function sd_project_display($atts) {
     echo '  </div>';
     echo '</div>';
 
+
     echo '<div class="sd-projects">';
-    if (!empty($post_list)) {
-        foreach ($post_list as $post) {
-            setup_postdata($post);
+    if ($query->have_posts()) {
+        while ($query->have_posts()) : $query->the_post();
             $short_report = get_field('short_report_file');
             $long_report = get_field('long_report_file');
             $presentation = get_field('presentation_slides_file');
@@ -105,21 +99,21 @@ function sd_project_display($atts) {
                 if ($presentation)
                     echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
                 echo '        </p>';
-            }
+            };
             echo '    </div>';
             echo '</div>';
             echo '</div>';
-        }
-        wp_reset_postdata();
+        endwhile;
         echo '</div>';
 
         // Pagination controls
+        $total_pages = $query->max_num_pages;
         if ($total_pages > 1) {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
 
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
-            $current_page = max(1, $paged);
+            $current_page = max(1, get_query_var('paged'));
 
             $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'search' => $search], $base_link));
 
@@ -142,6 +136,8 @@ function sd_project_display($atts) {
 
             echo '</ul></nav>';
         }
+
+        wp_reset_postdata();
     } else {
         echo '<p>No projects found.</p>';
     }
