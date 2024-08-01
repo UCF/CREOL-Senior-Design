@@ -5,7 +5,7 @@ function sd_project_display($atts) {
 
     // Get query variables
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
-    $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+    $search = isset($_GET['search']) ? ($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Display semester dropdown
