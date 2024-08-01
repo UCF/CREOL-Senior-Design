@@ -14,21 +14,37 @@ function sd_project_display($atts) {
         'hide_empty' => false,
     ));
 
-    echo '<form method="GET">';
-    echo '<label for="semester">Semester:</label>';
-    echo '<select name="semester" id="semester">';
-    echo '<option value="">All Semesters</option>';
+    echo '<style>';
+    echo '  .utility-bar {';
+    echo '      width: 100%;';
+    echo '      display: flex;';
+    echo '      justify-content: end;';
+    echo '  }';
+    echo '</style>';
+
+    echo '<div class="container mb-4">';
+    echo '  <div class="row">';
+    echo '    <form class="form-inline utility-bar" method="GET" action="">';
+    echo '      <div class="form-group">';
+    echo '          <label for="semester">Semester:</label>';
+    echo '          <select name="semester" id="semester">';
+    echo '              <option value="">All Semesters</option>';
+    
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '<option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+        echo '              <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
-    echo '</select>';
-
-    echo '<label for="search">Search:</label>';
-    echo '<input type="text" name="search" id="search" value="' . esc_attr($search) . '">';
-
-    echo '<input type="submit" value="Filter">';
-    echo '</form>';
+    
+    echo '          </select>';
+    echo '      </div>';
+    echo '      <div class="form-group">';
+    echo '          <label for="search">Search:</label>';
+    echo '          <input type="text" name="search" id="search" value="' . esc_attr($search) . '">';
+    echo '          <input type="submit" value="Filter" class="btn btn-primary">';
+    echo '      </div>';
+    echo '    </form>';
+    echo '  </div>';
+    echo '</div>';
 
     // Query arguments
     $args = array(
