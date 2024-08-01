@@ -135,6 +135,7 @@ function sd_project_display($atts) {
             echo '</ul></nav>';
         }
 
+
         wp_reset_postdata();
     } else {
         echo '<p>No projects found.</p>';
