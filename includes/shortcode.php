@@ -1,47 +1,18 @@
 <?php
-// Shortcode to display projects with filter, search, and pagination
-function sd_project_display($atts) {
+// Register the shortcode and enqueue necessary scripts
+function sd_project_display_shortcode() {
     ob_start();
     
-    // Get query variables
+    // Enqueue JavaScript for AJAX
+    wp_enqueue_script('sd-project-ajax', plugins_url('js/ajax.js', __FILE__), array('jquery'), null, true);
+    wp_localize_script('sd-project-ajax', 'sd_project_ajax_params', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+    ));
+
+    // Shortcode form
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-    
-    // Query arguments
-    $args = array(
-        'post_type' => 'sd_project',
-        'posts_per_page' => 10,
-        'paged' => $paged,
-        's' => $search,
-    );
-
-    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
-    if ($semester) {
-        $args['tax_query'] = array(
-            array(
-                'taxonomy' => 'sd_semester',
-                'field' => 'slug',
-                'terms' => $semester,
-            ),
-        );
-    }
-    
-    echo '<style>
-        .custom-card {
-            border-radius: 12px;
-            border-style: none;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
-            margin-bottom: 20px;
-            padding: 20px;
-            transition: box-shadow 0.3s ease-in-out;
-        }
-        .custom-card:hover {
-            box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
-        }
-    </style>';
-    
-    $query = new WP_Query($args);
     
     // Display semester dropdown
     $terms = get_terms(array(
@@ -75,8 +46,80 @@ function sd_project_display($atts) {
     echo '  </div>';
     echo '</div>';
 
-
+    // Display projects
     echo '<div class="sd-projects">';
+    sd_project_filter($semester, $search, $paged);
+    echo '</div>';
+
+    // Add AJAX handling
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        // Handle form submission
+        $('#utility-bar').on('submit', function(event) {
+            event.preventDefault();
+            fetchProjects();
+        });
+
+        // Handle semester change
+        $('#semesterSelector').on('change', function() {
+            fetchProjects();
+        });
+
+        // Fetch projects with AJAX
+        function fetchProjects() {
+            var semester = $('#semesterSelector').val();
+            var search = $('#searchFilter').val();
+
+            $.ajax({
+                url: sd_project_ajax_params.ajax_url,
+                type: 'GET',
+                data: {
+                    action: 'sd_project_filter',
+                    semester: semester,
+                    search: search
+                },
+                success: function(response) {
+                    $('.sd-projects').html(response);
+                },
+                error: function() {
+                    alert('An error occurred while fetching the projects.');
+                }
+            });
+        }
+    });
+    </script>
+    <?php
+
+    return ob_get_clean();
+}
+add_shortcode('sd_project_display', 'sd_project_display_shortcode');
+
+// AJAX handler
+function sd_project_filter() {
+    $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
+    $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+    $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
+
+    $args = array(
+        'post_type' => 'sd_project',
+        'posts_per_page' => 10,
+        'paged' => $paged,
+        's' => $search,
+    );
+
+    if ($semester) {
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'sd_semester',
+                'field' => 'slug',
+                'terms' => $semester,
+            ),
+        );
+    }
+
+    $query = new WP_Query($args);
+
     if ($query->have_posts()) {
         while ($query->have_posts()) : $query->the_post();
             $short_report = get_field('short_report_file');
@@ -99,84 +142,18 @@ function sd_project_display($atts) {
                 if ($presentation)
                     echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
                 echo '        </p>';
-            };
+            }
             echo '    </div>';
             echo '</div>';
             echo '</div>';
         endwhile;
-        echo '</div>';
-
-        // Pagination controls
-        $total_pages = $query->max_num_pages;
-        if ($total_pages > 1) {
-            echo '<nav aria-label="Page navigation">';
-            echo '<ul class="pagination justify-content-center">';
-
-            $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
-            $current_page = max(1, get_query_var('paged'));
-
-            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'search' => $search], $base_link));
-
-            if ($current_page > 1) {
-                echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
-            }
-
-            for ($i = 1; $i <= $total_pages; $i++) {
-                $page_link = esc_url_raw(add_query_arg(['paged' => $i], $link_with_params));
-                if ($i == $current_page) {
-                    echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
-                } else {
-                    echo '<li class="page-item"><a class="page-link" href="' . $page_link . '">' . $i . '</a></li>';
-                }
-            }
-
-            if ($current_page < $total_pages) {
-                echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page + 1], $link_with_params)) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
-            }
-
-            echo '</ul></nav>';
-        }
-
         wp_reset_postdata();
     } else {
         echo '<p>No projects found.</p>';
     }
 
-    echo "<script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded');
-            const form = document.getElementById('utility-bar');
-            const semesterSelector = document.getElementById('semesterSelector');
-            const searchInput = document.getElementById('searchFilter');
-
-            form.addEventListener('submit', function(event) {
-                console.log('Form submitted');
-                event.preventDefault();
-                updateURLParams();
-            });
-
-            semesterSelector.addEventListener('change', function() {
-                console.log('Semester changed');
-                updateURLParams();
-            });
-
-            function updateURLParams() {
-                console.log('Updating URL parameters');
-                const url = new URL(window.location);
-                const params = new URLSearchParams(url.search);
-
-                params.set('paged', '1');
-                params.set('semester', semesterSelector.value);
-                params.set('search', searchInput.value);
-
-                url.search = params.toString();
-                console.log('Redirecting to:', url.toString());
-                window.location.href = url.toString();
-            }
-        });
-    </script>";
-
-    return ob_get_clean();
+    wp_die();
 }
-add_shortcode('sd_project_display', 'sd_project_display');
+add_action('wp_ajax_sd_project_filter', 'sd_project_filter');
+add_action('wp_ajax_nopriv_sd_project_filter', 'sd_project_filter');
 ?>
