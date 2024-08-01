@@ -48,7 +48,7 @@ function sd_project_display($atts) {
         's' => $search,
     );
 
-    echo 'console.log("Semester value: "' . esc_attr($semester). ')';
+    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
     if ($semester) {
         $args['tax_query'] = array(
             array(
