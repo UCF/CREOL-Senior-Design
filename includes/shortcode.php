@@ -30,7 +30,7 @@ function sd_project_display($atts) {
     echo '      </div>';
     echo '      <div class="form-group">';
     echo '          <div class="input-group" style="width: 100%;">';
-    echo '              <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
+    echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search by title" value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
     echo '              <span class="input-group-btn">';
     echo '                  <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>';
     echo '              </span>';
@@ -145,7 +145,7 @@ function sd_project_display($atts) {
         document.addEventListener('DOMContentLoaded', function() {
         const form = document.querySelector('.form-inline');
         const semesterSelector = document.getElementById('semesterSelector');
-        const searchInput = document.querySelector('input[name=\"search\"]');
+        const searchInput = document.getElementById('searchFilter');
 
         form.addEventListener('submit', function(event) {
             updateURLParams();
