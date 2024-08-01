@@ -16,7 +16,7 @@ function sd_project_display($atts) {
 
     echo '<div class="container mb-4">';
     echo '  <div class="row">';
-    echo '    <form class="form-inline" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
+    echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
     echo '      <div class="form-group mr-4">';
     echo '          <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
     echo '              <option value="">All Semesters</option>';
@@ -143,31 +143,30 @@ function sd_project_display($atts) {
 
     echo "<script>
         document.addEventListener('DOMContentLoaded', function() {
-        const form = document.querySelector('.form-inline');
-        const semesterSelector = document.getElementById('semesterSelector');
-        const searchInput = document.getElementById('searchFilter');
+            const form = document.getElementById('utility-bar');
+            const semesterSelector = document.getElementById('semesterSelector');
+            const searchInput = document.getElementById('searchFilter');
 
-        form.addEventListener('submit', function(event) {
-            updateURLParams();
-            event.preventDefault();
+            form.addEventListener('submit', function(event) {
+                updateURLParams();
+            });
+
+            semesterSelector.addEventListener('change', function() {
+                updateURLParams();
+            });
+
+            function updateURLParams() {
+                const url = new URL(window.location);
+                const params = new URLSearchParams(url.search);
+
+                params.set('paged', '1');
+                params.set('semester', semesterSelector.value);
+                params.set('search', searchInput.value);
+
+                url.search = params.toString();
+                window.location.href = url.toString();
+            }
         });
-
-        semesterSelector.addEventListener('change', function() {
-            updateURLParams();
-        });
-
-        function updateURLParams() {
-            const url = new URL(window.location);
-            const params = new URLSearchParams(url.search);
-
-            params.set('paged', '1');
-            params.set('semester', semesterSelector.value);
-            params.set('search', searchInput.value);
-
-            url.search = params.toString();
-            window.location.href = url.toString();
-        }
-    });
         </script>";
 
     return ob_get_clean();
