@@ -14,37 +14,33 @@ function sd_project_display($atts) {
         'hide_empty' => false,
     ));
 
-    echo '<style>';
-    echo '  .utility-bar {';
-    echo '      width: 100%;';
-    echo '      display: flex;';
-    echo '      justify-content: end;';
-    echo '  }';
-    echo '</style>';
-
     echo '<div class="container mb-4">';
     echo '  <div class="row">';
-    echo '    <form class="form-inline utility-bar" method="GET" action="">';
-    echo '      <div class="form-group">';
-    echo '          <label for="semester">Semester:</label>';
-    echo '          <select name="semester" id="semester">';
+    echo '    <form class="form-inline" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
+    echo '      <div class="form-group mr-4">';
+    echo '          <select class="form-control" id="categorySelector" name="category" style="width: 100%;">';
     echo '              <option value="">All Semesters</option>';
     
-    foreach ($terms as $term) {
-        $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '              <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+    $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330, 342'));
+    foreach ($categories as $category_option) {
+        $selected = ($category_option->term_id == $category) ? ' selected' : '';
+        echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
     }
     
     echo '          </select>';
     echo '      </div>';
     echo '      <div class="form-group">';
-    echo '          <label for="search">Search:</label>';
-    echo '          <input type="text" name="search" id="search" value="' . esc_attr($search) . '">';
-    echo '          <input type="submit" value="Filter" class="btn btn-primary">';
+    echo '          <div class="input-group" style="width: 100%;">';
+    echo '              <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">';
+    echo '              <span class="input-group-btn">';
+    echo '                  <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>';
+    echo '              </span>';
+    echo '          </div>';
     echo '      </div>';
     echo '    </form>';
     echo '  </div>';
     echo '</div>';
+    
 
     // Query arguments
     $args = array(
