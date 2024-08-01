@@ -161,7 +161,7 @@ function sd_project_display($atts) {
             const params = new URLSearchParams(url.search);
 
             params.set('paged', '1');
-            params.set('category', semesterSelector.value);
+            params.set('semester', semesterSelector.value);
             params.set('search', searchInput.value);
 
             url.search = params.toString();
