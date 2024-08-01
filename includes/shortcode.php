@@ -27,8 +27,6 @@ function sd_project_display($atts) {
         );
     }
     
-    $query = new WP_Query($args);
-    
     echo '<style>
         .custom-card {
             border-radius: 12px;
@@ -42,6 +40,8 @@ function sd_project_display($atts) {
             box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
         }
     </style>';
+    
+    $query = new WP_Query($args);
     
     // Display semester dropdown
     $terms = get_terms(array(
