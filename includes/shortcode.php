@@ -21,17 +21,16 @@ function sd_project_display($atts) {
     echo '          <select class="form-control" id="categorySelector" name="category" style="width: 100%;">';
     echo '              <option value="">All Semesters</option>';
     
-    $categories = get_categories(array('include' => '319, 320, 322, 323, 324, 325, 326, 327, 328, 329, 330, 342'));
-    foreach ($categories as $category_option) {
-        $selected = ($category_option->term_id == $category) ? ' selected' : '';
-        echo '<option value="' . esc_attr($category_option->term_id) . '"' . $selected . '>' . esc_html($category_option->name) . '</option>';
+    foreach ($terms as $term) {
+        $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
+        echo '              <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
     
     echo '          </select>';
     echo '      </div>';
     echo '      <div class="form-group">';
     echo '          <div class="input-group" style="width: 100%;">';
-    echo '              <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search_term) . '" style="line-height: 1.15 !important;">';
+    echo '              <input class="form-control" type="text" name="search" placeholder="Search by title" value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
     echo '              <span class="input-group-btn">';
     echo '                  <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>';
     echo '              </span>';
@@ -40,7 +39,6 @@ function sd_project_display($atts) {
     echo '    </form>';
     echo '  </div>';
     echo '</div>';
-    
 
     // Query arguments
     $args = array(
