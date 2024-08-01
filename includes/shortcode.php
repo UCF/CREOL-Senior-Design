@@ -147,8 +147,9 @@ function sd_project_display($atts) {
             const semesterSelector = document.getElementById('semesterSelector');
             const searchInput = document.getElementById('searchFilter');
 
-            form.addEventListener('submit', function() {
+            form.addEventListener('submit', function(event) {
                 updateURLParams();
+                event.preventDefault();
             });
 
             semesterSelector.addEventListener('change', function() {
