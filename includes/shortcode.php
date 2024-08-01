@@ -2,12 +2,47 @@
 // Shortcode to display projects with filter, search, and pagination
 function sd_project_display($atts) {
     ob_start();
-
+    
     // Get query variables
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+    
+    // Query arguments
+    $args = array(
+        'post_type' => 'sd_project',
+        'posts_per_page' => 10,
+        'paged' => $paged,
+        's' => $search,
+    );
 
+    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
+    if ($semester) {
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'sd_semester',
+                'field' => 'slug',
+                'terms' => $semester,
+            ),
+        );
+    }
+    
+    $query = new WP_Query($args);
+    
+    echo '<style>
+        .custom-card {
+            border-radius: 12px;
+            border-style: none;
+            box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: box-shadow 0.3s ease-in-out;
+        }
+        .custom-card:hover {
+            box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
+        }
+    </style>';
+    
     // Display semester dropdown
     $terms = get_terms(array(
         'taxonomy' => 'sd_semester',
@@ -40,40 +75,6 @@ function sd_project_display($atts) {
     echo '  </div>';
     echo '</div>';
 
-    // Query arguments
-    $args = array(
-        'post_type' => 'sd_project',
-        'posts_per_page' => 10,
-        'paged' => $paged,
-        's' => $search,
-    );
-
-    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
-    if ($semester) {
-        $args['tax_query'] = array(
-            array(
-                'taxonomy' => 'sd_semester',
-                'field' => 'slug',
-                'terms' => $semester,
-            ),
-        );
-    }
-
-    $query = new WP_Query($args);
-
-    echo '<style>
-        .custom-card {
-            border-radius: 12px;
-            border-style: none;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,.15);
-            margin-bottom: 20px;
-            padding: 20px;
-            transition: box-shadow 0.3s ease-in-out;
-        }
-        .custom-card:hover {
-            box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
-        }
-    </style>';
 
     echo '<div class="sd-projects">';
     if ($query->have_posts()) {
