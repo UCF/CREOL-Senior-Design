@@ -186,13 +186,17 @@ function sd_project_display($atts) {
             function hideProjects() {
                 var projects = document.getElementById('sd-projects');
                 var footer = document.getElementById('pagination-container');
-                footer.classList.add('hidden');
-                projects.classList.add('hidden');
-                projects.classList.add('load-message');
-                const pBlock = document.createElement('p');
-                const textNode = document.createTextNode('Loading...');
-                pBlock.appendChild(textNode);
-                projects.appendChild(pBlock);
+                if (footer) {
+                    footer.classList.add('hidden');
+                }
+                if (projects) {
+                    projects.classList.add('hidden');
+                    projects.classList.add('load-message');
+                    const pBlock = document.createElement('p');
+                    const textNode = document.createTextNode('Loading...');
+                    pBlock.appendChild(textNode);
+                    projects.appendChild(pBlock);
+                }
             }
         });
     </script>";
