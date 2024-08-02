@@ -189,7 +189,11 @@ function sd_project_display($atts) {
                 footer.classList.add('hidden');
                 projects.classList.add('hidden');
                 projects.classList.add('load-message');
-                projects.innerHTML = 'Loading...';
+                const p-block = document.createElement('p');
+                const code = deocument.createTextNode('Loading...');
+                p-block.appendChild(node);
+                projects.appendChild(p-block);
+                // projects.innerHTML = 'Loading...';
             }
         });
     </script>";
