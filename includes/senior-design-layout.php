@@ -159,5 +159,3 @@ function senior_design_display() {
     });
         </script>";
 }
-
-
