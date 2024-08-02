@@ -43,6 +43,7 @@ function sd_project_display($atts) {
             display: none;
         }
         .load-message {
+            display: block;
             font-weight: bold;
             font-size: 3rem
         }

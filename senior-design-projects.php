@@ -33,4 +33,3 @@ function sd_deactivate_plugin() {
     // Deactivation code here
     flush_rewrite_rules();
 }
-add_action('wp_enqueue_scripts', 'sd_enqueue_scripts');
