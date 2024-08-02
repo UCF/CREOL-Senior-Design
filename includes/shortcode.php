@@ -44,8 +44,7 @@ function sd_project_display($atts) {
         }
         .load-message {
             display: block;
-            font-weight: bold;
-            font-size: 3rem
+            text-align: center
         }
     </style>';
     
@@ -147,7 +146,7 @@ function sd_project_display($atts) {
 
         wp_reset_postdata();
     } else {
-        echo '<p>No projects found.</p>';
+        echo '<p style="text-align: center" >No projects found.</p>';
     }
 
     echo "<script>
