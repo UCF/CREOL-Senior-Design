@@ -190,7 +190,7 @@ function sd_project_display($atts) {
                 projects.classList.add('hidden');
                 projects.classList.add('load-message');
                 const p-block = document.createElement('p');
-                const code = deocument.createTextNode('Loading...');
+                const code = document.createTextNode('Loading...');
                 p-block.appendChild(node);
                 projects.appendChild(p-block);
                 // projects.innerHTML = 'Loading...';
