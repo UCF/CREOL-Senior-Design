@@ -44,7 +44,6 @@ function sd_project_display($atts) {
         }
         .load-message {
             display: block;
-            text-align: center
         }
     </style>';
     
@@ -116,6 +115,7 @@ function sd_project_display($atts) {
         // Pagination controls
         $total_pages = $query->max_num_pages;
         if ($total_pages > 1) {
+            echo '<div id="pagination-container">';
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
 
@@ -142,11 +142,12 @@ function sd_project_display($atts) {
             }
 
             echo '</ul></nav>';
+            echo '</div>';
         }
 
         wp_reset_postdata();
     } else {
-        echo '<p style="text-align: center" >No projects found.</p>';
+        echo '<p>No projects found.</p>';
     }
 
     echo "<script>
@@ -184,6 +185,8 @@ function sd_project_display($atts) {
 
             function hideProjects() {
                 var projects = document.getElementById('sd-projects');
+                var footer = document.getElementById('pagination-container');
+                footer.classList.add('hidden');
                 projects.classList.add('hidden');
                 projects.classList.add('load-message');
                 projects.innerHTML = 'Loading...';
