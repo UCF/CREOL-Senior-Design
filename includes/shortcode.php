@@ -181,6 +181,7 @@ function sd_project_display($atts) {
             function hideProjects() {
                 var projects = document.getElementById('sd-projects');
                 projects.classList.add('hidden');
+                projects.innerHTML == 'Loading...';
             }
         });
     </script>";
