@@ -39,6 +39,9 @@ function sd_project_display($atts) {
         .custom-card:hover {
             box-shadow: 0 0 10px 2px rgba(0,0,0,.15);
         }
+        .hidden {
+            display: none;
+        }
     </style>';
     
     $query = new WP_Query($args);
@@ -76,7 +79,7 @@ function sd_project_display($atts) {
     echo '</div>';
 
 
-    echo '<div class="sd-projects">';
+    echo '<div id="sd-projects">';
     if ($query->have_posts()) {
         while ($query->have_posts()) : $query->the_post();
             $short_report = get_field('short_report_file');
@@ -152,6 +155,7 @@ function sd_project_display($atts) {
             form.addEventListener('submit', function(event) {
                 console.log('Form submitted');
                 event.preventDefault();
+                hideProjects();
                 updateURLParams();
             });
 
@@ -172,6 +176,11 @@ function sd_project_display($atts) {
                 url.search = params.toString();
                 console.log('Redirecting to:', url.toString());
                 window.location.href = url.toString();
+            }
+
+            function hideProjects() {
+                var projects = document.getElementById('sd-projects');
+                projects.classList.add('hidden');
             }
         });
     </script>";
