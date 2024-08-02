@@ -42,6 +42,10 @@ function sd_project_display($atts) {
         .hidden {
             display: none;
         }
+        .load-message {
+            font-weight: bold;
+            font-size: 3rem
+        }
     </style>';
     
     $query = new WP_Query($args);
@@ -181,7 +185,8 @@ function sd_project_display($atts) {
             function hideProjects() {
                 var projects = document.getElementById('sd-projects');
                 projects.classList.add('hidden');
-                projects.innerHTML == 'Loading...';
+                projects.classList.add('load-message');
+                projects.innerHTML = 'Loading...';
             }
         });
     </script>";
