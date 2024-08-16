@@ -27,6 +27,30 @@ function sd_project_display($atts) {
             ),
         );
     }
+
+    /* This can easily be expanded by following this format:
+            'relation' => 'OR',
+            array(
+                'key' => 'project_contributors',
+                'value' => $search,
+                'compare' => 'LIKE'
+            ),
+            array(
+                'key' => '_post_title', // Technically not needed since 's' handles the title search
+                'value' => $search,
+                'compare' => 'LIKE'
+            )
+    */
+    if ($search) {
+        $args['meta_query'] = array(
+            'relation' => 'OR',
+            array(
+                'key' => 'project_contributors',
+                'value' => $search,
+                'compare' => 'LIKE'
+            )
+        );
+    }
     
     echo '<style>
         .custom-card {
