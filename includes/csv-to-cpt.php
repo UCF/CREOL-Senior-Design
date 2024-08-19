@@ -27,44 +27,55 @@
                 'custom-post-type' => 'sd_project',
             );
 
+            // Define paths
+            $upload_dir = wp_upload_dir()['path'];
+            $zip_file_path = $upload_dir . '/2024_fall_sd.zip';
+            $extracted_path = $upload_dir . '/extracted/';
+
+            // Unzip the file
+            $zip = new ZipArchive;
+            if ($zip->open($zip_file_path) === TRUE) {
+                $zip->extractTo($extracted_path);
+                $zip->close();
+            } else {
+                error_log("Failed to open ZIP file: $zip_file_path");
+                return;
+            }
+
             // Retrieve the data from the CSV
-            $posts = function() {
+            $posts = function() use ($extracted_path) {
                 $data = array();
                 $errors = array();
 
-                // Will read through each file in the path: /includes/data/
-                $files = glob(__DIR__ . '/data/*.csv');
+                $csv_file = $extracted_path . '/data/projects.csv';
+                if (!is_readable($csv_file)) {
+                    error_log("CSV file '$csv_file' is not readable.");
+                    return $data;
+                }
 
-                foreach ($files as $file) {
-                    // Try to change permissions if the file is unreadable
-                    if (!is_readable($file))
-                        chmod($file, 0744);
+                if ($_file = fopen($csv_file, 'r')) {
+                    $header = fgetcsv($_file);
 
-                    if (is_readable($file) && $_file = fopen($file, 'r')) {
-                        $header = fgetcsv($_file);
-
-                        if ($header === false) {
-                            $errors[] = "File '$file' does not contain valid header row.";
-                            fclose($_file);
-                            continue;
-                        }
-
-                        while (($row = fgetcsv($_file)) !== false) {
-                            $post = array(); // Reinitialize $post for each row
-
-                            foreach ($header as $i => $key) {
-                                // Ensure $row[$i] is set, otherwise, set as empty string
-                                $post[$key] = isset($row[$i]) ? $row[$i] : '';
-                            }
-
-                            $data[] = $post;
-                        }
-
+                    if ($header === false) {
+                        $errors[] = "CSV file does not contain a valid header row.";
                         fclose($_file);
-
-                    } else {
-                        $errors[] = "File '$file' could not be opened. Check the file's permissions to make sure it's readable by your server.";
+                        return $data;
                     }
+
+                    while (($row = fgetcsv($_file)) !== false) {
+                        $post = array(); // Reinitialize $post for each row
+
+                        foreach ($header as $i => $key) {
+                            $post[$key] = isset($row[$i]) ? $row[$i] : '';
+                        }
+
+                        $data[] = $post;
+                    }
+
+                    fclose($_file);
+
+                } else {
+                    $errors[] = "CSV file 'csv_file' could not be opened";
                 }
 
                 // Log any errors
@@ -108,43 +119,53 @@
                     update_field('project_contributors', $post['project_contributors'], $post['id']);
                 }
                 
+                // Define file fields and their corresponding ACF fields
                 $file_fields = [
                     'short_report' => 'short_report_file',
                     'long_report' => 'long_report_file',
                     'presentation' => 'presentation_slides_file'
                 ];
-                
-                // Ensure $acf_fields is defined properly as a simple indexed array
-                $acf_fields = [
-                    'short_report_file', 
-                    'long_report_file', 
-                    'presentation_slides_file'
-                ];
-                
+                                
                 foreach ($file_fields as $field => $acf_field) {
-                    if (!empty($post[$field])) {
-                        $file_path = $post[$field];
-                        $file_name = basename($file_path);
-                        $file_type = wp_check_filetype($file_name, null);
-                    
-                        $attachment = array(
-                            'guid' => wp_upload_dir()['url'] . '/' . $file_name,
-                            'post_mime_type' => $file_type['type'],
-                            'post_title' => sanitize_file_name($file_name),
-                            'post_content' => '',
-                            'post_status' => 'inherit'
-                        );
-                    
-                        $uploaded = move_uploaded_file($file_path, wp_upload_dir()['path'] . '/' . $file_name);
-                    
-                        if ($uploaded) {
-                            $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
-                            require_once(ABSPATH . 'wp-admin/includes/image.php');
-                            $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
-                            wp_update_attachment_metadata($attach_id, $attach_data);
-                    
-                            // Update the ACF field with the attachment ID
-                            update_field($acf_field, $attach_id, $post['id']);
+                    $student_zip_path = $extracted_path . '/student_files/' . $post[$field];
+
+                    if (file_exists($student_zip_path)) {
+                        $student_zip = new ZipArchive;
+                        if ($student_zip->open($student_zip_path) === TRUE) {
+                            $student_zip->extractTo($extracted_path . 'student_files/');
+                            $student_zip->close();
+
+                            // Find and upload the correct PDF files
+                            $pdf_files = glob($extracted_path . '/student_files/*.pdf');
+
+                            foreach ($pdf_files as $pdf_file) {
+                                if (strpos(strtolower($pdf_file), $field) !== false) {
+                                    $file_name = basename($pdf_file);
+                                    $file_type = wp_check_filetype($file_name, null);
+
+                                    $attachment = array(
+                                        'guid' => wp_upload_dir()['url'] . '/' . $file_name,
+                                        'post_mime_type' => $file_type['type'],
+                                        'post_title' => sanitize_file_name($file_name),
+                                        'post_content' => '',
+                                        'post_status' => 'inherit'
+                                    );
+
+                                    $uploaded = move_uploaded_file($pdf_file, wp_upload_dir()['path'] . '/' . $file_name);
+
+                                    if ($uploaded) {
+                                        $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
+                                        require_once(ABSPATH . 'wp-admin/includes/image.php');
+                                        $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
+                                        wp_update_attachment_metadata($attach_id, $attach_data);
+        
+                                        // Update the ACF field with the attachment ID
+                                        update_field($acf_field, $attach_id, $post['id']);
+                                    }
+                                }
+                            }
+                        } else {
+                            error_log("Failed to open student ZIP file: $student_zip_path");
                         }
                     }
                 }
