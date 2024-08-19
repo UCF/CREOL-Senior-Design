@@ -1,152 +1,133 @@
 <?php
-    function automate_sd_upload($atts) {
 
-        // This begins output buffering, which is needed to properly output HTML within this function
-        ob_start();
+/**
+ * Show insert posts button on backend
+ */
+add_action( "admin_notices", function() {
+    echo "<div class='updated'>";
+    echo "<p>";
+    echo "To insert the posts into the database, click the button to the right.";
+    echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sitepoint_posts'>Insert Posts</a>";
+    echo "</p>";
+    echo "</div>";
+});
 
-        // Hook the function to admin notices
-        add_action('admin_notices', function() {
-            $screen = get_current_screen();
-            if ($screen && $screen->post_type == 'sd_project' && $screen->base == 'edit') {
-                echo "<div class='updated'>";
-                echo "<p>";
-                echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Change to better explanation
-                echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
-                echo "</p>";
-                echo "</div>";
-            }
-        });
+/**
+ * Create and insert posts from CSV files
+ */
+add_action( "admin_init", function() {
+	global $wpdb;
 
-        // This executes when the page is loaded
-        add_action('admin_init', function() {
-            global $wpdb;
+	// I'd recommend replacing this with your own code to make sure
+	//  the post creation _only_ happens when you want it to.
+	if ( ! isset( $_GET["insert_sitepoint_posts"] ) ) {
+		return;
+	}
 
-            // If the URL is not set to 'insert_sd_projects' we will return and not execute the function
-            // TODO: Replace with a potentially safer alternative (ex: pop-up confirmation)
-            if (!isset($_GET['insert_sd_projects'])) {
-                return;
-            }
+	// Change these to whatever you set
+	$sitepoint = array(
+		"custom-field" => "sitepoint_post_attachment",
+		"custom-post-type" => "sitepoint_posts"
+	);
 
-            $project = array(
-                'custom-post-type' => 'sd_project',
-            );
+	// Get the data from all those CSVs!
+	$posts = function() {
+		$data = array();
+		$errors = array();
 
-            // Retrieve the data from the CSV
-            $posts = function() {
-                $data = array();
-                $errors = array();
+		// Get array of CSV files
+		$files = glob( __DIR__ . "/data/*.csv" );
 
-                // Will read through each file in the path: /includes/data/
-                $files = glob(__DIR__ . '/data/*.csv');
+		foreach ( $files as $file ) {
 
-                foreach ($files as $file) {
+			// Attempt to change permissions if not readable
+			if ( ! is_readable( $file ) ) {
+				chmod( $file, 0744 );
+			}
 
-                    // Try to change permissions if the file is unreadable
-                    if (!is_readable($file))
-                        chmod($file, 0744);
+			// Check if file is writable, then open it in 'read only' mode
+			if ( is_readable( $file ) && $_file = fopen( $file, "r" ) ) {
 
-                    if (is_readable($file) && $_file = fopen($file, 'r')) {
+				// To sum this part up, all it really does is go row by
+				//  row, column by column, saving all the data
+				$post = array();
 
-                        $post = array();
+				// Get first row in CSV, which is of course the headers
+		    	$header = fgetcsv( $_file );
 
-                        $header = fgetcsv($file);
+		        while ( $row = fgetcsv( $_file ) ) {
 
-                        while ($row = fgetcsv($_file)) {
+		            foreach ( $header as $i => $key ) {
+	                    $post[$key] = $row[$i];
+	                }
 
-                            foreach ($header as $i => $key) {
-                                $post[$key] = $row[$i];
-                            }
+	                $data[] = $post;
+		        }
 
-                            $data[] = $post;
-                        }
+				fclose( $_file );
 
-                        fclose($_file);
+			} else {
+				$errors[] = "File '$file' could not be opened. Check the file's permissions to make sure it's readable by your server.";
+			}
+		}
 
-                    } else {
-                        $errors[] = "File '$file' could not be opened. Check the file's permissions to make sure it's readable by your server.";
-                    }
-                }
+		if ( ! empty( $errors ) ) {
+			// ... do stuff with the errors
+		}
 
-                // Log any errors
-                if (!empty($errors)) {
-                    foreach ($errors as $error) {
-                        error_log($error);
-                    }
-                }
+		return $data;
+	};
 
-                return $data;
-            };
+	// Simple check to see if the current post exists within the
+	//  database. This isn't very efficient, but it works.
+	$post_exists = function( $title ) use ( $wpdb, $sitepoint ) {
 
-            // Query to retrieve all posts that exist
-            $post_exists = function($title) use ($wpdb, $project) {
-                $query = $wpdb->prepare(
-                    "SELECT post_title FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s",
-                    $title,
-                    $project['custom-post-type']
-                );
-                return $wpdb->get_var($query) !== null;
-            };
+		// Get an array of all posts within our custom post type
+		$posts = $wpdb->get_col( "SELECT post_title FROM {$wpdb->posts} WHERE post_type = '{$sitepoint["custom-post-type"]}'" );
 
-            foreach ($posts() as $post) {
+		// Check if the passed title exists in array
+		return in_array( $title, $posts );
+	};
 
-                // If the post already exists, do not add it again
-                if ($post_exists($post['title'])) {
-                    continue;
-                }
+	foreach ( $posts() as $post ) {
 
-                $post_id = wp_insert_post(
-                    array(
-                        'post_title' => $post['title'],
-                        'post_type' => $project['custom-post-type'],
-                        'post_status' => 'publish',
-                    )
-                );
+		// If the post exists, skip this post and go to the next one
+		if ( $post_exists( $post["title"] ) ) {
+			continue;
+		}
 
-                // Attach the contributors text field
-                if (!empty($post['contributors'])) {
-                    update_field('project_contributors', $post['contributors'], $post_id);
-                }
+		// Insert the post into the database
+		$post["id"] = wp_insert_post( array(
+			"post_title" => $post["title"],
+			"post_content" => $post["content"],
+			"post_type" => $sitepoint["custom-post-type"],
+			"post_status" => "publish"
+		));
 
-                // Add all file-related fields to the CPT
-                $file_fields = ['short_report', 'long_report', 'presentation_slides'];
-                $acf_fields = ['short_report_file', 'long_report_file', 'presentation_slides_file'];
+		// Get uploads dir
+		$uploads_dir = wp_upload_dir();
 
-                foreach ($file_fields as $index => $field) {
-                    if (!empty($post[$field])) {
-                        $file_path = $post[$field];
-                        $file_name = basename($file_path);
-                        $file_type = wp_check_filetype($file_name, null);
+		// Set attachment meta
+		$attachment = array();
+		$attachment["path"] = "{$uploads_dir["baseurl"]}/sitepoint-attachments/{$post["attachment"]}";
+		$attachment["file"] = wp_check_filetype( $attachment["path"] );
+		$attachment["name"] = basename( $attachment["path"], ".{$attachment["file"]["ext"]}" );
 
-                        $attachment = array(
-                            'guid' => wp_upload_dir()['url'] . '/' . $file_name,
-                            'post_mime_type' => $file_type['type'],
-                            'post_title' => sanitize_file_name($file_name),
-                            'post_content' => '',
-                            'post_status' => 'inherit'
-                        );
+		// Replace post attachment data
+		$post["attachment"] = $attachment;
 
-                        // Move the file to the WordPress uploads directory
-                        $uploaded = move_uploaded_file($file_path, wp_upload_dir()['path'] . '/' . $file_name);
+		// Insert attachment into media library
+		$post["attachment"]["id"] = wp_insert_attachment( array(
+			"guid" => $post["attachment"]["path"],
+			"post_mime_type" => $post["attachment"]["file"]["type"],
+			"post_title" => $post["attachment"]["name"],
+			"post_content" => "",
+			"post_status" => "inherit"
+		));
 
-                        if ($uploaded) {
-                            $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post_id);
-                            require_once(ABSPATH . 'wp-admin/includes/image.php');
-                            $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
-                            wp_update_attachment_metadata($attach_id, $attach_data);
+		// Update post's custom field with attachment
+		update_field( $sitepoint["custom-field"], $post["attachment"]["id"], $post["id"] );
+		
+	}
 
-                            // Update the ACF field with the attachment ID
-                            update_field($acf_fields[$index], $attach_id, $post_id);
-                        }
-                    }
-                }
-            }
-        });
-
-        // This is the return statement that will output the retrieved information and/or HTML, CSS, and JS properly
-        return ob_get_clean();
-    }
-
-    // Register the shortcode
-    add_shortcode('automate_sd_upload', 'automate_sd_upload');
-
-?>
+});
