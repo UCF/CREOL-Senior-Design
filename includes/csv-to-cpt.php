@@ -4,13 +4,13 @@
         // This begins output buffering, which is needed to properly output HTML within this function
         ob_start();
 
-        // This adds an action button to the Senior Design Projects page in WOrdPress
+        // Hook the function to admin notices
         add_action('admin_notices', function() {
             $screen = get_current_screen();
-            if ($screen->$post_type == 'sd_project' && $screen->base == 'edit') {
+            if ($screen && $screen->post_type == 'sd_project' && $screen->base == 'edit') {
                 echo "<div class='updated'>";
                 echo "<p>";
-                echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Change to better explaination
+                echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Change to better explanation
                 echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
                 echo "</p>";
                 echo "</div>";
@@ -23,7 +23,7 @@
 
             // If the URL is not set to 'insert_sd_projects' we will return and not execute the function
             // TODO: Replace with a potentially safer alternative (ex: pop-up confirmation)
-            if ( !isset($_GET['insert_sd_projects'])) {
+            if (!isset($_GET['insert_sd_projects'])) {
                 return;
             }
 
@@ -94,7 +94,7 @@
                     continue;
                 }
 
-                $post['id'] = wp_insert_post(
+                $post_id = wp_insert_post(
                     array(
                         'post_title' => $post['title'],
                         'post_type' => $project['custom-post-type'],
@@ -106,14 +106,14 @@
                 if (!empty($post['contributors'])) {
                     update_field('project_contributors', $post['contributors'], $post_id);
                 }
-                
-                // Add all file related fields to the CPT
+
+                // Add all file-related fields to the CPT
                 $file_fields = ['short_report', 'long_report', 'presentation_slides'];
                 $acf_fields = ['short_report_file', 'long_report_file', 'presentation_slides_file'];
 
-                foreach ($pdf_fields as $index => $field) {
-                    if (!empty($post[$fields])) {
-                        $fiel_path = $post[$field];
+                foreach ($file_fields as $index => $field) {
+                    if (!empty($post[$field])) {
+                        $file_path = $post[$field];
                         $file_name = basename($file_path);
                         $file_type = wp_check_filetype($file_name, null);
 
@@ -127,23 +127,26 @@
 
                         // Move the file to the WordPress uploads directory
                         $uploaded = move_uploaded_file($file_path, wp_upload_dir()['path'] . '/' . $file_name);
-    
+
                         if ($uploaded) {
-                            $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
+                            $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post_id);
                             require_once(ABSPATH . 'wp-admin/includes/image.php');
                             $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
                             wp_update_attachment_metadata($attach_id, $attach_data);
-    
+
                             // Update the ACF field with the attachment ID
-                            update_field($acf_fields[$index], $attach_id, $post['id']);
+                            update_field($acf_fields[$index], $attach_id, $post_id);
                         }
                     }
-                } 
+                }
             }
-
         });
 
         // This is the return statement that will output the retrieved information and/or HTML, CSS, and JS properly
         return ob_get_clean();
     }
+
+    // Register the shortcode
+    add_shortcode('automate_sd_upload', 'automate_sd_upload');
+
 ?>
