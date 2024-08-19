@@ -4,6 +4,7 @@
         // This begins output buffering, which is needed to properly output HTML within this function
         ob_start();
 
+        // This adds an action button to the Senior Design Projects page in WOrdPress
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->$post_type == 'sd_project' && $screen->base == 'edit') {
@@ -16,6 +17,7 @@
             }
         });
 
+        // This executes when the page is loaded
         add_action('admin_init', function() {
             global $wpdb;
 
@@ -27,17 +29,19 @@
 
             $project = array(
                 'custom-post-type' => 'sd_project',
-                'custom-field' => '' // TODO: insert any ACFs (files and contributors)
             );
 
+            // Retrieve the data from the CSV
             $posts = function() {
                 $data = array();
                 $errors = array();
 
+                // Will read through each file in the path: /includes/data/
                 $files = glob(__DIR__ . '/data/*.csv');
 
                 foreach ($files as $file) {
 
+                    // Try to change permissions if the file is unreadable
                     if (!is_readable($file))
                         chmod($file, 0744);
 
@@ -63,6 +67,7 @@
                     }
                 }
 
+                // Log any errors
                 if (!empty($errors)) {
                     foreach ($errors as $error) {
                         error_log($error);
@@ -72,6 +77,7 @@
                 return $data;
             };
 
+            // Query to retrieve all posts that exist
             $post_exists = function($title) use ($wpdb, $project) {
                 $query = $wpdb->prepare(
                     "SELECT post_title FROM {$wpdb->posts} WHERE post_title = %s AND post_type = %s",
@@ -83,6 +89,7 @@
 
             foreach ($posts() as $post) {
 
+                // If the post already exists, do not add it again
                 if ($post_exists($post['title'])) {
                     continue;
                 }
@@ -90,11 +97,19 @@
                 $post['id'] = wp_insert_post(
                     array(
                         'post_title' => $post['title'],
+                        'post_type' => $project['custom-post-type'],
+                        'post_status' => 'publish',
                     )
                 );
+
+                // Attach the contributors text field
+                if (!empty($post['contributors'])) {
+                    update_field('project_contributors', $post['contributors'], $post_id);
+                }
                 
+                // Add all file related fields to the CPT
                 $file_fields = ['short_report', 'long_report', 'presentation_slides'];
-                $acf_fields = ['short_report', 'long_report', 'presentation_slides'];
+                $acf_fields = ['short_report_file', 'long_report_file', 'presentation_slides_file'];
 
                 foreach ($pdf_fields as $index => $field) {
                     if (!empty($post[$fields])) {
