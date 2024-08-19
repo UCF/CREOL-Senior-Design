@@ -104,15 +104,23 @@
                 }
                 
                 // Add all file related fields to the CPT
-                $file_fields = ['short_report', 'long_report', 'presentation_slides'];
-                $acf_fields = ['short_report_file', 'long_report_file', 'presentation_slides_file'];
+                $file_fields = [
+                    'short_report' => 'short_report_file',
+                    'long_report' => 'long_report_file',
+                    'presentation' => 'presentation_slides_file'
+                ];
+                $acf_fields = [
+                    'short_report_file', 
+                    'long_report_file', 
+                    'presentation_slides_file'
+                ];
 
-                foreach ($pdf_fields as $index => $field) {
-                    if (!empty($post[$fields])) {
-                        $fiel_path = $post[$field];
+                foreach ($file_fields as $index => $field) {
+                    if (!empty($post[$field])) { 
+                        $file_path = $post[$field]; 
                         $file_name = basename($file_path);
                         $file_type = wp_check_filetype($file_name, null);
-
+                
                         $attachment = array(
                             'guid' => wp_upload_dir()['url'] . '/' . $file_name,
                             'post_mime_type' => $file_type['type'],
@@ -120,21 +128,20 @@
                             'post_content' => '',
                             'post_status' => 'inherit'
                         );
-
-                        // Move the file to the WordPress uploads directory
+                
                         $uploaded = move_uploaded_file($file_path, wp_upload_dir()['path'] . '/' . $file_name);
-    
+                
                         if ($uploaded) {
                             $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
                             require_once(ABSPATH . 'wp-admin/includes/image.php');
                             $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
                             wp_update_attachment_metadata($attach_id, $attach_data);
-    
+                
                             // Update the ACF field with the attachment ID
                             update_field($acf_fields[$index], $attach_id, $post['id']);
                         }
                     }
-                } 
+                }
             }
 
         });
