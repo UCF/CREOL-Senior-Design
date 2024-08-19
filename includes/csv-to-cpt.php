@@ -36,21 +36,25 @@
                 $files = glob(__DIR__ . '/data/*.csv');
 
                 foreach ($files as $file) {
-
                     // Try to change permissions if the file is unreadable
                     if (!is_readable($file))
                         chmod($file, 0744);
 
                     if (is_readable($file) && $_file = fopen($file, 'r')) {
+                        $header = fgetcsv($_file);
 
-                        $post = array();
+                        if ($header === false) {
+                            $errors[] = "File '$file' does not contain valid header row.";
+                            fclose($_file);
+                            continue;
+                        }
 
-                        $header = fgetcsv($file);
-
-                        while ($row = fgetcsv($_file)) {
+                        while (($row = fgetcsv($_file)) !== false) {
+                            $post = array(); // Reinitialize $post for each row
 
                             foreach ($header as $i => $key) {
-                                $post[$key] = $row[$i];
+                                // Ensure $row[$i] is set, otherwise, set as empty string
+                                $post[$key] = isset($row[$i]) ? $row[$i] : '';
                             }
 
                             $data[] = $post;
@@ -72,6 +76,7 @@
 
                 return $data;
             };
+
 
             // Query to retrieve all posts that exist
             $post_exists = function($title) use ($wpdb, $project) {
