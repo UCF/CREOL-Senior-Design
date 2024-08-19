@@ -104,8 +104,8 @@
                 );
 
                 // Attach the contributors text field
-                if (!empty($post['contributors'])) {
-                    update_field('project_contributors', $post['contributors'], $post_id);
+                if (!empty($post['project_contributors'])) {
+                    update_field('project_contributors', $post['project_contributors'], $post_id);
                 }
                 
                 $file_fields = [
