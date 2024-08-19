@@ -9,7 +9,7 @@
             echo "<div class='updated'>";
             echo "<p>";
             echo "To insert the posts into the database, click the button to the right.";
-            echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
+            echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sitepoint_posts'>Insert Posts</a>";
             echo "</p>";
             echo "</div>";
         });
