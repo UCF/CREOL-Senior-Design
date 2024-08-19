@@ -1,0 +1,15 @@
+2024_fall_sd.zip
+│
+├── data
+│   └── projects.csv
+│
+├── student_files
+│   ├── group1_project.zip
+│   |   └── group1_short_report.pdf
+│   |   └── group1_long_report.pdf
+│   |   └── group1_presentation_slides.pdf
+│   ├── group2_project.zip
+│   ├── group3_project.zip
+│   └── ... (additional group ZIPs)
+│
+└── README.txt (optional)
