@@ -1,9 +1,6 @@
 <?php
     function automate_sd_upload($atts) {
 
-        // This begins output buffering, which is needed to properly output HTML within this function
-        ob_start();
-
         // This adds an action button to the Senior Design Projects page in WordPress
         add_action( "admin_notices", function() {
             echo "<div class='updated'>";
@@ -139,8 +136,5 @@
             }
 
         });
-
-        // This is the return statement that will output the retrieved information and/or HTML, CSS, and JS properly
-        return ob_get_clean();
     }
 ?>
