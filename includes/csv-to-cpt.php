@@ -4,12 +4,15 @@
  * Show insert posts button on backend
  */
 add_action( "admin_notices", function() {
-    echo "<div class='updated'>";
-    echo "<p>";
-    echo "To insert the posts into the database, click the button to the right.";
-    echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sitepoint_posts'>Insert Posts</a>";
-    echo "</p>";
-    echo "</div>";
+    $screen = get_current_screen();
+    if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
+        echo "<div class='updated'>";
+        echo "<p>";
+        echo "To insert the posts into the database, click the button to the right.";
+        echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sitepoint_posts'>Insert Posts</a>";
+        echo "</p>";
+        echo "</div>";
+    }
 });
 
 /**
