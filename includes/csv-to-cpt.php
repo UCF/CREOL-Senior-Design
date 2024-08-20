@@ -60,9 +60,15 @@
                 $errors = array();
 
                 $csv_file = $extracted_path . '/data/projects.csv';
-                // Attempt to change permissions if not readable
-                if (!is_readable( $csv_file ) ) {
-                    chmod( $csv_file, 0744 );
+
+                // Check if the file exists before attempting to change permissions
+                if (file_exists($csv_file)) {
+                    if (!is_readable($csv_file)) {
+                        chmod($csv_file, 0744); // Change permissions if necessary
+                    }
+                } else {
+                    error_log("CSV file '$csv_file' does not exist.");
+                    return $data;
                 }
 
                 if (!is_readable($csv_file)) {
@@ -92,7 +98,7 @@
                     fclose($_file);
 
                 } else {
-                    $errors[] = "CSV file 'csv_file' could not be opened";
+                    $errors[] = "CSV file '$csv_file' could not be opened";
                 }
 
                 // Log any errors
@@ -104,7 +110,6 @@
 
                 return $data;
             };
-
 
             // Query to retrieve all posts that exist
             $post_exists = function($title) use ($wpdb, $project) {
