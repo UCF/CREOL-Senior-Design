@@ -32,14 +32,14 @@
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
             $extracted_path = $plugin_dir . 'extracted/2024_fall_sd/data';
 
-            // Create directories
-            if (!file_exists($extracted_path . '/data')) {
-                if (!mkdir($extracted_path . '/data', 0755, true) && !file_exists($extracted_path . '/data')) {
-                    error_log("Failed to create directory: " . $extracted_path . '/data');
-                } else {
-                    error_log("Directory created: " . $extracted_path . '/data');
-                }
-            }      
+            // // Create directories
+            // if (!file_exists($extracted_path . '/data')) {
+            //     if (!mkdir($extracted_path . '/data', 0755, true) && !file_exists($extracted_path . '/data')) {
+            //         error_log("Failed to create directory: " . $extracted_path . '/data');
+            //     } else {
+            //         error_log("Directory created: " . $extracted_path . '/data');
+            //     }
+            // }      
 
             // Unzip the file
             $zip = new ZipArchive;
