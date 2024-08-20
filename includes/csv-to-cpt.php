@@ -154,7 +154,7 @@
                 ];
                                 
                 foreach ($file_fields as $field => $acf_field) {
-                    $student_zip_path = $extracted_path . '/student_files/' . $post[$field];
+                    $student_zip_path = $extracted_path . '/2024_fall_sd/student_files/' . $post[$field];
 
                     if (file_exists($student_zip_path)) {
                         $student_zip = new ZipArchive;
