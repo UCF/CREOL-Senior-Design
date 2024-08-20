@@ -29,7 +29,7 @@
 
             // Define paths
             $plugin_dir = plugin_dir_path(__FILE__);
-            $zip_file_path = $plugin_dir . './data/2024_fall_sd.zip';
+            $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
             $extracted_path = $plugin_dir . 'extracted/';
 
             // $upload_dir = wp_upload_dir()['path'];
