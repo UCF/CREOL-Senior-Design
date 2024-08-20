@@ -154,45 +154,58 @@
                 ];
                                 
                 foreach ($file_fields as $field => $acf_field) {
-                    $student_zip_path = $extracted_path . '/2024_fall_sd/student_files/' . $post[$field];
-
-                    if (file_exists($student_zip_path)) {
-                        $student_zip = new ZipArchive;
-                        if ($student_zip->open($student_zip_path) === TRUE) {
-                            $student_zip->extractTo($extracted_path . '/student_files/');
-                            $student_zip->close();
-
-                            // Find and upload the correct PDF files
-                            $pdf_files = glob($extracted_path . '/student_files/*.pdf');
-
-                            foreach ($pdf_files as $pdf_file) {
-                                if (strpos(strtolower($pdf_file), $field) !== false) {
-                                    $file_name = basename($pdf_file);
-                                    $file_type = wp_check_filetype($file_name, null);
-
-                                    $attachment = array(
-                                        'guid' => wp_upload_dir()['url'] . '/' . $file_name,
-                                        'post_mime_type' => $file_type['type'],
-                                        'post_title' => sanitize_file_name($file_name),
-                                        'post_content' => '',
-                                        'post_status' => 'inherit'
-                                    );
-
-                                    $uploaded = move_uploaded_file($pdf_file, wp_upload_dir()['path'] . '/' . $file_name);
-
-                                    if ($uploaded) {
-                                        $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
-                                        require_once(ABSPATH . 'wp-admin/includes/image.php');
-                                        $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
-                                        wp_update_attachment_metadata($attach_id, $attach_data);
+                    $student_files_dir = $extracted_path . '/2024_fall_sd/student_files/';
+                    $student_zip_files = glob($student_files_dir . '*.zip');
         
-                                        // Update the ACF field with the attachment ID
-                                        update_field($acf_field, $attach_id, $post['id']);
+                    foreach ($student_zip_files as $student_zip_path) {
+                        if (file_exists($student_zip_path)) {
+                            $student_zip = new ZipArchive;
+                            if ($student_zip->open($student_zip_path) === TRUE) {
+                                $temp_dir = $extracted_path . '/temp/';
+                                if (!file_exists($temp_dir)) {
+                                    mkdir($temp_dir, 0755, true);
+                                }
+        
+                                $student_zip->extractTo($temp_dir);
+                                $student_zip->close();
+        
+                                // Find and upload the correct PDF files
+                                $pdf_files = glob($temp_dir . '*.pdf');
+        
+                                foreach ($pdf_files as $pdf_file) {
+                                    if (strpos(strtolower($pdf_file), $field) !== false) {
+                                        $file_name = basename($pdf_file);
+                                        $file_type = wp_check_filetype($file_name, null);
+        
+                                        $attachment = array(
+                                            'guid' => wp_upload_dir()['url'] . '/' . $file_name,
+                                            'post_mime_type' => $file_type['type'],
+                                            'post_title' => sanitize_file_name($file_name),
+                                            'post_content' => '',
+                                            'post_status' => 'inherit'
+                                        );
+        
+                                        // Move file to uploads directory
+                                        $uploaded = copy($pdf_file, wp_upload_dir()['path'] . '/' . $file_name);
+        
+                                        if ($uploaded) {
+                                            $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
+                                            require_once(ABSPATH . 'wp-admin/includes/image.php');
+                                            $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
+                                            wp_update_attachment_metadata($attach_id, $attach_data);
+            
+                                            // Update the ACF field with the attachment ID
+                                            update_field($acf_field, $attach_id, $post['id']);
+                                        }
                                     }
                                 }
+        
+                                // Clean up temporary files
+                                array_map('unlink', glob($temp_dir . '*.*'));
+                                rmdir($temp_dir);
+                            } else {
+                                error_log("Failed to open student ZIP file: $student_zip_path");
                             }
-                        } else {
-                            error_log("Failed to open student ZIP file: $student_zip_path");
                         }
                     }
                 }
