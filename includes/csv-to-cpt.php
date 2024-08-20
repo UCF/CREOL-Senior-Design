@@ -32,6 +32,12 @@
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
             $extracted_path = $plugin_dir . 'extracted';
 
+            if (!file_exists($extracted_path . '/data')) {
+                if (!mkdir($extracted_path . '/data', 0755, true) && !file_exists($extracted_path . '/data')) {
+                    error_log("Failed to create directory: " . $extracted_path . '/data');
+                }
+            }        
+
             // $upload_dir = wp_upload_dir()['path'];
             // $zip_file_path = $upload_dir . '/2024_fall_sd.zip';
             // $extracted_path = $upload_dir . '/extracted/';
@@ -39,11 +45,13 @@
             // Unzip the file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
-                $zip->extractTo($extracted_path);
+                $extraction_success = $zip->extractTo($extracted_path);
                 $zip->close();
+                if (!$extraction_success) {
+                    error_log("Failed to extract ZIP file to: $extracted_path");
+                }
             } else {
                 error_log("Failed to open ZIP file: $zip_file_path");
-                return;
             }
 
             // Retrieve the data from the CSV
@@ -136,7 +144,7 @@
                     if (file_exists($student_zip_path)) {
                         $student_zip = new ZipArchive;
                         if ($student_zip->open($student_zip_path) === TRUE) {
-                            $student_zip->extractTo($extracted_path . 'student_files/');
+                            $student_zip->extractTo($extracted_path . '/student_files/');
                             $student_zip->close();
 
                             // Find and upload the correct PDF files
