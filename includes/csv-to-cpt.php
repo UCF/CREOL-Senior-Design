@@ -30,7 +30,7 @@
             // Define paths
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
-            $extracted_path = $plugin_dir . 'extracted/';
+            $extracted_path = $plugin_dir . 'extracted';
 
             // $upload_dir = wp_upload_dir()['path'];
             // $zip_file_path = $upload_dir . '/2024_fall_sd.zip';
@@ -175,7 +175,7 @@
                 }
             }
 
-            // Show debugging on admin page when set to true
+            // Show debugging on admin page when set to true (may be denied)
             define('WP_DEBUG_DISPLAY', true);
             @ini_set('display_errors', 1);
 
