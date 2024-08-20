@@ -64,7 +64,7 @@
                 $data = array();
                 $errors = array();
 
-                $csv_file = $extracted_path . '/data/projects.csv';
+                $csv_file = $extracted_path . '/data/SD_CSV_Test1.csv';
 
                 // Check if the file exists before attempting to change permissions
                 if (file_exists($csv_file)) {
