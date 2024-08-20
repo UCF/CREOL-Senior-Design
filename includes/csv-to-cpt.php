@@ -60,6 +60,11 @@
                 $errors = array();
 
                 $csv_file = $extracted_path . '/data/projects.csv';
+                // Attempt to change permissions if not readable
+                if (!is_readable( $csv_file ) ) {
+                    chmod( $csv_file, 0744 );
+                }
+
                 if (!is_readable($csv_file)) {
                     error_log("CSV file '$csv_file' is not readable.");
                     return $data;
