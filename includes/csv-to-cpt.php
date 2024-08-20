@@ -30,7 +30,7 @@
             // Define paths
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
-            $extracted_path = $plugin_dir . 'extracted/2024_fall_sd';
+            $extracted_path = $plugin_dir . 'extracted';
 
             // // Create directories
             // if (!file_exists($extracted_path . '/data')) {
@@ -56,7 +56,7 @@
             }
 
             // List files in the extraction directory
-            $files = glob($extracted_path . '/data/*');
+            $files = glob($extracted_path . '/2024_fall_sd/data/*');
             error_log("Extracted files: " . print_r($files, true));
 
             // Retrieve the data from the CSV
@@ -64,7 +64,7 @@
                 $data = array();
                 $errors = array();
 
-                $csv_file = $extracted_path . '/data/SD_CSV_Test1.csv';
+                $csv_file = $extracted_path . '/2024_fall_sd/data/SD_CSV_Test1.csv';
 
                 // Check if the file exists before attempting to change permissions
                 if (file_exists($csv_file)) {
