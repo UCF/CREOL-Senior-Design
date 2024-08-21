@@ -173,15 +173,32 @@
                                     mkdir($temp_dir, 0755, true);
                                     error_log("Created temporary directory: $temp_dir");
                                 }
-
-                                $student_zip->extractTo($temp_dir);
+                            
+                                // Iterate over each file in the ZIP archive
+                                for ($i = 0; $i < $student_zip->numFiles; $i++) {
+                                    $zip_stat = $student_zip->statIndex($i);
+                                    $file_name = basename($zip_stat['name']);
+                            
+                                    // Check if the current entry is a file (not a directory)
+                                    if (!preg_match('/\/$/', $zip_stat['name'])) {
+                                        $file_path = $temp_dir . $file_name;
+                            
+                                        // Extract the file
+                                        if (copy("zip://{$student_zip_path}#{$zip_stat['name']}", $file_path)) {
+                                            error_log("Extracted file: $file_path");
+                                        } else {
+                                            error_log("Failed to extract file: $file_name");
+                                        }
+                                    }
+                                }
+                            
                                 $student_zip->close();
-                                error_log("Extracted ZIP file to temporary directory: $temp_dir");
-
+                                error_log("Finished extracting files to temporary directory: $temp_dir");
+                            
                                 // Find and upload the correct PDF files
                                 $pdf_files = glob($temp_dir . '*.pdf');
                                 error_log("Found " . count($pdf_files) . " PDF files in temporary directory: $temp_dir");
-
+                            
                                 foreach ($pdf_files as $pdf_file) {
                                     error_log("Checking PDF file: $pdf_file");
 
