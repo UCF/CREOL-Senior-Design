@@ -267,6 +267,155 @@
 
         });
 
+        // This executes when the page is loaded
+        // VERSION 2.0
+        add_action('admin_init', function() {
+
+            // If the URL is not set to 'insert_sd_projects' we will return and not execute the function
+            // TODO: Replace with a potentially safer alternative (ex: pop-up confirmation)
+            if ( !isset($_GET['insert_sd_projects'])) {
+                return;
+            }
+
+            $project = array(
+                'custom-post-type' => 'sd_project',
+            );
+            
+            // Define paths
+            $plugin_dir = plugin_dir_path(__FILE__);
+            $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
+            $extracted_path = $plugin_dir . 'extracted';  
+
+            // Extract the main ZIP file
+            // TODO: Implement flattened extraction
+            $zip = new ZipArchive;
+            if ($zip->open($zip_file_path) === TRUE) {
+                $zip->extractTo($extracted_dir);
+                $zip->close();
+            } else {
+                error_log('Failed to open main ZIP file.');
+                return;
+            }
+
+            // Locate and read the CSV file
+            // TODO: Add note to locate file name change
+            $csv_file_path = $extracted_dir . 'data/SD_CSV_test1.csv';
+            if (!file_exists($csv_file_path)) {
+                error_log('CSV file not found.');
+                return;
+            }
+
+            if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
+                $headers = fgetcsv($handle); // Read header row
+
+                // Process each row in the CSV
+                while (($row = fgetcsv($handle)) !== FALSE) {
+                    $data = array_combine($headers, $row); // Key (header name) -> value array
+                    $zip_folder_name = $data['zip_folder'];
+
+                    // Extract corresponding ZIP folder from student_files
+                    $zip_folder_path = $extracted_dir . 'student_files/' . $zip_folder_name . '.zip';
+                    if (!file_exists($zip_folder_path)) {
+                        error_log('ZIP folder ' . $zip_folder_name . ' not found.');
+                        continue;
+                    }
+
+                    // TODO: Implement flattened extraction + double check extraction destination
+                    $zip->open($zip_folder_path);
+                    $zip->extractTo($extracted_dir . 'temp_extraction/');
+                    $zip->close();
+
+                    // Identify and upload PDFs
+                    // TODO: Change identifier keywords from '1, 2, 3'
+                    // TODO: Change ACF identifier to ACF slugs
+                    $files = glob($extracted_dir . 'temp_extraction/*');
+                    foreach ($files as $file_path) {
+                        if (strpos(basename($file_path), '1') !== FALSE) {
+                            $pdf_field = 'acf_1';
+                        } elseif (strpos(basename($file_path), '2') !== FALSE) {
+                            $pdf_field = 'acf_2';
+                        } elseif (strpos(basename($file_path), '3') !== FALSE) {
+                            $pdf_field = 'acf_3';
+                        } else {
+                            error_log('File ' . basename($file_path) . ' does not match expected pattern.');
+                            continue;
+                        }
+
+                        // TODO: Implement check and upload functions found below
+                        // Check if the file already exists in the media library
+                        $file_hash = md5_file($file_path);
+                        $existing_attachment_id = check_existing_media_by_hash($file_hash);
+
+                        if ($existing_attachment_id) {
+                            // File already exists, use the existing ID
+                            update_field($pdf_field, $existing_attachment_id, $post_id);
+                        } else {
+                            // Otherwise, upload the file and get the attachment ID
+                            $attachment_id = upload_file_to_media_library($file_path);
+                            update_field($pdf_field, $attachment_id, $post_id);
+                        }
+                    }
+
+                    // Clean up temporary extraction folder
+                    // TODO: Double check file paths
+                    array_map('unlink', glob($extracted_dir . 'temp_extraction/*'));
+                    rmdir($extracted_dir . 'temp_extraction/');
+                }
+                fclose($handle);
+            } else  {
+                error_log('Failed to open the CSV file.');
+            }
+        });
+
+        // Checks the WP media library for a file with the given hash
+        function check_existing_media_by_hash($file_hash) {
+            global $wpdb;
+
+            // Query the media library for any files with a matching hash
+            $query = "
+                SELECT ID
+                FROM $wpdb->posts
+                WHERE post_type = 'attachment'
+                AND post_mime_type LIKE 'application/pdf'
+                AND meta_key = '_file_hash'
+                AND meta_value = %s
+            ";
+            $attachment_id = $wpdb->get_var($wpdb->prepare($query, $file_hash));
+
+            return $attachment_id ? $attachment_id : false; // or return the attachment ID if found
+        }        
+
+        // Uploads a file to the WP media library
+        function upload_file_to_media_library($file_path) {
+            // Include WordPress file handling code
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            require_once(ABSPATH . 'wp-admin/includes/media.php');
+            require_once(ABSPATH . 'wp-admin/includes/image.php');
+
+            // Handle the file upload
+            $file = array(
+                'name' => basename($file_path),
+                'type' => mime_content_type($file_path),
+                'tmp_name' => $file_path,
+                'error' => 0,
+                'size' => filesize($file_path)                
+            );
+
+            // Upload the file to the media library
+            $attachment_id = media_handle_sideload($file, 0);
+
+            if (is_wp_error($attachment_id)) {
+                error_log('Failed to upload file ' . basename($file_path));
+                return false;
+            }
+
+            // Generate and store the hash for the uploaded file
+            $file_hash = md5_file($file_path);
+            update_post_meta($attachment_id, '_file_hash', $file_hash);
+
+            return $attachment_id; // return the new attachment ID
+        }
+
         // Recursively delete all files and directories within a directory
         function deleteDir($dirPath) {
             if (!is_dir($dirPath)) {
