@@ -30,16 +30,7 @@
             // Define paths
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
-            $extracted_path = $plugin_dir . 'extracted';
-
-            // // Create directories
-            // if (!file_exists($extracted_path . '/data')) {
-            //     if (!mkdir($extracted_path . '/data', 0755, true) && !file_exists($extracted_path . '/data')) {
-            //         error_log("Failed to create directory: " . $extracted_path . '/data');
-            //     } else {
-            //         error_log("Directory created: " . $extracted_path . '/data');
-            //     }
-            // }      
+            $extracted_path = $plugin_dir . 'extracted';     
 
             // Unzip the file
             $zip = new ZipArchive;
@@ -161,12 +152,14 @@
                     
                     error_log("Found " . count($student_zip_files) . " student ZIP files in directory: $student_files_dir");
 
+                    // Loop over each student ZIP
                     foreach ($student_zip_files as $student_zip_path) {
                         error_log("Processing student ZIP file: $student_zip_path");
 
                         if (file_exists($student_zip_path)) {
                             $student_zip = new ZipArchive;
 
+                            // If the temp directory does not exist, create it
                             if ($student_zip->open($student_zip_path) === TRUE) {
                                 $temp_dir = $extracted_path . '/temp/';
                                 if (!file_exists($temp_dir)) {
@@ -207,29 +200,37 @@
                                         $file_type = wp_check_filetype($file_name, null);
                                         error_log("Matched PDF file: $file_name with field: $field");
 
-                                        $attachment = array(
-                                            'guid' => wp_upload_dir()['url'] . '/' . $file_name,
-                                            'post_mime_type' => $file_type['type'],
-                                            'post_title' => sanitize_file_name($file_name),
-                                            'post_content' => '',
-                                            'post_status' => 'inherit'
-                                        );
+                                        // Check if the file already exists in the media library
+                                        $attachment_id = check_existing_media($pdf_file);
 
-                                        // Move file to uploads directory
-                                        $uploaded = copy($pdf_file, wp_upload_dir()['path'] . '/' . $file_name);
-
-                                        if ($uploaded) {
-                                            error_log("Successfully uploaded file: $file_name to " . wp_upload_dir()['path']);
-                                            $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
-                                            require_once(ABSPATH . 'wp-admin/includes/image.php');
-                                            $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
-                                            wp_update_attachment_metadata($attach_id, $attach_data);
-
-                                            // Update the ACF field with the attachment ID
-                                            update_field($acf_field, $attach_id, $post['id']);
-                                            error_log("Updated ACF field: $acf_field with attachment ID: $attach_id");
+                                        if ($attachment_id) {
+                                            // File exists, use the existing attachment ID
+                                            update_field($acf_field, $attachment_id, $post['id']);
                                         } else {
-                                            error_log("Failed to upload file: $file_name");
+                                            $attachment = array(
+                                                'guid' => wp_upload_dir()['url'] . '/' . $file_name,
+                                                'post_mime_type' => $file_type['type'],
+                                                'post_title' => sanitize_file_name($file_name),
+                                                'post_content' => '',
+                                                'post_status' => 'inherit'
+                                            );
+
+                                            // Move file to uploads directory
+                                            $uploaded = copy($pdf_file, wp_upload_dir()['path'] . '/' . $file_name);
+
+                                            if ($uploaded) {
+                                                error_log("Successfully uploaded file: $file_name to " . wp_upload_dir()['path']);
+                                                $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
+                                                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                                                $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
+                                                wp_update_attachment_metadata($attach_id, $attach_data);
+
+                                                // Update the ACF field with the attachment ID
+                                                update_field($acf_field, $attach_id, $post['id']);
+                                                error_log("Updated ACF field: $acf_field with attachment ID: $attach_id");
+                                            } else {
+                                                error_log("Failed to upload file: $file_name");
+                                            }
                                         }
                                     } else {
                                         error_log("PDF file: $pdf_file does not match field: $field");
@@ -239,7 +240,7 @@
                                 // Cleanup temp directory
                                 deleteDir($temp_dir);
                                 error_log("Cleaned up temporary directory: $temp_dir");
-                                
+
                             } else {
                                 error_log("Failed to open student ZIP file: $student_zip_path");
                             }
@@ -273,4 +274,23 @@
                 }
             }
             rmdir($dirPath);
+        }
+
+        // Function to check if the file already exists in the media library
+        function check_existing_media($file_path) {
+            $filename = basename($file_path);
+            $query = new WP_Query([
+                'post_type' => 'attachment',
+                'meta_query' => [
+                    [
+                        'key' => '_wp_attached_file',
+                        'value' => $filename,
+                        'compare' => 'LIKE'
+                    ]
+                ]
+            ]);
+            if ($query->have_posts()) {
+                return $query->posts[0]->ID; // Return the ID of the existing file
+            }
+            return false; // File does not exist
         }
