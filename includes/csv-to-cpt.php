@@ -192,11 +192,18 @@
                                 $pdf_files = glob($temp_dir . '*.pdf');
                                 error_log("Found " . count($pdf_files) . " PDF files in temporary directory: $temp_dir");
                             
+                                $processed_files = [];
+
                                 foreach ($pdf_files as $pdf_file) {
                                     error_log("Checking PDF file: $pdf_file");
 
                                     if (strpos(strtolower($pdf_file), $field) !== false) {
                                         $file_name = basename($pdf_file);
+
+                                        if  (in_array($file_name, $processed_files)) {
+                                            continue;
+                                        }
+
                                         $file_type = wp_check_filetype($file_name, null);
                                         error_log("Matched PDF file: $file_name with field: $field");
 
@@ -227,6 +234,7 @@
 
                                                 // Update the ACF field with the attachment ID
                                                 update_field($acf_field, $attach_id, $post['id']);
+                                                $processed_files[] = $file_name;
                                                 error_log("Updated ACF field: $acf_field with attachment ID: $attach_id");
                                             } else {
                                                 error_log("Failed to upload file: $file_name");
