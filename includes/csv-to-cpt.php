@@ -220,8 +220,8 @@
                                 }
 
                                 // Cleanup temp directory
-                                deleteDir($temp_dir);
-                                error_log("Cleaned up temporary directory: $temp_dir");
+                                // deleteDir($temp_dir);
+                                // error_log("Cleaned up temporary directory: $temp_dir");
                             } else {
                                 error_log("Failed to open student ZIP file: $student_zip_path");
                             }
