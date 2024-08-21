@@ -152,31 +152,44 @@
                     'long_report' => 'long_report_file',
                     'presentation' => 'presentation_slides_file'
                 ];
-                                
+
                 foreach ($file_fields as $field => $acf_field) {
+                    error_log("Processing field: $field with ACF field: $acf_field");
+
                     $student_files_dir = $extracted_path . '/2024_fall_sd/student_files/';
                     $student_zip_files = glob($student_files_dir . '*.zip');
-        
+                    
+                    error_log("Found " . count($student_zip_files) . " student ZIP files in directory: $student_files_dir");
+
                     foreach ($student_zip_files as $student_zip_path) {
+                        error_log("Processing student ZIP file: $student_zip_path");
+
                         if (file_exists($student_zip_path)) {
                             $student_zip = new ZipArchive;
+
                             if ($student_zip->open($student_zip_path) === TRUE) {
                                 $temp_dir = $extracted_path . '/temp/';
                                 if (!file_exists($temp_dir)) {
                                     mkdir($temp_dir, 0755, true);
+                                    error_log("Created temporary directory: $temp_dir");
                                 }
-        
+
                                 $student_zip->extractTo($temp_dir);
                                 $student_zip->close();
-        
+                                error_log("Extracted ZIP file to temporary directory: $temp_dir");
+
                                 // Find and upload the correct PDF files
                                 $pdf_files = glob($temp_dir . '*.pdf');
-        
+                                error_log("Found " . count($pdf_files) . " PDF files in temporary directory: $temp_dir");
+
                                 foreach ($pdf_files as $pdf_file) {
+                                    error_log("Checking PDF file: $pdf_file");
+
                                     if (strpos(strtolower($pdf_file), $field) !== false) {
                                         $file_name = basename($pdf_file);
                                         $file_type = wp_check_filetype($file_name, null);
-        
+                                        error_log("Matched PDF file: $file_name with field: $field");
+
                                         $attachment = array(
                                             'guid' => wp_upload_dir()['url'] . '/' . $file_name,
                                             'post_mime_type' => $file_type['type'],
@@ -184,27 +197,41 @@
                                             'post_content' => '',
                                             'post_status' => 'inherit'
                                         );
-        
+
                                         // Move file to uploads directory
                                         $uploaded = copy($pdf_file, wp_upload_dir()['path'] . '/' . $file_name);
-        
+
                                         if ($uploaded) {
+                                            error_log("Successfully uploaded file: $file_name to " . wp_upload_dir()['path']);
                                             $attach_id = wp_insert_attachment($attachment, wp_upload_dir()['path'] . '/' . $file_name, $post['id']);
                                             require_once(ABSPATH . 'wp-admin/includes/image.php');
                                             $attach_data = wp_generate_attachment_metadata($attach_id, wp_upload_dir()['path'] . '/' . $file_name);
                                             wp_update_attachment_metadata($attach_id, $attach_data);
-            
+
                                             // Update the ACF field with the attachment ID
                                             update_field($acf_field, $attach_id, $post['id']);
+                                            error_log("Updated ACF field: $acf_field with attachment ID: $attach_id");
+                                        } else {
+                                            error_log("Failed to upload file: $file_name");
                                         }
+                                    } else {
+                                        error_log("PDF file: $pdf_file does not match field: $field");
                                     }
                                 }
+
+                                // Cleanup temp directory
+                                array_map('unlink', glob("$temp_dir*"));
+                                rmdir($temp_dir);
+                                error_log("Cleaned up temporary directory: $temp_dir");
                             } else {
                                 error_log("Failed to open student ZIP file: $student_zip_path");
                             }
+                        } else {
+                            error_log("Student ZIP file does not exist: $student_zip_path");
                         }
                     }
                 }
+
             }
 
             // Show debugging on admin page when set to true (may be denied)
