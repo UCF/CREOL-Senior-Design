@@ -241,18 +241,18 @@
         });
 
         // Recursively delete all files and directories within a directory
-        function deleteDir($dirPath) {
-            if (!is_dir($dirPath)) {
-                return;
-            }
-            $files = array_diff(scandir($dirPath), array('.', '..'));
-            foreach ($files as $file) {
-                $filePath = $dirPath . DIRECTORY_SEPARATOR . $file;
-                if (is_dir($filePath)) {
-                    deleteDir($filePath);
-                } else {
-                    unlink($filePath);
-                }
-            }
-            rmdir($dirPath);
-        }
+        // function deleteDir($dirPath) {
+        //     if (!is_dir($dirPath)) {
+        //         return;
+        //     }
+        //     $files = array_diff(scandir($dirPath), array('.', '..'));
+        //     foreach ($files as $file) {
+        //         $filePath = $dirPath . DIRECTORY_SEPARATOR . $file;
+        //         if (is_dir($filePath)) {
+        //             deleteDir($filePath);
+        //         } else {
+        //             unlink($filePath);
+        //         }
+        //     }
+        //     rmdir($dirPath);
+        // }
