@@ -38,6 +38,7 @@
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $filename = $zip->getNameIndex($i);
                     $fileinfo = pathinfo($filename);
+                    error_log('File name: ' . $filename);
 
                     if (strpos($fileinfo['basename'], '.') !== false) {
                         copy("zip://$zip_file_path#$filename", $extracted_dir . $fileinfo['basename']);
