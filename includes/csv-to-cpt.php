@@ -30,7 +30,7 @@
             // Define paths
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
-            $extracted_path = $plugin_dir . 'extracted/';  
+            $extracted_dir = $plugin_dir . 'extracted/';  
 
             // Extract the main ZIP file
             $zip = new ZipArchive;
