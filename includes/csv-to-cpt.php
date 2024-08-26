@@ -79,8 +79,21 @@
                 // Process each row in the CSV
                 while (($row = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $row); // Key (header name) -> value array
-                    $zip_folder_name = $data['zip_file'];
 
+                    // Create a new CPT post
+                    $post_data = array(
+                        'post_title'    => $data['title'],
+                        'post_status'   => 'publish',   // You can change this to 'draft' if you don't want to publish immediately
+                        'post_type'     => 'sd_project',
+                    );
+                    $post_id = wp_insert_post($post_data);
+
+                    if  (is_wp_error($post_id)) {
+                        error_log('Failed to create post for project: ' . $data['project_title']);
+                        continue;
+                    }
+
+                    $zip_folder_name = $data['zip_file'];
                     $zip_folder_path = $extracted_dir . $zip_folder_name;
                     if (!file_exists($zip_folder_path)) {
                         error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
