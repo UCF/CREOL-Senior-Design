@@ -1,15 +1,24 @@
 <?php
 
-        // This adds an action button to the Senior Design Projects page in WordPress
+        // This adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
                 echo "<div class='updated'>";
                 echo "<p>";
                 echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Change to better explaination
-                echo "<a class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
+                echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
                 echo "</p>";
                 echo "</div>";
+                ?>
+                <script type="text/javascript">
+                    document.getElementById('insert-sd-projects-button').addEventListener('click', function(e) {
+                        if (!confirm('Are you sure you want to import the Senior Design Projects from the CSV? This action cannot be undone.')) {
+                            e.preventDefault();
+                        }
+                    });
+                </script>
+                <?php
             }
         });
 
