@@ -72,37 +72,49 @@
                     $data = array_combine($headers, $row); // Key (header name) -> value array
                     $zip_folder_name = $data['zip_file'];
 
-                    // Extract corresponding ZIP folder from student_files
                     $zip_folder_path = $extracted_dir . $zip_folder_name;
                     if (!file_exists($zip_folder_path)) {
                         error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
                         continue;
                     }
-            
+                    
                     // Create the temp_extraction dir if it DNE
-                    if (!file_exists($extracted_dir . 'temp_extraction/')) {
-                        mkdir($extracted_dir . 'temp_extraction', 0777, true);
-                        error_log("Created extracted directory: " . $extracted_dir . "temp_extraction/");
+                    $temp_extraction_dir = $extracted_dir . 'temp_extraction/';
+                    if (!file_exists($temp_extraction_dir)) {
+                        mkdir($temp_extraction_dir, 0777, true);
+                        error_log("Created extracted directory: " . $temp_extraction_dir);
                     }
-
-                    // TODO: Implement flattened extraction + double check extraction destination
-                    $zip->open($zip_folder_path);
-                    for ($i = 0; $i < $zip->numFiles; $i++) {
-                        $filename = $zip->getNameIndex($i);
-                        $fileinfo = pathinfo($filename);
-
-                        // Extract files directly into a flat structure
-                        if (strpos($fileinfo['basename'], '.') !== false) {
-                            copy("zip://$zip_folder_path#$filename", $extracted_dir . 'temp_extraction/' . $fileinfo['basename']);
+                    
+                    $zip = new ZipArchive;
+                    if ($zip->open($zip_folder_path) === TRUE) {
+                        for ($i = 0; $i < $zip->numFiles; $i++) {
+                            $filename = $zip->getNameIndex($i);
+                            $fileinfo = pathinfo($filename);
+                    
+                            // Extract files directly into a flat structure
+                            if (strpos($fileinfo['basename'], '.') !== false) {
+                                $destination_path = $temp_extraction_dir . $fileinfo['basename'];
+                                if (!copy("zip://$zip_folder_path#$filename", $destination_path)) {
+                                    error_log('Failed to copy ' . $filename . ' to ' . $destination_path);
+                                } else {
+                                    error_log('Successfully copied ' . $filename . ' to ' . $destination_path);
+                                }
+                            }
                         }
+                        $zip->close();
+                    } else {
+                        error_log('Failed to open ZIP file: ' . $zip_folder_path);
+                        continue;
                     }
-                    $zip->close();
-
+                    
                     // Identify and upload PDFs
-                    // TODO: Change identifier keywords from '1, 2, 3'
-                    // TODO: Change ACF identifier to ACF slugs
-                    $files = glob($extracted_dir . 'temp_extraction/*');
+                    $files = glob($temp_extraction_dir . '*');
                     foreach ($files as $file_path) {
+                        if (!file_exists($file_path)) {
+                            error_log('File not found: ' . $file_path);
+                            continue;
+                        }
+                    
                         if (strpos(basename($file_path), 'Short_Report') !== FALSE) {
                             $pdf_field = 'short_report_file';
                         } elseif (strpos(basename($file_path), 'Long_Report') !== FALSE) {
@@ -113,26 +125,33 @@
                             error_log('File ' . basename($file_path) . ' does not match expected pattern.');
                             continue;
                         }
-
-                        // TODO: Implement check and upload functions found below
+                    
                         // Check if the file already exists in the media library
                         $file_hash = md5_file($file_path);
+                        if ($file_hash === false) {
+                            error_log('Failed to calculate MD5 hash for file: ' . $file_path);
+                            continue;
+                        }
+                        
                         $existing_attachment_id = check_existing_media_by_hash($file_hash);
-
+                    
                         if ($existing_attachment_id) {
                             // File already exists, use the existing ID
                             update_field($pdf_field, $existing_attachment_id, $post_id);
                         } else {
                             // Otherwise, upload the file and get the attachment ID
                             $attachment_id = upload_file_to_media_library($file_path);
-                            update_field($pdf_field, $attachment_id, $post_id);
+                            if ($attachment_id !== false) {
+                                update_field($pdf_field, $attachment_id, $post_id);
+                            } else {
+                                error_log('Failed to upload file: ' . $file_path);
+                            }
                         }
                     }
-
+                    
                     // Clean up temporary extraction folder
-                    // TODO: Double check file paths
-                    array_map('unlink', glob($extracted_dir . 'temp_extraction/*'));
-                    rmdir($extracted_dir . 'temp_extraction/');
+                    array_map('unlink', glob($temp_extraction_dir . '*'));
+                    rmdir($temp_extraction_dir);
                 }
                 fclose($handle);
             } else  {
