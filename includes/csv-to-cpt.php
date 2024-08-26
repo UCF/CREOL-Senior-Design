@@ -80,17 +80,30 @@
                 while (($row = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $row); // Key (header name) -> value array
 
-                    // Create a new CPT post
-                    $post_data = array(
-                        'post_title'    => $data['title'],
-                        'post_status'   => 'publish',   // You can change this to 'draft' if you don't want to publish immediately
-                        'post_type'     => 'sd_project',
-                    );
-                    $post_id = wp_insert_post($post_data);
+                    // Check if a post with the same title (or another unique field) already exists
+                    $existing_post = get_page_by_title($data['project_title'], OBJECT, 'sd_project');
 
-                    if  (is_wp_error($post_id)) {
-                        error_log('Failed to create post for project: ' . $data['project_title']);
-                        continue;
+                    if ($existing_post) {
+                        $post_id = $existing_post->ID;
+                        error_log('Post already exists: ' . $data['project_title']);
+                    } else {
+                        // Create a new CPT post
+                        $post_data = array(
+                            'post_title'    => $data['title'],
+                            'post_status'   => 'publish',   // You can change this to 'draft' if you don't want to publish immediately
+                            'post_type'     => 'sd_project',
+                        );
+                        $post_id = wp_insert_post($post_data);
+                        
+                        if  (is_wp_error($post_id)) {
+                            error_log('Failed to create post for project: ' . $data['project_title']);
+                            continue;
+                        }
+                    }
+
+                    // Attach the contributors text field
+                    if (!empty($data['project_contributors'])) {
+                        update_field('project_contributors', $data['project_contributors'], $post_id);
                     }
 
                     $zip_folder_name = $data['zip_file'];
