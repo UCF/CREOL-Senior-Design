@@ -1,6 +1,6 @@
 <?php
 
-        // This adds an action button to the Senior Design Projects page in WOrdPress
+        // This adds an action button to the Senior Design Projects page in WordPress
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
@@ -141,7 +141,7 @@
                 $file_fields = [
                     'short_report' => 'short_report_file',
                     'long_report' => 'long_report_file',
-                    'presentation' => 'presentation_slides_file'
+                    'presentation_slides' => 'presentation_slides_file'
                 ];
 
                 foreach ($file_fields as $field => $acf_field) {
@@ -159,9 +159,9 @@
                         if (file_exists($student_zip_path)) {
                             $student_zip = new ZipArchive;
 
-                            // If the temp directory does not exist, create it
                             if ($student_zip->open($student_zip_path) === TRUE) {
                                 $temp_dir = $extracted_path . '/temp/';
+                                // If the temp directory does not exist, create it
                                 if (!file_exists($temp_dir)) {
                                     mkdir($temp_dir, 0755, true);
                                     error_log("Created temporary directory: $temp_dir");
@@ -284,13 +284,19 @@
             // Define paths
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
-            $extracted_path = $plugin_dir . 'extracted';  
+            $extracted_path = $plugin_dir . 'extracted/';  
 
             // Extract the main ZIP file
-            // TODO: Implement flattened extraction
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
-                $zip->extractTo($extracted_dir);
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $filename = $zip->getNameIndex($i);
+                    $fileinfo = pathinfo($filename);
+
+                    if (strpos($fileinfo['basename'], '.') !== false) {
+                        copy("zip://$zip_file_path#$filename", $extracted_dir . $fileinfo['basename']);
+                    }
+                }
                 $zip->close();
             } else {
                 error_log('Failed to open main ZIP file.');
@@ -299,7 +305,7 @@
 
             // Locate and read the CSV file
             // TODO: Add note to locate file name change
-            $csv_file_path = $extracted_dir . 'data/SD_CSV_test1.csv';
+            $csv_file_path = $extracted_dir . 'SD_CSV_test1.csv';
             if (!file_exists($csv_file_path)) {
                 error_log('CSV file not found.');
                 return;
@@ -322,7 +328,15 @@
 
                     // TODO: Implement flattened extraction + double check extraction destination
                     $zip->open($zip_folder_path);
-                    $zip->extractTo($extracted_dir . 'temp_extraction/');
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $filename = $zip->getNameIndex($i);
+                        $fileinfo = pathinfo($filename);
+
+                        // Extract files directly into a flat structure
+                        if (strpos($fileinfo['basename'], '.') !== false) {
+                            copy("zip://$zip_folder_path#$filename", $extracted_dir . 'temp_extraction/' . $fileinfo['basename']);
+                        }
+                    }
                     $zip->close();
 
                     // Identify and upload PDFs
@@ -330,12 +344,12 @@
                     // TODO: Change ACF identifier to ACF slugs
                     $files = glob($extracted_dir . 'temp_extraction/*');
                     foreach ($files as $file_path) {
-                        if (strpos(basename($file_path), '1') !== FALSE) {
-                            $pdf_field = 'acf_1';
-                        } elseif (strpos(basename($file_path), '2') !== FALSE) {
-                            $pdf_field = 'acf_2';
-                        } elseif (strpos(basename($file_path), '3') !== FALSE) {
-                            $pdf_field = 'acf_3';
+                        if (strpos(basename($file_path), 'short_report') !== FALSE) {
+                            $pdf_field = 'short_report_file';
+                        } elseif (strpos(basename($file_path), 'long_report') !== FALSE) {
+                            $pdf_field = 'long_report_file';
+                        } elseif (strpos(basename($file_path), 'presentation') !== FALSE) {
+                            $pdf_field = 'presentation_slides_file';
                         } else {
                             error_log('File ' . basename($file_path) . ' does not match expected pattern.');
                             continue;
