@@ -35,7 +35,8 @@
             if (!file_exists($extracted_dir)) {
                 mkdir($extracted_dir, 0775, true);
                 error_log("Created extracted directory: $extracted_dir");
-
+            }
+            
             // Extract the main ZIP file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
