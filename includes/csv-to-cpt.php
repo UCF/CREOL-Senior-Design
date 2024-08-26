@@ -201,6 +201,10 @@
             require_once(ABSPATH . 'wp-admin/includes/file.php');
             require_once(ABSPATH . 'wp-admin/includes/media.php');
             require_once(ABSPATH . 'wp-admin/includes/image.php');
+            if (!file_exists($file_path)) {
+                error_log('File not found 6: ' . $file_path);
+                return;
+            }
 
             // Handle the file upload
             $file = array(
@@ -210,11 +214,15 @@
                 'error' => 0,
                 'size' => filesize($file_path)                
             );
+            if (!file_exists($file_path)) {
+                error_log('File not found 7: ' . $file_path);
+                return;
+            }
 
             // Upload the file to the media library
             $attachment_id = media_handle_sideload($file, 0);
             if (!file_exists($file_path)) {
-                error_log('File not found 6: ' . $file_path);
+                error_log('File not found 8: ' . $file_path);
                 return;
             }
 
