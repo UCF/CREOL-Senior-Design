@@ -78,17 +78,30 @@
 
                 // Define the batch size
                 $batch_size = 10;
-                $offset = 0;
+
+                // If a partial offset exists already in a transient, use that instead of 0
+                $offset = get_transient('sd_projects_import_offset') ?: 0;
 
                 // Process each row in the CSV
                 while (($rows = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $rows); // Key (header name) -> value array
 
+                    // Check if we have reached the offset; if so, start processing
+                    if ($offset > 0) {
+                        $offset--;
+                        continue;
+                    }
+
                     // Process the current batch
-                    $batch = array_slice($rows, $offset, $batch_size);
+                    $batch = array_slice($rows, 0, $batch_size);
                     foreach ($batch as $row) {
                         process_row($row);
                     }
+
+                    // Update the offset transient after processing the batch
+                    $current_offset = get_transient('sd_projects_import_offset') ?: 0;
+                    $new_offset = $current_offset + $batch_size;
+                    set_transient('sd_projects_import_offset', $new_offset, 12 * HOUR_IN_SECONDS);
 
                     // Increase the offset for the next batch
                     $offset += $batch_size;
@@ -98,6 +111,9 @@
                 }
 
                 fclose($handle);
+                delete_transient('sd_projects_import_offset');
+                delete_transient('sd_projects_import_total_rows');
+
             } else  {
                 error_log('Failed to open the CSV file.');
             }
