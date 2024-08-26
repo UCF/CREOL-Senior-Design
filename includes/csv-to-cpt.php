@@ -36,7 +36,7 @@
                 mkdir($extracted_dir, 0775, true);
                 error_log("Created extracted directory: $extracted_dir");
             }
-            
+
             // Extract the main ZIP file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
@@ -69,7 +69,7 @@
                 // Process each row in the CSV
                 while (($row = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $row); // Key (header name) -> value array
-                    $zip_folder_name = $data['zip_folder'];
+                    $zip_folder_name = $data['zip_file'];
 
                     // Extract corresponding ZIP folder from student_files
                     $zip_folder_path = $extracted_dir . 'student_files/' . $zip_folder_name . '.zip';
