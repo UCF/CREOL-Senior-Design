@@ -126,7 +126,9 @@
                             continue;
                         }
                     
+                        
                         // Check if the file already exists in the media library
+                        error_log('Calculating MD5 hash for file: ' . $file_path);
                         $file_hash = md5_file($file_path);
                         if ($file_hash === false) {
                             error_log('Failed to calculate MD5 hash for file: ' . $file_path);
@@ -202,6 +204,7 @@
             }
 
             // Generate and store the hash for the uploaded file
+            error_log('Calculating MD5 hash for new file upload: ' . $file_path);
             $file_hash = md5_file($file_path);
             update_post_meta($attachment_id, '_file_hash', $file_hash);
 
