@@ -33,7 +33,7 @@
             $extracted_dir = $plugin_dir . 'extracted/';  
             
             if (!file_exists($extracted_dir)) {
-                mkdir($extracted_dir, 0775, true);
+                mkdir($extracted_dir, 0777, true);
                 error_log("Created extracted directory: $extracted_dir");
             }
 
