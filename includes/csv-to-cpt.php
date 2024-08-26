@@ -111,7 +111,7 @@
                     $files = glob($temp_extraction_dir . '*');
                     foreach ($files as $file_path) {
                         if (!file_exists($file_path)) {
-                            error_log('File not found: ' . $file_path);
+                            error_log('File not found 1: ' . $file_path);
                             continue;
                         }
                     
@@ -125,6 +125,10 @@
                             error_log('File ' . basename($file_path) . ' does not match expected pattern.');
                             continue;
                         }
+                        if (!file_exists($file_path)) {
+                            error_log('File not found 2: ' . $file_path);
+                            continue;
+                        }
                     
                         
                         // Check if the file already exists in the media library
@@ -134,8 +138,16 @@
                             error_log('Failed to calculate MD5 hash for file: ' . $file_path);
                             continue;
                         }
+                        if (!file_exists($file_path)) {
+                            error_log('File not found 3: ' . $file_path);
+                            continue;
+                        }
                         
                         $existing_attachment_id = check_existing_media_by_hash($file_hash);
+                        if (!file_exists($file_path)) {
+                            error_log('File not found 4: ' . $file_path);
+                            continue;
+                        }
                     
                         if ($existing_attachment_id) {
                             // File already exists, use the existing ID
@@ -181,6 +193,10 @@
 
         // Uploads a file to the WP media library
         function upload_file_to_media_library($file_path) {
+            if (!file_exists($file_path)) {
+                error_log('File not found 5: ' . $file_path);
+                return;
+            }
             // Include WordPress file handling code
             require_once(ABSPATH . 'wp-admin/includes/file.php');
             require_once(ABSPATH . 'wp-admin/includes/media.php');
@@ -197,6 +213,10 @@
 
             // Upload the file to the media library
             $attachment_id = media_handle_sideload($file, 0);
+            if (!file_exists($file_path)) {
+                error_log('File not found 6: ' . $file_path);
+                return;
+            }
 
             if (is_wp_error($attachment_id)) {
                 error_log('Failed to upload file ' . basename($file_path));
