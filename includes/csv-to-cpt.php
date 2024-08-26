@@ -103,11 +103,11 @@
                     // TODO: Change ACF identifier to ACF slugs
                     $files = glob($extracted_dir . 'temp_extraction/*');
                     foreach ($files as $file_path) {
-                        if (strpos(basename($file_path), 'short_report') !== FALSE) {
+                        if (strpos(basename($file_path), 'Short_Report') !== FALSE) {
                             $pdf_field = 'short_report_file';
-                        } elseif (strpos(basename($file_path), 'long_report') !== FALSE) {
+                        } elseif (strpos(basename($file_path), 'Long_Report') !== FALSE) {
                             $pdf_field = 'long_report_file';
-                        } elseif (strpos(basename($file_path), 'presentation') !== FALSE) {
+                        } elseif (strpos(basename($file_path), 'Presentation') !== FALSE) {
                             $pdf_field = 'presentation_slides_file';
                         } else {
                             error_log('File ' . basename($file_path) . ' does not match expected pattern.');
