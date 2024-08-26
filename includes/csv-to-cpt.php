@@ -31,6 +31,10 @@
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
             $extracted_dir = $plugin_dir . 'extracted/';  
+            
+            if (!file_exists($extracted_dir)) {
+                mkdir($extracted_dir, 0775, true);
+                error_log("Created extracted directory: $extracted_dir");
 
             // Extract the main ZIP file
             $zip = new ZipArchive;
