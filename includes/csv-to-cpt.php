@@ -74,7 +74,7 @@
                     // Extract corresponding ZIP folder from student_files
                     $zip_folder_path = $extracted_dir . 'student_files/' . $zip_folder_name . '.zip';
                     if (!file_exists($zip_folder_path)) {
-                        error_log('ZIP folder ' . $zip_folder_name . ' not found.');
+                        error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
                         continue;
                     }
 
