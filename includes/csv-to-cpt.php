@@ -52,7 +52,7 @@
 
             // Locate and read the CSV file
             // TODO: Add note to locate file name change
-            $csv_file_path = $extracted_dir . 'SD_CSV_test1.csv';
+            $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv';
             if (!file_exists($csv_file_path)) {
                 error_log('CSV file not found.');
                 return;
