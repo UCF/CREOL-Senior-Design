@@ -32,9 +32,10 @@
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
             $extracted_dir = $plugin_dir . 'extracted/';  
             
+            // Create the extracted dir if it DNE
             if (!file_exists($extracted_dir)) {
                 mkdir($extracted_dir, 0777, true);
-                error_log("Created extracted directory: $extracted_dir");
+                error_log("Created extracted directory: " . $extracted_dir);
             }
 
             // Extract the main ZIP file
@@ -76,6 +77,12 @@
                     if (!file_exists($zip_folder_path)) {
                         error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
                         continue;
+                    }
+            
+                    // Create the temp_extraction dir if it DNE
+                    if (!file_exists($extracted_dir . 'temp_extraction/')) {
+                        mkdir($extracted_dir . 'temp_extraction', 0777, true);
+                        error_log("Created extracted directory: " . $extracted_dir . "temp_extraction/");
                     }
 
                     // TODO: Implement flattened extraction + double check extraction destination
