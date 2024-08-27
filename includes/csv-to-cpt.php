@@ -182,10 +182,9 @@
 
         // Create a CPT with processed data from a row of the CSV 
         function process_row($data) {
-
             // Check if a post with the same title (or another unique field) already exists
             $existing_post = get_page_by_title($data['project_title'], OBJECT, 'sd_project');
-
+        
             if ($existing_post) {
                 $post_id = $existing_post->ID;
                 error_log('Post already exists: ' . $data['project_title']);
@@ -197,38 +196,44 @@
                     'post_type'     => 'sd_project',
                 );
                 $post_id = wp_insert_post($post_data);
-                
-                if  (is_wp_error($post_id)) {
+        
+                if (is_wp_error($post_id)) {
                     error_log('Failed to create post for project: ' . $data['project_title']);
                     return;
                 }
             }
-
+        
             // Attach the contributors text field
             if (!empty($data['project_contributors'])) {
                 update_field('project_contributors', $data['project_contributors'], $post_id);
             }
-
-            $zip_folder_name = $data['zip_file'];
+        
+            // Handle ZIP extraction and file processing
+            handle_zip_extraction_and_files($data['zip_file'], $post_id);
+        }
+        
+        function handle_zip_extraction_and_files($zip_folder_name, $post_id) {
+            global $extracted_dir;
             $zip_folder_path = $extracted_dir . $zip_folder_name;
+        
             if (!file_exists($zip_folder_path)) {
                 error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
                 return;
             }
-            
+        
             // Create the temp_extraction dir if it DNE
             $temp_extraction_dir = $extracted_dir . 'temp_extraction/';
             if (!file_exists($temp_extraction_dir)) {
                 mkdir($temp_extraction_dir, 0777, true);
                 error_log("Created extracted directory: " . $temp_extraction_dir);
             }
-            
+        
             $zip = new ZipArchive;
             if ($zip->open($zip_folder_path) === TRUE) {
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $filename = $zip->getNameIndex($i);
                     $fileinfo = pathinfo($filename);
-            
+        
                     // Extract files directly into a flat structure
                     if (strpos($fileinfo['basename'], '.') !== false) {
                         $destination_path = $temp_extraction_dir . $fileinfo['basename'];
@@ -244,11 +249,18 @@
                 error_log('Failed to open ZIP file: ' . $zip_folder_path);
                 return;
             }
-            
+        
             // Identify and upload PDFs
+            process_files_in_temp_dir($temp_extraction_dir, $post_id);
+        
+            // Clean up temporary extraction folder
+            array_map('unlink', glob($temp_extraction_dir . '*'));
+            rmdir($temp_extraction_dir);
+        }
+        
+        function process_files_in_temp_dir($temp_extraction_dir, $post_id) {
             $files = glob($temp_extraction_dir . '*');
             foreach ($files as $file_path) {
-            
                 if (strpos(basename($file_path), 'Short_Report') !== FALSE) {
                     $pdf_field = 'short_report_file';
                 } elseif (strpos(basename($file_path), 'Long_Report') !== FALSE) {
@@ -259,8 +271,7 @@
                     error_log('File ' . basename($file_path) . ' does not match expected pattern.');
                     continue;
                 }
-            
-                
+        
                 // Check if the file already exists in the media library
                 error_log('Calculating MD5 hash for file: ' . $file_path);
                 $file_hash = md5_file($file_path);
@@ -268,9 +279,9 @@
                     error_log('Failed to calculate MD5 hash for file: ' . $file_path);
                     continue;
                 }
-                
+        
                 $existing_attachment_id = check_existing_media_by_hash($file_hash);
-            
+        
                 if ($existing_attachment_id) {
                     // File already exists, use the existing ID
                     update_field($pdf_field, $existing_attachment_id, $post_id);
@@ -284,10 +295,6 @@
                     }
                 }
             }
-            
-            // Clean up temporary extraction folder
-            array_map('unlink', glob($temp_extraction_dir . '*'));
-            rmdir($temp_extraction_dir);
         }
 
         // Checks the WP media library for a file with the given hash
