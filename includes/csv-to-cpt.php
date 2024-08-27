@@ -31,15 +31,19 @@
         
                     function updateProgress() {
                         var xhr = new XMLHttpRequest();
-                        xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check'); ?>', true);
+                        xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check&nonce=' . wp_create_nonce('insert_sd_projects_nonce')); ?>', true);
                         xhr.onload = function() {
-                            var response = JSON.parse(xhr.responseText);
-                            var percent = response.percent;
-                            var status = response.status;
-                            document.getElementById('progress-bar').style.width = percent + '%';
-                            document.getElementById('progress-text').innerText = status;
-                            if (percent < 100) {
-                                setTimeout(updateProgress, 1000);
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                var response = JSON.parse(xhr.responseText);
+                                var percent = response.percent;
+                                var status = response.status;
+                                document.getElementById('progress-bar').style.width = percent + '%';
+                                document.getElementById('progress-text').innerText = status;
+                                if (percent < 100) {
+                                    setTimeout(updateProgress, 1000); // Check progress every second
+                                }
+                            } else {
+                                error_log('Failed to retrieve progress.');
                             }
                         };
                         xhr.send();
@@ -48,6 +52,24 @@
                 <?php
             }
         });
+
+        add_action('wp_ajax_progress_check', function() {
+            check_ajax_referer('insert_sd_projects_nonce', 'nonce');
+            
+            $offset = get_transient('sd_projects_import_offset') ?: 0;
+            $total_rows = get_transient('sd_projects_import_total_rows') ?: 100; // Default to 100 if not set
+        
+            // Ensure total_rows is not zero to prevent division by zero errors
+            $total_rows = max($total_rows, 1);
+        
+            $percent = min(100, ($offset / $total_rows) * 100);
+            $status = ($percent < 100) ? 'Processing...' : 'Complete';
+        
+            wp_send_json(array(
+                'percent' => $percent,
+                'status' => $status
+            ));
+        });        
 
         // This executes when the page is loaded
         // VERSION 2.0
@@ -108,36 +130,36 @@
 
                 // If a partial offset exists already in a transient, use that instead of 0
                 $offset = get_transient('sd_projects_import_offset') ?: 0;
+                $total_rows = count_rows($csv_file_path); // Implement this function
+                set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
 
                 // Process each row in the CSV
                 while (($rows = fgetcsv($handle)) !== FALSE) {
-                    $data = array_combine($headers, $rows); // Key (header name) -> value array
-
-                    // Check if we have reached the offset; if so, start processing
+                    $data = array_combine($headers, $rows);
+                
+                    // Start processing if we are at or past the current offset
                     if ($offset > 0) {
                         $offset--;
                         continue;
                     }
-
-                    // Process the current batch
+                
                     $batch = array_slice($rows, 0, $batch_size);
                     foreach ($batch as $row) {
                         process_row($row);
+                
+                        // Update the offset and progress
+                        $offset++;
+                        $percent = min(100, ($offset / $total_rows) * 100);
+                        $status = ($percent < 100) ? 'Processing...' : 'Complete';
+                        set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
                     }
-
-                    // Update the offset transient after processing the batch
-                    $current_offset = get_transient('sd_projects_import_offset') ?: 0;
-                    $new_offset = $current_offset + $batch_size;
-                    set_transient('sd_projects_import_offset', $new_offset, 12 * HOUR_IN_SECONDS);
-
-                    // Increase the offset for the next batch
-                    $offset += $batch_size;
-
-                    // Sleep for a short time to avoid hitting any server limits
+                
+                    // Sleep to avoid hitting server limits
                     sleep(1);
                 }
 
                 fclose($handle);
+                // Clear transients after completion
                 delete_transient('sd_projects_import_offset');
                 delete_transient('sd_projects_import_total_rows');
 
@@ -145,6 +167,18 @@
                 error_log('Failed to open the CSV file.');
             }
         });
+
+        // Count the number of rows total in the CSV
+        function count_rows($csv_file_path) {
+            $row_count = 0;
+            if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
+                while (($data = fgetcsv($handle)) !== FALSE) {
+                    $row_count++;
+                }
+                fclose($handle);
+            }
+            return $row_count;
+        }
 
         // Create a CPT with processed data from a row of the CSV 
         function process_row($data) {
