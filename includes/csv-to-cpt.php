@@ -1,7 +1,26 @@
 <?php
+    /**
+     * This file contains all the code related to the import process of CREOL Senior Design Projects via a CSV file.
+     * 
+     * Goals:
+     *      1. Automate the process of creating posts for CREOL Senior Design Projects each semester.
+     *      2. Utilize a single ZIP folder to encompass all necessary files for each Senior Design class. This is for easy transportation from the professor.
+     *      3. Create a process within the WordPress admin page that is both smooth and safe.
+     *      4. Provide ample user feedback to the WP admin utilizing this tool.
+     * 
+     * Helpful resources:
+     *      https://www.geeksforgeeks.org/how-to-parse-a-csv-file-in-php/
+     *      https://github.com/ezekg/sitepoint-programmatically-insert-wp-posts/tree/master
+     *      https://developer.wordpress.org/
+     * 
+     * TODO:
+     *      1. Integrate automation of the 'Semesters' Taxonomy.
+     *      2. Create a PDF containing instructions for professors (and therefore students).
+     *      3. Add additional visual feedback for the WP admin (# of posts added, errors, etc.).
+     */
 
         // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
-        // This button triggers the import process of Senior Design Projects from a CSV file with a progress bar
+        // This button triggers the import process
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
@@ -80,7 +99,7 @@
             ));
         });        
 
-        // This executes when the page is loaded
+        // This executes when the page is loaded after clicking the action button
         add_action('admin_init', function() {
 
             // If the URL is not set to 'insert_sd_projects', the function will return without executing
