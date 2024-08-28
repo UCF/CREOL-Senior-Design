@@ -1,34 +1,37 @@
 <?php
 
-        // This adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
+        // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
                 echo "<div class='updated'>";
                 echo "<p>";
-                echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Change to better explanation
+                echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Improve explanation for users
                 echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
                 echo "</p>";
                 echo "</div>";
         
-                // Add progress bar HTML
+                // Adds the HTML structure for the progress bar that appears during the import process
                 echo "<div id='progress-container' style='display: none; margin: 20px 0;'>
                     <div id='progress-bar' style='width: 0%; background: green; height: 20px;'></div>
                     <p id='progress-text'>Starting...</p>
                 </div>";
         
-                // Include JavaScript for progress
+                // JavaScript for handling the progress bar and import confirmation
                 ?>
                 <script type="text/javascript">
                     document.getElementById('insert-sd-projects-button').addEventListener('click', function(e) {
+                        // Shows a confirmation popup before starting the import process
                         if (!confirm('Are you sure you want to import the Senior Design Projects from the CSV? This action cannot be undone.')) {
                             e.preventDefault();
                         } else {
+                            // Shows the progress bar and starts the update process
                             document.getElementById('progress-container').style.display = 'block';
                             updateProgress();
                         }
                     });
         
+                    // Function to update the progress bar by querying the server
                     function updateProgress() {
                         var xhr = new XMLHttpRequest();
                         xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check&nonce=' . wp_create_nonce('insert_sd_projects_nonce')); ?>', true);
@@ -39,6 +42,7 @@
                                 var status = response.status;
                                 document.getElementById('progress-bar').style.width = percent + '%';
                                 document.getElementById('progress-text').innerText = status;
+                                // Continuously updates the progress until it reaches 100%
                                 if (percent < 100) {
                                     setTimeout(updateProgress, 1000); // Check progress every second
                                 }
@@ -53,18 +57,22 @@
             }
         });
 
+        // Handles the AJAX request to check the progress of the import process
         add_action('wp_ajax_progress_check', function() {
             check_ajax_referer('insert_sd_projects_nonce', 'nonce');
             
+            // Retrieves the current offset and total rows to calculate progress
             $offset = get_transient('sd_projects_import_offset') ?: 0;
             $total_rows = get_transient('sd_projects_import_total_rows') ?: 100; // Default to 100 if not set
         
-            // Ensure total_rows is not zero to prevent division by zero errors
+            // Prevents division by zero errors
             $total_rows = max($total_rows, 1);
         
+            // Calculates the percentage of progress based on the offset and total rows
             $percent = min(100, ($offset / $total_rows) * 100);
             $status = ($percent < 100) ? 'Processing...' : 'Complete';
         
+            // Sends a JSON response with the progress percentage and status
             wp_send_json(array(
                 'percent' => $percent,
                 'status' => $status
@@ -72,31 +80,30 @@
         });        
 
         // This executes when the page is loaded
-        // VERSION 2.0
         add_action('admin_init', function() {
 
-            // If the URL is not set to 'insert_sd_projects' we will return and not execute the function
-            // TODO: Replace with a potentially safer alternative (ex: pop-up confirmation)
+            // If the URL is not set to 'insert_sd_projects', the function will return without executing
             if ( !isset($_GET['insert_sd_projects'])) {
                 return;
             }
 
+            // Defines the custom post type (CPT) for Senior Design Projects
             $project = array(
                 'custom-post-type' => 'sd_project',
             );
             
-            // Define paths
+            // Define paths for plugin directory, ZIP file, and extraction directory
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
             $extracted_dir = $plugin_dir . 'extracted/';  
             
-            // Create the extracted dir if it DNE
+            // Creates the extraction directory if it doesn't exist
             if (!file_exists($extracted_dir)) {
                 mkdir($extracted_dir, 0777, true);
                 error_log("Created extracted directory: " . $extracted_dir);
             }
 
-            // Extract the main ZIP file
+            // Extracts the contents of the main ZIP file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
                 for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -104,6 +111,8 @@
                     $fileinfo = pathinfo($filename);
                     error_log('File name: ' . $filename);
 
+                    // Copies the files directly from the ZIP to the extraction directory
+                    // This avoids nested directories
                     if (strpos($fileinfo['basename'], '.') !== false) {
                         copy("zip://$zip_file_path#$filename", $extracted_dir . $fileinfo['basename']);
                     }
@@ -114,55 +123,54 @@
                 return;
             }
 
-            // Locate and read the CSV file
-            // TODO: Add note to locate file name change
-            $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv';
+            // Locates and reads the CSV file for importing data
+            $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
             if (!file_exists($csv_file_path)) {
                 error_log('CSV file not found.');
                 return;
             }
 
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
-                $headers = fgetcsv($handle); // Read header row
+                $headers = fgetcsv($handle); // Reads the header row from the CSV file
             
-                // Define the batch size
+                // Define the batch size for processing rows
                 $batch_size = 10;
             
-                // If a partial offset exists already in a transient, use that instead of 0
+                // Retrieves the current offset or sets it to 0 if not found
                 $offset = get_transient('sd_projects_import_offset') ?: 0;
-                $total_rows = count_rows($csv_file_path); // Implement this function
+                $total_rows = count_rows($csv_file_path); // Counts the total number of rows in the CSV
                 set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
             
-                // Initialize an empty batch array
+                // Initializes an empty batch array to hold CSV rows for processing
                 $batch = [];
             
                 // Process each row in the CSV
                 while (($rows = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $rows);
                     
-                    // Start processing if we are at or past the current offset
+                    // Skips rows until the current offset is reached
                     if ($offset > 0) {
                         $offset--;
                         continue;
                     }
             
-                    // Add the row to the batch
+                    // Adds the row to the batch
                     $batch[] = $data;
             
-                    // If the batch size is reached, process the batch
+                    // Processes the batch if the batch size is reached
                     if (count($batch) === $batch_size) {
                         foreach ($batch as $row) {
                             error_log(print_r($row, true));
                             process_row($row);
             
-                            // Update the offset and progress
+                            // Updates the offset and progress
                             $offset++;
                             $percent = min(100, ($offset / $total_rows) * 100);
                             $status = ($percent < 100) ? 'Processing...' : 'Complete';
                             set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
                         }
             
-                        // Clear the batch after processing
+                        // Clears the batch after processing
                         $batch = [];
             
                         // Sleep to avoid hitting server limits
@@ -170,13 +178,13 @@
                     }
                 }
             
-                // Process any remaining rows in the batch
+                // Processes any remaining rows in the batch
                 if (!empty($batch)) {
                     foreach ($batch as $row) {
                         error_log(print_r($row, true));
                         process_row($row);
             
-                        // Update the offset and progress
+                        // Updates the offset and progress
                         $offset++;
                         $percent = min(100, ($offset / $total_rows) * 100);
                         $status = ($percent < 100) ? 'Processing...' : 'Complete';
@@ -185,7 +193,8 @@
                 }
             
                 fclose($handle);
-                // Clear transients after completion
+
+                // Clears transients after completion
                 delete_transient('sd_projects_import_offset');
                 delete_transient('sd_projects_import_total_rows');
             } else {
@@ -193,7 +202,7 @@
             }            
         });
 
-        // Count the number of rows total in the CSV
+        // Counts the total number of rows in the CSV
         function count_rows($csv_file_path) {
             $row_count = 0;
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
@@ -205,16 +214,16 @@
             return $row_count;
         }
 
-        // Create a CPT with processed data from a row of the CSV 
+        // Creates a CPT with processed data from a row of the CSV 
         function process_row($data) {
-            // Check if a post with the same title (or another unique field) already exists
+            // Checks if a post with the same title already exists to prevent duplicates
             $existing_post = get_page_by_title($data['title'], OBJECT, 'sd_project');
         
             if ($existing_post) {
                 $post_id = $existing_post->ID;
                 error_log('Post already exists: ' . $data['title']);
             } else {
-                // Create a new CPT post
+                // Creates a new CPT post if one does not exist
                 $post_data = array(
                     'post_title'    => $data['title'],
                     'post_status'   => 'publish',   // You can change this to 'draft' if you don't want to publish immediately
@@ -228,12 +237,12 @@
                 }
             }
         
-            // Attach the contributors text field
+            // Attaches the contributors text field to the CPT
             if (!empty($data['project_contributors'])) {
                 update_field('project_contributors', $data['project_contributors'], $post_id);
             }
         
-            // Handle ZIP extraction and file processing
+            // Handles the ZIP extraction and file processing for the PDF files
             handle_zip_extraction_and_files($data['zip_file'], $post_id);
         }
         
