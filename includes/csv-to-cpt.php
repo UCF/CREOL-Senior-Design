@@ -280,7 +280,9 @@
         
             // Clean up temporary extraction folder
             array_map('unlink', glob($temp_extraction_dir . '*'));
-            rmdir($temp_extraction_dir);
+            if ($temp_extraction_dir) {
+                rmdir($temp_extraction_dir);
+            }
         }
         
         function process_files_in_temp_dir($temp_extraction_dir, $post_id) {
