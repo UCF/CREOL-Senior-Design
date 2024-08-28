@@ -145,6 +145,7 @@
                 
                     $batch = array_slice($rows, 0, $batch_size);
                     foreach ($batch as $row) {
+                        error_log(print_r($row, true));
                         process_row($row);
                 
                         // Update the offset and progress
