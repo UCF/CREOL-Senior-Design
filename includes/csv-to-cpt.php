@@ -26,7 +26,7 @@
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
                 echo "<div class='updated'>";
                 echo "<p>";
-                echo "To import Senior Design Projects from the CSV, click the button to the right."; // TODO: Improve explanation for users
+                echo "To import Senior Design Projects from the CSV, click the button to the right.";
                 echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
                 echo "</p>";
                 echo "</div>";
@@ -114,7 +114,7 @@
             
             // Define paths for plugin directory, ZIP file, and extraction directory
             $plugin_dir = plugin_dir_path(__FILE__);
-            $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip';
+            $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip'; // *This ZIP name is subject to change
             $extracted_dir = $plugin_dir . 'extracted/';  
             
             // Creates the extraction directory if it doesn't exist
@@ -151,7 +151,8 @@
             }
 
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
-                $headers = fgetcsv($handle); // Reads the header row from the CSV file
+                // Reads the header row from the CSV file
+                $headers = fgetcsv($handle); // *These headers are subject to change
             
                 // Define the batch size for processing rows
                 $batch_size = 10;
@@ -336,6 +337,7 @@
             foreach ($files as $file_path) {
 
                 // Determine the appropriate ACF field based on the file name
+                // *These ACF field names are subject to change
                 if (strpos(basename($file_path), 'Short_Report') !== FALSE) {
                     $pdf_field = 'short_report_file';
                 } elseif (strpos(basename($file_path), 'Long_Report') !== FALSE) {
