@@ -124,50 +124,73 @@
 
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
                 $headers = fgetcsv($handle); // Read header row
-
+            
                 // Define the batch size
                 $batch_size = 10;
-
+            
                 // If a partial offset exists already in a transient, use that instead of 0
                 $offset = get_transient('sd_projects_import_offset') ?: 0;
                 $total_rows = count_rows($csv_file_path); // Implement this function
                 set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
-
+            
+                // Initialize an empty batch array
+                $batch = [];
+            
                 // Process each row in the CSV
                 while (($rows = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $rows);
-                
+                    
                     // Start processing if we are at or past the current offset
                     if ($offset > 0) {
                         $offset--;
                         continue;
                     }
-                
-                    $batch = array_slice($rows, 0, $batch_size);
-                    error_log(print_r($batch, true));
+            
+                    // Add the row to the batch
+                    $batch[] = $data;
+            
+                    // If the batch size is reached, process the batch
+                    if (count($batch) === $batch_size) {
+                        foreach ($batch as $row) {
+                            error_log(print_r($row, true));
+                            process_row($row);
+            
+                            // Update the offset and progress
+                            $offset++;
+                            $percent = min(100, ($offset / $total_rows) * 100);
+                            $status = ($percent < 100) ? 'Processing...' : 'Complete';
+                            set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
+                        }
+            
+                        // Clear the batch after processing
+                        $batch = [];
+            
+                        // Sleep to avoid hitting server limits
+                        sleep(1);
+                    }
+                }
+            
+                // Process any remaining rows in the batch
+                if (!empty($batch)) {
                     foreach ($batch as $row) {
                         error_log(print_r($row, true));
                         process_row($row);
-                
+            
                         // Update the offset and progress
                         $offset++;
                         $percent = min(100, ($offset / $total_rows) * 100);
                         $status = ($percent < 100) ? 'Processing...' : 'Complete';
                         set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
                     }
-                
-                    // Sleep to avoid hitting server limits
-                    sleep(1);
                 }
-
+            
                 fclose($handle);
                 // Clear transients after completion
                 delete_transient('sd_projects_import_offset');
                 delete_transient('sd_projects_import_total_rows');
-
-            } else  {
+            } else {
                 error_log('Failed to open the CSV file.');
-            }
+            }            
         });
 
         // Count the number of rows total in the CSV
