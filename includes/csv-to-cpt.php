@@ -1,6 +1,7 @@
 <?php
 
         // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
+        // This button triggers the import process of Senior Design Projects from a CSV file with a progress bar
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
@@ -245,25 +246,36 @@
             // Handles the ZIP extraction and file processing for the PDF files
             handle_zip_extraction_and_files($data['zip_file'], $post_id);
         }
-        
+
+        /**
+         * Handles the extraction of files from a ZIP folder and processes them.
+         *
+         * @param string $zip_folder_name The name of the ZIP folder to extract.
+         * @param int $post_id The ID of the post where ACF fields will be updated.
+         */        
         function handle_zip_extraction_and_files($zip_folder_name, $post_id) {
             global $extracted_dir;
+
+            // Define the path for the ZIP folder
             $zip_folder_path = $extracted_dir . $zip_folder_name;
         
+            // Check if the ZIP folder exists
             if (!file_exists($zip_folder_path)) {
                 error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
                 return;
             }
         
-            // Create the temp_extraction dir if it DNE
+            // Create a temporary directory for extraction if it does not exist
             $temp_extraction_dir = $extracted_dir . 'temp_extraction/';
             if (!file_exists($temp_extraction_dir)) {
                 mkdir($temp_extraction_dir, 0777, true);
                 error_log("Created extracted directory: " . $temp_extraction_dir);
             }
         
+            // Open the ZIP file
             $zip = new ZipArchive;
             if ($zip->open($zip_folder_path) === TRUE) {
+                // Loop through each file in the ZIP archive
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $filename = $zip->getNameIndex($i);
                     $fileinfo = pathinfo($filename);
@@ -284,7 +296,7 @@
                 return;
             }
         
-            // Identify and upload PDFs
+            // Process the extracted files and update the corresponding ACF fields
             process_files_in_temp_dir($temp_extraction_dir, $post_id);
         
             // Clean up temporary extraction folder
@@ -294,9 +306,17 @@
             }
         }
         
+        /**
+         * Processes files in the temporary extraction directory and updates ACF fields.
+         *
+         * @param string $temp_extraction_dir The path to the temporary extraction directory.
+         * @param int $post_id The ID of the post where ACF fields will be updated.
+         */
         function process_files_in_temp_dir($temp_extraction_dir, $post_id) {
             $files = glob($temp_extraction_dir . '*');
             foreach ($files as $file_path) {
+
+                // Determine the appropriate ACF field based on the file name
                 if (strpos(basename($file_path), 'Short_Report') !== FALSE) {
                     $pdf_field = 'short_report_file';
                 } elseif (strpos(basename($file_path), 'Long_Report') !== FALSE) {
@@ -308,7 +328,7 @@
                     continue;
                 }
         
-                // Check if the file already exists in the media library
+                // Check if the file already exists in the media library by hash
                 error_log('Calculating MD5 hash for file: ' . $file_path);
                 $file_hash = md5_file($file_path);
                 if ($file_hash === false) {
@@ -318,7 +338,7 @@
         
                 $existing_attachment_id = check_existing_media_by_hash($file_hash);
         
-                // Check if the file already exists in the media library by name
+                // If not found by hash, check by file name
                 if (!$existing_attachment_id) {
                     $existing_attachment_id = check_existing_media_by_name(basename($file_path));
                 }
@@ -327,7 +347,7 @@
                     // File already exists, use the existing ID
                     update_field($pdf_field, $existing_attachment_id, $post_id);
                 } else {
-                    // Otherwise, upload the file and get the attachment ID
+                    // Otherwise, upload the file and update the ACF field with the new attachment ID
                     $attachment_id = upload_file_to_media_library($file_path);
                     if ($attachment_id !== false) {
                         update_field($pdf_field, $attachment_id, $post_id);
@@ -338,7 +358,12 @@
             }
         }
         
-        // Check for the existence of a file by its name
+        /**
+         * Checks the WP media library for a file with the given name.
+         *
+         * @param string $file_name The name of the file to check.
+         * @return int|false The attachment ID if found, false otherwise.
+         */
         function check_existing_media_by_name($file_name) {
             $args = array(
                 'post_type'   => 'attachment',
@@ -361,11 +386,16 @@
             return false;
         }
 
-        // Checks the WP media library for a file with the given hash
+        /**
+         * Checks the WP media library for a file with the given hash.
+         *
+         * @param string $file_hash The MD5 hash of the file to check.
+         * @return int|false The attachment ID if found, false otherwise.
+         */
         function check_existing_media_by_hash($file_hash) {
             global $wpdb;
 
-            // Query the media library for any files with a matching hash
+            // Query the media library for files with a matching hash
             $query = "
                 SELECT ID
                 FROM $wpdb->posts
@@ -379,7 +409,12 @@
             return $attachment_id ? $attachment_id : false; // or return the attachment ID if found
         }        
 
-        // Uploads a file to the WP media library
+        /**
+         * Uploads a file to the WP media library.
+         *
+         * @param string $file_path The path to the file to upload.
+         * @return int|false The attachment ID if the upload was successful, false otherwise.
+         */
         function upload_file_to_media_library($file_path) {
             // Check if the file exists before proceeding
             if (!file_exists($file_path)) {
@@ -392,7 +427,7 @@
             require_once(ABSPATH . 'wp-admin/includes/media.php');
             require_once(ABSPATH . 'wp-admin/includes/image.php');
 
-            // Handle the file upload
+            // Prepare the file for upload
             $file = array(
                 'name' => basename($file_path),
                 'type' => mime_content_type($file_path),
