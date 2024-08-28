@@ -144,6 +144,7 @@
                     }
                 
                     $batch = array_slice($rows, 0, $batch_size);
+                    error_log(print_r($batch, true));
                     foreach ($batch as $row) {
                         error_log(print_r($row, true));
                         process_row($row);
