@@ -309,6 +309,11 @@
         
                 $existing_attachment_id = check_existing_media_by_hash($file_hash);
         
+                // Check if the file already exists in the media library by name
+                if (!$existing_attachment_id) {
+                    $existing_attachment_id = check_existing_media_by_name(basename($file_path));
+                }
+
                 if ($existing_attachment_id) {
                     // File already exists, use the existing ID
                     update_field($pdf_field, $existing_attachment_id, $post_id);
@@ -322,6 +327,29 @@
                     }
                 }
             }
+        }
+        
+        // Check for the existence of a file by its name
+        function check_existing_media_by_name($file_name) {
+            $args = array(
+                'post_type'   => 'attachment',
+                'post_status' => 'inherit',
+                'meta_query'  => array(
+                    array(
+                        'key'     => '_wp_attached_file',
+                        'value'   => $file_name,
+                        'compare' => 'LIKE',
+                    ),
+                ),
+            );
+            
+            $query = new WP_Query($args);
+            
+            if ($query->have_posts()) {
+                return $query->posts[0]->ID;
+            }
+            
+            return false;
         }
 
         // Checks the WP media library for a file with the given hash
