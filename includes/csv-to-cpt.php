@@ -183,11 +183,11 @@
         // Create a CPT with processed data from a row of the CSV 
         function process_row($data) {
             // Check if a post with the same title (or another unique field) already exists
-            $existing_post = get_page_by_title($data['project_title'], OBJECT, 'sd_project');
+            $existing_post = get_page_by_title($data['title'], OBJECT, 'sd_project');
         
             if ($existing_post) {
                 $post_id = $existing_post->ID;
-                error_log('Post already exists: ' . $data['project_title']);
+                error_log('Post already exists: ' . $data['title']);
             } else {
                 // Create a new CPT post
                 $post_data = array(
@@ -198,7 +198,7 @@
                 $post_id = wp_insert_post($post_data);
         
                 if (is_wp_error($post_id)) {
-                    error_log('Failed to create post for project: ' . $data['project_title']);
+                    error_log('Failed to create post for project: ' . $data['title']);
                     return;
                 }
             }
