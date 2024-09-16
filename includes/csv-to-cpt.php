@@ -7,6 +7,7 @@
      *      2. Utilize a single ZIP folder to encompass all necessary files for each Senior Design class. This is for easy transportation from the professor.
      *      3. Create a process within the WordPress admin page that is both smooth and safe.
      *      4. Provide ample user feedback to the WP admin utilizing this tool.
+     *      5. Allow for the automation to update existing posts.
      * 
      * Helpful resources:
      *      https://www.geeksforgeeks.org/how-to-parse-a-csv-file-in-php/
@@ -17,6 +18,8 @@
      *      1. Integrate automation of the 'Semesters' Taxonomy.
      *      2. Create a PDF containing instructions for professors (and therefore students).
      *      3. Add additional visual feedback for the WP admin (# of posts added, errors, etc.).
+     *      4. Allow for the automation to update existing posts.
+     *      5. Add "autocorrection" of CSV fields.
      */
 
         // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
@@ -261,6 +264,34 @@
             // Attaches the contributors text field to the CPT
             if (!empty($data['project_contributors'])) {
                 update_field('project_contributors', $data['project_contributors'], $post_id);
+            }     
+
+            /** 
+             * Goal: Assign semester taxonomies to our SD projects
+             * 
+             * Info:
+             * Semester taxonomy slug: sd_semester
+             * Semester slugs: spring_2024, summer_2024, etc.
+             * Semester labels: Spring 2024, Summer 2024, etc.
+             * CPT slug: sd_project
+             * 
+             * Steps:
+             * 1. Parse the column containing the taxonomy
+             * 2. Normalize the data
+             * 3. Match it to an existing taxonomy (if it doesn't match, don't add the project OR
+             * create a new taxonomy)
+             * 4. Log any errors for later review
+            */
+            if (!empty($data['semester'])) {
+                $csv_semester = $data['semester'];
+                $semester = trim(ucwords(strtolower($csv_semester)));
+                $exists = term_exists($semester, 'sd_semester');
+                if ($exists) {
+                    // If last param is false, the semester will replace any old semesters
+                    wp_set_object_terms($post_id, $semester, 'sd_semester', false);
+                } else {
+                    error_log('Error: Semester "' . $semester . '" from post ID ' . $post_id . ' does not exist in the "sd_semester" taxonomy.');
+                }
             }
         
             // Handles the ZIP extraction and file processing for the PDF files
