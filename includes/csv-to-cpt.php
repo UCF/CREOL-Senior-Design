@@ -118,6 +118,7 @@
             // Define paths for plugin directory, ZIP file, and extraction directory
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip'; // *This ZIP name is subject to change
+            global $extracted_dir;
             $extracted_dir = $plugin_dir . 'extracted/';  
             
             // Creates the extraction directory if it doesn't exist
