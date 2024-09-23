@@ -6,9 +6,7 @@ function sd_project_display($atts) {
     
     // Get query variables
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
-    $year = isset($_GET['year']) ? sanitize_text_field($_GET['year']) : '';
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-    $order = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'ASC';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
     
     // Query arguments
@@ -17,14 +15,10 @@ function sd_project_display($atts) {
         'posts_per_page' => 10,
         'paged' => $paged,
         's' => $search,
-        'orderby' => 'title',
-        'order' => $order,
     );
 
+    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
     if ($semester) {
-        // Split the semester slug to get the semester and year
-        list($semester_part, $year_part) = explode('_', $semester);
-
         $args['tax_query'] = array(
             array(
                 'taxonomy' => 'sd_semester',
@@ -34,8 +28,21 @@ function sd_project_display($atts) {
         );
     }
 
+    /* This can easily be expanded by following this format:
+            'relation' => 'OR',
+            array(
+                'key' => 'project_contributors',
+                'value' => $search,
+                'compare' => 'LIKE'
+            ),
+            array(
+                'key' => '_post_title', // Technically not needed since 's' handles the title search
+                'value' => $search,
+                'compare' => 'LIKE'
+            )
+    */
     if ($search) {
-        $args['meta_query'][] = array(
+        $args['meta_query'] = array(
             'relation' => 'OR',
             array(
                 'key' => 'project_contributors',
@@ -67,17 +74,19 @@ function sd_project_display($atts) {
     
     $query = new WP_Query($args);
     
-    // Display semester and year dropdowns
+    // Display semester dropdown
     $terms = get_terms(array(
         'taxonomy' => 'sd_semester',
         'hide_empty' => false,
     ));
 
-    $years = range(date('Y'), 2000);
-
     echo '<div class="container mb-4">';
     echo '  <div class="row">';
     echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
+
+    echo '      <div class="form-group mr-4">';
+    echo '          <div class="dropdown">';
+    echo '              <button class="btn btn-default dropdown-toggle" type="button">Filters</button>';
 
     echo '      <div class="form-group mr-4">';
     echo '          <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
@@ -90,17 +99,9 @@ function sd_project_display($atts) {
     
     echo '          </select>';
     echo '      </div>';
-
-    echo '      <div class="form-group mr-4">';
-    echo '          <select class="form-control" id="orderSelector" name="order" style="width: 100%;">';
-    echo '              <option value="ASC"' . selected($order, 'ASC', false) . '>A-Z</option>';
-    echo '              <option value="DESC"' . selected($order, 'DESC', false) . '>Z-A</option>';
-    echo '          </select>';
-    echo '      </div>';
-
     echo '      <div class="form-group">';
     echo '          <div class="input-group" style="width: 100%;">';
-    echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search by title or contributor" value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
+    echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search by title" value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
     echo '              <span class="input-group-btn">';
     echo '                  <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>';
     echo '              </span>';
@@ -109,6 +110,7 @@ function sd_project_display($atts) {
     echo '    </form>';
     echo '  </div>';
     echo '</div>';
+
 
     echo '<div id="sd-projects">';
     if ($query->have_posts()) {
@@ -150,7 +152,7 @@ function sd_project_display($atts) {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'year' => $year, 'search' => $search, 'order' => $order], $base_link));
+            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'search' => $search], $base_link));
 
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
@@ -183,43 +185,32 @@ function sd_project_display($atts) {
             console.log('Page loaded');
             const form = document.getElementById('utility-bar');
             const semesterSelector = document.getElementById('semesterSelector');
-            const orderSelector = document.getElementById('orderSelector');
             const searchInput = document.getElementById('searchFilter');
 
             form.addEventListener('submit', function(event) {
                 console.log('Form submitted');
                 event.preventDefault();
                 hideProjects();
-                updateResults();
+                updateURL();
             });
 
-            function updateResults() {
-                console.log('Updating results via AJAX');
+            semesterSelector.addEventListener('change', function() {
+                console.log('Semester changed');
+                updateURL();
+            });
+
+            function updateURL() {
+                console.log('Updating URL parameters');
                 const url = new URL(window.location);
                 const params = new URLSearchParams(url.search);
 
                 params.set('paged', '1');
                 params.set('semester', semesterSelector.value);
-                params.set('order', orderSelector.value);
                 params.set('search', searchInput.value);
 
-                fetch(url.pathname + '?' + params.toString(), {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.text())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(data, 'text/html');
-                    const newProjects = doc.getElementById('sd-projects').innerHTML;
-                    const newPagination = doc.getElementById('pagination-container').innerHTML;
-
-                    document.getElementById('sd-projects').innerHTML = newProjects;
-                    document.getElementById('pagination-container').innerHTML = newPagination;
-                })
-                .catch(error => console.error('Error:', error));
+                url.search = params.toString();
+                console.log('Redirecting to:', url.toString());
+                window.location.href = url.toString();
             }
 
             function hideProjects() {
