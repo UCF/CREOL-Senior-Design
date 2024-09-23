@@ -11,39 +11,39 @@ function sd_project_display($atts) {
     $order = isset($_GET['order']) ? sanitize_text_field($_GET['order']) : 'ASC';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
     
-// Query arguments
-$args = array(
-    'post_type' => 'sd_project',
-    'posts_per_page' => 10,
-    'paged' => $paged,
-    's' => $search,
-    'orderby' => 'title',
-    'order' => $order,
-);
-
-if ($semester) {
-    // Split the semester slug to get the semester and year
-    list($semester_part, $year_part) = explode('_', $semester);
-
-    $args['tax_query'] = array(
-        array(
-            'taxonomy' => 'sd_semester',
-            'field' => 'slug',
-            'terms' => $semester,
-        ),
+    // Query arguments
+    $args = array(
+        'post_type' => 'sd_project',
+        'posts_per_page' => 10,
+        'paged' => $paged,
+        's' => $search,
+        'orderby' => 'title',
+        'order' => $order,
     );
-}
 
-if ($search) {
-    $args['meta_query'][] = array(
-        'relation' => 'OR',
-        array(
-            'key' => 'project_contributors',
-            'value' => $search,
-            'compare' => 'LIKE'
-        )
-    );
-}
+    if ($semester) {
+        // Split the semester slug to get the semester and year
+        list($semester_part, $year_part) = explode('_', $semester);
+
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'sd_semester',
+                'field' => 'slug',
+                'terms' => $semester,
+            ),
+        );
+    }
+
+    if ($search) {
+        $args['meta_query'][] = array(
+            'relation' => 'OR',
+            array(
+                'key' => 'project_contributors',
+                'value' => $search,
+                'compare' => 'LIKE'
+            )
+        );
+    }
     
     echo '<style>
         .custom-card {
@@ -183,7 +183,6 @@ if ($search) {
             console.log('Page loaded');
             const form = document.getElementById('utility-bar');
             const semesterSelector = document.getElementById('semesterSelector');
-            const yearSelector = document.getElementById('yearSelector');
             const orderSelector = document.getElementById('orderSelector');
             const searchInput = document.getElementById('searchFilter');
 
@@ -191,38 +190,36 @@ if ($search) {
                 console.log('Form submitted');
                 event.preventDefault();
                 hideProjects();
-                updateURL();
+                updateResults();
             });
 
-            semesterSelector.addEventListener('change', function() {
-                console.log('Semester changed');
-                updateURL();
-            });
-
-            yearSelector.addEventListener('change', function() {
-                console.log('Year changed');
-                updateURL();
-            });
-
-            orderSelector.addEventListener('change', function() {
-                console.log('Order changed');
-                updateURL();
-            });
-
-            function updateURL() {
-                console.log('Updating URL parameters');
+            function updateResults() {
+                console.log('Updating results via AJAX');
                 const url = new URL(window.location);
                 const params = new URLSearchParams(url.search);
 
                 params.set('paged', '1');
                 params.set('semester', semesterSelector.value);
-                params.set('year', yearSelector.value);
                 params.set('order', orderSelector.value);
                 params.set('search', searchInput.value);
 
-                url.search = params.toString();
-                console.log('Redirecting to:', url.toString());
-                window.location.href = url.toString();
+                fetch(url.pathname + '?' + params.toString(), {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data, 'text/html');
+                    const newProjects = doc.getElementById('sd-projects').innerHTML;
+                    const newPagination = doc.getElementById('pagination-container').innerHTML;
+
+                    document.getElementById('sd-projects').innerHTML = newProjects;
+                    document.getElementById('pagination-container').innerHTML = newPagination;
+                })
+                .catch(error => console.error('Error:', error));
             }
 
             function hideProjects() {
