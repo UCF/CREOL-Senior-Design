@@ -32,19 +32,6 @@ if ($semester) {
             'terms' => $semester,
         ),
     );
-
-    // If the year is not already set, set it from the semester slug
-    if (!$year) {
-        $year = $year_part;
-    }
-}
-
-if ($year) {
-    $args['meta_query'][] = array(
-        'key' => 'project_year',
-        'value' => $year,
-        'compare' => '='
-    );
 }
 
 if ($search) {
@@ -99,18 +86,6 @@ if ($search) {
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '              <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
-    }
-    
-    echo '          </select>';
-    echo '      </div>';
-
-    echo '      <div class="form-group mr-4">';
-    echo '          <select class="form-control" id="yearSelector" name="year" style="width: 100%;">';
-    echo '              <option value="">All Years</option>';
-    
-    foreach ($years as $yr) {
-        $selected = ($year == $yr) ? 'selected="selected"' : '';
-        echo '              <option value="' . esc_attr($yr) . '" ' . $selected . '>' . esc_html($yr) . '</option>';
     }
     
     echo '          </select>';
