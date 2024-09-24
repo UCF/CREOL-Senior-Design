@@ -75,7 +75,7 @@ function sd_project_display($atts) {
     echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
 
     // Search bar
-    echo '      <div class="form-group ml-3">';
+    echo '      <div class="form-group ml-4">';
     echo '          <div class="input-group" style="width: 100%;">';
     echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search..." value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
     echo '              <span class="input-group-btn">';
@@ -85,7 +85,7 @@ function sd_project_display($atts) {
     echo '      </div>';
 
     // Filter button
-    echo '      <div class="form-group ml-3">';
+    echo '      <div class="form-group ml-4">';
     echo '          <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>';
     echo '      </div>';
 
@@ -94,7 +94,7 @@ function sd_project_display($atts) {
     echo '</div>';
 
     // Filter collapse
-    echo '<div class="collapse filters-collapse" id="filtersCollapse">';
+    echo '<div class="collapse filters-collapse mb-4" id="filtersCollapse">';
     echo '  <div class="card card-block">';
     echo '      <p>Filters go here</p>';
     
