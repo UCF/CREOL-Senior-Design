@@ -85,10 +85,6 @@ function sd_project_display($atts) {
     echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
 
     echo '      <div class="form-group mr-4">';
-    echo '          <div class="dropdown">';
-    echo '              <button class="btn btn-default dropdown-toggle" type="button">Filters</button>';
-
-    echo '      <div class="form-group mr-4">';
     echo '          <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
     echo '              <option value="">All Semesters</option>';
     
