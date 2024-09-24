@@ -99,13 +99,17 @@ function sd_project_display($atts) {
     echo '          <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>';
     echo '      </div>';
 
+    echo '    </form>';
+    echo '  </div>';
+    echo '</div>';
+
     // Filter collapse
     echo '      <div class="collapse" id="filtersCollapse">';
     echo '          <div class="card card-block">';
     echo '              <p>Filters go here</p>';
-    echo '              <label for="filterGroup1">Filter Group 1</label>';
-
+    
     // Filter group 1 (A-Z + Z-A)
+    echo '              <label for="filterGroup1">Filter Group 1</label>';
     echo '              <div class="form-group" id="filterGroup1">';
     echo '                  <label class="form-check-label" for="filter1Option1">Option 1</label>';
     echo '                  <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
@@ -115,6 +119,7 @@ function sd_project_display($atts) {
 
     // Filter group 2 (Semester selector)
     // All semesters, single semester, range semester
+    echo '              <label for="filterGroup2">Filter Group 2</label>';
     echo '              <div class="form-group" id="filterGroup2">';
     echo '                  <label class="form-check-label" for="filter2Option1">Option 1</label>';
     echo '                  <input class="form-check-input" type="radio" name="filter2" value="option1" id="filter2Option1">';
@@ -152,11 +157,6 @@ function sd_project_display($atts) {
 
     echo '          </div>';
     echo '      </div>';
-
-    echo '    </form>';
-    echo '  </div>';
-    echo '</div>';
-
 
     echo '<div id="sd-projects">';
     if ($query->have_posts()) {
