@@ -17,7 +17,6 @@ function sd_project_display($atts) {
         's' => $search,
     );
 
-    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
     if ($semester) {
         $args['tax_query'] = array(
             array(
@@ -28,19 +27,6 @@ function sd_project_display($atts) {
         );
     }
 
-    /* This can easily be expanded by following this format:
-            'relation' => 'OR',
-            array(
-                'key' => 'project_contributors',
-                'value' => $search,
-                'compare' => 'LIKE'
-            ),
-            array(
-                'key' => '_post_title', // Technically not needed since 's' handles the title search
-                'value' => $search,
-                'compare' => 'LIKE'
-            )
-    */
     if ($search) {
         $args['meta_query'] = array(
             'relation' => 'OR',
@@ -69,6 +55,10 @@ function sd_project_display($atts) {
         }
         .load-message {
             display: block;
+        }
+        .filters-collapse {
+            width: 100%;
+            margin-top: 10px;
         }
     </style>';
     
@@ -104,59 +94,59 @@ function sd_project_display($atts) {
     echo '</div>';
 
     // Filter collapse
-    echo '      <div class="collapse" id="filtersCollapse">';
-    echo '          <div class="card card-block">';
-    echo '              <p>Filters go here</p>';
+    echo '<div class="collapse filters-collapse" id="filtersCollapse">';
+    echo '  <div class="card card-block">';
+    echo '      <p>Filters go here</p>';
     
     // Filter group 1 (A-Z + Z-A)
-    echo '              <label for="filterGroup1">Filter Group 1</label>';
-    echo '              <div class="form-group" id="filterGroup1">';
-    echo '                  <label class="form-check-label" for="filter1Option1">Option 1</label>';
-    echo '                  <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
-    echo '                  <label class="form-check-label" for="filter1Option2">Option 2</label>';
-    echo '                  <input class="form-check-input" type="radio" name="filter1" value="option2" id="filter1Option2">';
-    echo '              </div>';
+    echo '      <label for="filterGroup1">Filter Group 1</label>';
+    echo '      <div class="form-group" id="filterGroup1">';
+    echo '          <label class="form-check-label" for="filter1Option1">Option 1</label>';
+    echo '          <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
+    echo '          <label class="form-check-label" for="filter1Option2">Option 2</label>';
+    echo '          <input class="form-check-input" type="radio" name="filter1" value="option2" id="filter1Option2">';
+    echo '      </div>';
 
     // Filter group 2 (Semester selector)
     // All semesters, single semester, range semester
-    echo '              <label for="filterGroup2">Filter Group 2</label>';
-    echo '              <div class="form-group" id="filterGroup2">';
-    echo '                  <label class="form-check-label" for="filter2Option1">Option 1</label>';
-    echo '                  <input class="form-check-input" type="radio" name="filter2" value="option1" id="filter2Option1">';
+    echo '      <label for="filterGroup2">Filter Group 2</label>';
+    echo '      <div class="form-group" id="filterGroup2">';
+    echo '          <label class="form-check-label" for="filter2Option1">Option 1</label>';
+    echo '          <input class="form-check-input" type="radio" name="filter2" value="option1" id="filter2Option1">';
 
     // Single semester dropdown
-    echo '                  <label class="form-check-label" for="filter2Option2">Option 2</label>';
-    echo '                  <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse>';
-    echo '                  <div class="collapse" id="singleSemesterCollapse">';
-    echo '                      <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
+    echo '          <label class="form-check-label" for="filter2Option2">Option 2</label>';
+    echo '          <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse">';
+    echo '          <div class="collapse" id="singleSemesterCollapse">';
+    echo '              <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '                          <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+        echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
-    echo '                      </select>';
-    echo '                  </div>';
+    echo '              </select>';
+    echo '          </div>';
 
     // Range semester dropdown
-    echo '                  <label class="form-check-label" for="filter2Option3">Option 3</label>';
-    echo '                  <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse>>';
-    echo '                  <div class="collapse" id="rangeSemesterCollapse">';
-    echo '                      <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
+    echo '          <label class="form-check-label" for="filter2Option3">Option 3</label>';
+    echo '          <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">';
+    echo '          <div class="collapse" id="rangeSemesterCollapse">';
+    echo '              <select class="form-control" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '                          <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+        echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
-    echo '                      </select>';
-    echo '                      <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
+    echo '              </select>';
+    echo '              <select class="form-control" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '                          <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+        echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
-    echo '                      </select>';
-    echo '                  </div>';
-    echo '              </div>';
-
+    echo '              </select>';
     echo '          </div>';
     echo '      </div>';
+
+    echo '  </div>';
+    echo '</div>';
 
     echo '<div id="sd-projects">';
     if ($query->have_posts()) {
