@@ -100,11 +100,15 @@ function sd_project_display($atts) {
     
     // Filter group 1 (A-Z + Z-A)
     echo '      <label for="filterGroup1">Filter Group 1</label>';
-    echo '      <div class="form-group" id="filterGroup1">';
-    echo '          <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
-    echo '          <label class="form-check-label" for="filter1Option1">Option 1</label>';
-    echo '          <input class="form-check-input" type="radio" name="filter1" value="option2" id="filter1Option2">';
-    echo '          <label class="form-check-label" for="filter1Option2">Option 2</label>';
+    echo '      <div class="form-check" id="filterGroup1">';
+    echo '          <label class="form-check-label" for="filter1Option1">';
+    echo '              <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
+    echo '              Option 1';
+    echo '          </label>';
+    echo '          <label class="form-check-label" for="filter1Option2">';
+    echo '              <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option2">';
+    echo '              Option 2';
+    echo '          </label>';
     echo '      </div>';
 
     // Filter group 2 (Semester selector)
