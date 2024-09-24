@@ -5,10 +5,26 @@ function sd_project_display($atts) {
     ob_start();
     
     // Get query variables
-    $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
+    $single_semester = isset($_GET['single_semester']) ? sanitize_text_field($_GET['single_semester']) : '';
+    $multi_semesters = isset($_GET['multi_semesters']) ? array_map('sanitize_text_field', $_GET['multi_semesters']) : [];
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
     
+    // Validate semesters
+    $valid_terms = get_terms(array(
+        'taxonomy' => 'sd_semester',
+        'hide_empty' => false,
+        'fields' => 'slugs',
+    ));
+
+    if (!in_array($single_semester, $valid_terms)) {
+        $single_semester = '';
+    }
+
+    $multi_semesters = array_filter($multi_semesters, function($term) use ($valid_terms) {
+        return in_array($term, $valid_terms);
+    });
+
     // Query arguments
     $args = array(
         'post_type' => 'sd_project',
@@ -17,30 +33,25 @@ function sd_project_display($atts) {
         's' => $search,
     );
 
-    echo '<script>console.log("Semester value: "' . esc_attr($semester). ')</script>';
-    if ($semester) {
+    if ($single_semester) {
         $args['tax_query'] = array(
             array(
                 'taxonomy' => 'sd_semester',
                 'field' => 'slug',
-                'terms' => $semester,
+                'terms' => $single_semester,
+            ),
+        );
+    } elseif (!empty($multi_semesters)) {
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'sd_semester',
+                'field' => 'slug',
+                'terms' => $multi_semesters,
+                'operator' => 'IN',
             ),
         );
     }
 
-    /* This can easily be expanded by following this format:
-            'relation' => 'OR',
-            array(
-                'key' => 'project_contributors',
-                'value' => $search,
-                'compare' => 'LIKE'
-            ),
-            array(
-                'key' => '_post_title', // Technically not needed since 's' handles the title search
-                'value' => $search,
-                'compare' => 'LIKE'
-            )
-    */
     if ($search) {
         $args['meta_query'] = array(
             'relation' => 'OR',
@@ -85,20 +96,28 @@ function sd_project_display($atts) {
     echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
 
     echo '      <div class="form-group mr-4">';
-    echo '          <div class="dropdown">';
-    echo '              <button class="btn btn-default dropdown-toggle" type="button">Filters</button>';
-
-    echo '      <div class="form-group mr-4">';
-    echo '          <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
-    echo '              <option value="">All Semesters</option>';
+    echo '          <select class="form-control" id="singleSemesterSelector" name="single_semester" style="width: 100%;">';
+    echo '              <option value="">Select Semester</option>';
     
     foreach ($terms as $term) {
-        $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
+        $selected = ($single_semester == $term->slug) ? 'selected="selected"' : '';
         echo '              <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
     
     echo '          </select>';
     echo '      </div>';
+
+    echo '      <div class="form-group mr-4">';
+    echo '          <select class="form-control" id="multiSemesterSelector" name="multi_semesters[]" multiple style="width: 100%;">';
+    
+    foreach ($terms as $term) {
+        $selected = (in_array($term->slug, $multi_semesters)) ? 'selected="selected"' : '';
+        echo '              <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+    }
+    
+    echo '          </select>';
+    echo '      </div>';
+
     echo '      <div class="form-group">';
     echo '          <div class="input-group" style="width: 100%;">';
     echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search by title" value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
@@ -152,7 +171,7 @@ function sd_project_display($atts) {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'search' => $search], $base_link));
+            $link_with_params = esc_url_raw(add_query_arg(['single_semester' => $single_semester, 'multi_semesters' => $multi_semesters, 'search' => $search], $base_link));
 
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
@@ -184,7 +203,8 @@ function sd_project_display($atts) {
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded');
             const form = document.getElementById('utility-bar');
-            const semesterSelector = document.getElementById('semesterSelector');
+            const singleSemesterSelector = document.getElementById('singleSemesterSelector');
+            const multiSemesterSelector = document.getElementById('multiSemesterSelector');
             const searchInput = document.getElementById('searchFilter');
 
             form.addEventListener('submit', function(event) {
@@ -194,8 +214,13 @@ function sd_project_display($atts) {
                 updateURL();
             });
 
-            semesterSelector.addEventListener('change', function() {
-                console.log('Semester changed');
+            singleSemesterSelector.addEventListener('change', function() {
+                console.log('Single semester changed');
+                updateURL();
+            });
+
+            multiSemesterSelector.addEventListener('change', function() {
+                console.log('Multiple semesters changed');
                 updateURL();
             });
 
@@ -205,7 +230,8 @@ function sd_project_display($atts) {
                 const params = new URLSearchParams(url.search);
 
                 params.set('paged', '1');
-                params.set('semester', semesterSelector.value);
+                params.set('single_semester', singleSemesterSelector.value);
+                params.set('multi_semesters', Array.from(multiSemesterSelector.selectedOptions).map(option => option.value));
                 params.set('search', searchInput.value);
 
                 url.search = params.toString();
