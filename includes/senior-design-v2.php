@@ -222,91 +222,101 @@ function sd_project_display($atts) {
     }
 
     echo "<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Page loaded');
-        const form = document.getElementById('utility-bar');
-        const semesterSelector = document.getElementById('semesterSelector');
-        const searchInput = document.getElementById('searchFilter');
-        const filter2Dropdown = document.getElementById('filter2Option1');
-        const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
-        const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded');
+            const form = document.getElementById('utility-bar');
+            const semesterSelector = document.getElementById('semesterSelector');
+            const searchInput = document.getElementById('searchFilter');
+            const filter2Dropdown = document.getElementById('filter2Option1');
+            const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
+            const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
 
-        if (form) {
-            form.addEventListener('submit', function(event) {
-                console.log('Form submitted');
-                event.preventDefault();
-                hideProjects();
-                updateURL();
-            });
-        }
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    console.log('Form submitted');
+                    event.preventDefault();
+                    hideProjects();
+                    updateURL();
+                    submitSearch();
+                });
+            }
 
-        if (filter2Dropdown) {
-            filter2Dropdown.addEventListener('change', function() {
-                const selectedValue = filter2Dropdown.value;
+            if (filter2Dropdown) {
+                filter2Dropdown.addEventListener('change', function() {
+                    const selectedValue = filter2Dropdown.value;
 
-                if (selectedValue === 'option2') {
-                    singleSemesterCollapse.classList.add('show');
-                    rangeSemesterCollapse.classList.remove('show');
-                } else if (selectedValue === 'option3') {
-                    singleSemesterCollapse.classList.remove('show');
-                    rangeSemesterCollapse.classList.add('show');
-                } else {
-                    singleSemesterCollapse.classList.remove('show');
-                    rangeSemesterCollapse.classList.remove('show');
-                }
-                updateURL();
-            });
-        }
+                    if (selectedValue === 'option2') {
+                        singleSemesterCollapse.classList.add('show');
+                        rangeSemesterCollapse.classList.remove('show');
+                    } else if (selectedValue === 'option3') {
+                        singleSemesterCollapse.classList.remove('show');
+                        rangeSemesterCollapse.classList.add('show');
+                    } else {
+                        singleSemesterCollapse.classList.remove('show');
+                        rangeSemesterCollapse.classList.remove('show');
+                    }
+                    updateURL();
+                });
+            }
 
-        if (semesterSelector) {
-            semesterSelector.addEventListener('change', function() {
-                console.log('Semester changed');
-                updateURL();
-            });
-        }
-
-        if (searchInput) {
-            searchInput.addEventListener('input', function() {
-                console.log('Search input changed');
-                updateURL();
-            });
-        }
-
-        function updateURL() {
-            console.log('Updating URL parameters');
-            const url = new URL(window.location);
-            const params = new URLSearchParams(url.search);
-
-            params.set('paged', '1');
             if (semesterSelector) {
-                params.set('semester', semesterSelector.value);
+                semesterSelector.addEventListener('change', function() {
+                    console.log('Semester changed');
+                    updateURL();
+                });
             }
+
             if (searchInput) {
-                params.set('search', searchInput.value);
+                searchInput.addEventListener('input', function() {
+                    console.log('Search input changed');
+                    updateURL();
+                });
             }
 
-            url.search = params.toString();
-            console.log('Updating URL to:', url.toString());
-            history.pushState(null, '', url.toString());
-        }
+            function updateURL() {
+                console.log('Updating URL parameters');
+                const url = new URL(window.location);
+                const params = new URLSearchParams(url.search);
 
-        function hideProjects() {
-            var projects = document.getElementById('sd-projects');
-            var footer = document.getElementById('pagination-container');
-            if (footer) {
-                footer.classList.add('hidden');
+                params.set('paged', '1');
+                if (semesterSelector) {
+                    params.set('semester', semesterSelector.value);
+                }
+                if (searchInput) {
+                    params.set('search', searchInput.value);
+                }
+
+                url.search = params.toString();
+                console.log('Updating URL to:', url.toString());
+                history.pushState(null, '', url.toString());
             }
-            if (projects) {
-                projects.classList.add('hidden');
-                projects.classList.add('load-message');
-                const pBlock = document.createElement('p');
-                const textNode = document.createTextNode('Loading...');
-                pBlock.appendChild(textNode);
-                projects.appendChild(pBlock);
+
+            function submitSearch() {
+                console.log('Submitting URL parameters');
+                const url = new URL(window.location);
+                const params = new URLSearchParams(url.search);
+                url.search = params.toString();
+                console.log('Redirecting to:', url.toString());
+                window.location.href = url.toString();
             }
-        }
-    });
-</script>";
+
+            function hideProjects() {
+                var projects = document.getElementById('sd-projects');
+                var footer = document.getElementById('pagination-container');
+                if (footer) {
+                    footer.classList.add('hidden');
+                }
+                if (projects) {
+                    projects.classList.add('hidden');
+                    projects.classList.add('load-message');
+                    const pBlock = document.createElement('p');
+                    const textNode = document.createTextNode('Loading...');
+                    pBlock.appendChild(textNode);
+                    projects.appendChild(pBlock);
+                }
+            }
+        });
+    </script>";
 
     return ob_get_clean();
 }
