@@ -116,15 +116,14 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup2">Filter Group 2</label>';
     echo '      <div class="form-check" id="filterGroup2">';
     echo '          <label class="form-check-label" for="filter2Option1">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option1" id="filter2Option1">';
-    echo '              Option 1';
+    echo '              <select class="form-control" name="filter2" id="filter2Option1">';
+    echo '                  <option value="option1">Option 1</option>';
+    echo '                  <option value="option2" data-toggle="collapse" data-target="#singleSemesterCollapse">Option 2</option>';
+    echo '                  <option value="option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">Option 3</option>';
+    echo '              </select>';
     echo '          </label>';
 
     // Single semester dropdown
-    echo '          <label class="form-check-label" for="filter2Option2">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse">';
-    echo '              Option 2';
-    echo '          </label>';
     echo '          <div class="collapse" id="singleSemesterCollapse">';
     echo '              <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
     foreach ($terms as $term) {
@@ -135,10 +134,6 @@ function sd_project_display($atts) {
     echo '          </div>';
 
     // Range semester dropdown
-    echo '          <label class="form-check-label" for="filter2Option3">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">';
-    echo '              Option 3';
-    echo '          </label>';
     echo '          <div class="collapse" id="rangeSemesterCollapse">';
     echo '              <select class="form-control" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
     foreach ($terms as $term) {
@@ -227,81 +222,83 @@ function sd_project_display($atts) {
     }
 
     echo "<script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded');
-            const form = document.getElementById('utility-bar');
-            const semesterSelector = document.getElementById('semesterSelector');
-            const searchInput = document.getElementById('searchFilter');
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded');
+        const form = document.getElementById('utility-bar');
+        const semesterSelector = document.getElementById('semesterSelector');
+        const searchInput = document.getElementById('searchFilter');
+        const filter2Dropdown = document.getElementById('filter2Option1');
+        const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
+        const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
 
+        if (form) {
             form.addEventListener('submit', function(event) {
                 console.log('Form submitted');
                 event.preventDefault();
                 hideProjects();
                 updateURL();
             });
+        }
 
+        if (semesterSelector) {
             semesterSelector.addEventListener('change', function() {
                 console.log('Semester changed');
                 updateURL();
             });
+        }
 
-            function updateURL() {
-                console.log('Updating URL parameters');
-                const url = new URL(window.location);
-                const params = new URLSearchParams(url.search);
+        if (filter2Dropdown) {
+            filter2Dropdown.addEventListener('change', function() {
+                const selectedValue = filter2Dropdown.value;
 
-                params.set('paged', '1');
-                params.set('semester', semesterSelector.value);
-                params.set('search', searchInput.value);
-
-                url.search = params.toString();
-                console.log('Redirecting to:', url.toString());
-                window.location.href = url.toString();
-            }
-
-            function hideProjects() {
-                var projects = document.getElementById('sd-projects');
-                var footer = document.getElementById('pagination-container');
-                if (footer) {
-                    footer.classList.add('hidden');
-                }
-                if (projects) {
-                    projects.classList.add('hidden');
-                    projects.classList.add('load-message');
-                    const pBlock = document.createElement('p');
-                    const textNode = document.createTextNode('Loading...');
-                    pBlock.appendChild(textNode);
-                    projects.appendChild(pBlock);
-                }
-            }
-
-            function handleRadioSelection(selectedId) {
-                const option1 = document.getElementById('filter2Option1');
-                const option2 = document.getElementById('filter2Option2');
-                const option3 = document.getElementById('filter2Option3');
-
-                if (selectedId === 'filter2Option1') {
-                    option1.checked = true;
-                    option2.checked = false;
-                    option3.checked = false;
-                } else if (selectedId === 'filter2Option2') {
-                    option1.checked = false;
-                    option2.checked = true;
-                    option3.checked = false;
-                } else if (selectedId === 'filter2Option3') {
-                    option1.checked = false;
-                    option2.checked = false;
-                    option3.checked = true;
-                }
-            }
-
-            document.getElementById('filterGroup2').addEventListener('click', function(event) {
-                if (event.target && event.target.matches('input[type=\"radio\"]')) {
-                    handleRadioSelection(event.target.id);
+                if (selectedValue === 'option2') {
+                    singleSemesterCollapse.classList.add('show');
+                    rangeSemesterCollapse.classList.remove('show');
+                } else if (selectedValue === 'option3') {
+                    singleSemesterCollapse.classList.remove('show');
+                    rangeSemesterCollapse.classList.add('show');
+                } else {
+                    singleSemesterCollapse.classList.remove('show');
+                    rangeSemesterCollapse.classList.remove('show');
                 }
             });
-        });
-    </script>";
+        }
+
+        function updateURL() {
+            console.log('Updating URL parameters');
+            const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
+
+            params.set('paged', '1');
+            if (semesterSelector) {
+                params.set('semester', semesterSelector.value);
+            }
+            if (searchInput) {
+                params.set('search', searchInput.value);
+            }
+
+            url.search = params.toString();
+            console.log('Redirecting to:', url.toString());
+            window.location.href = url.toString();
+        }
+
+        function hideProjects() {
+            var projects = document.getElementById('sd-projects');
+            var footer = document.getElementById('pagination-container');
+            if (footer) {
+                footer.classList.add('hidden');
+            }
+            if (projects) {
+                projects.classList.add('hidden');
+                projects.classList.add('load-message');
+                const pBlock = document.createElement('p');
+                const textNode = document.createTextNode('Loading...');
+                pBlock.appendChild(textNode);
+                projects.appendChild(pBlock);
+            }
+        }
+    });
+</script>";
 
     return ob_get_clean();
 }
