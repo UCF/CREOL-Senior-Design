@@ -240,13 +240,6 @@ function sd_project_display($atts) {
             });
         }
 
-        if (semesterSelector) {
-            semesterSelector.addEventListener('change', function() {
-                console.log('Semester changed');
-                updateURL();
-            });
-        }
-
         if (filter2Dropdown) {
             filter2Dropdown.addEventListener('change', function() {
                 const selectedValue = filter2Dropdown.value;
@@ -261,6 +254,21 @@ function sd_project_display($atts) {
                     singleSemesterCollapse.classList.remove('show');
                     rangeSemesterCollapse.classList.remove('show');
                 }
+                updateURL();
+            });
+        }
+
+        if (semesterSelector) {
+            semesterSelector.addEventListener('change', function() {
+                console.log('Semester changed');
+                updateURL();
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                console.log('Search input changed');
+                updateURL();
             });
         }
 
@@ -278,8 +286,8 @@ function sd_project_display($atts) {
             }
 
             url.search = params.toString();
-            console.log('Redirecting to:', url.toString());
-            window.location.href = url.toString();
+            console.log('Updating URL to:', url.toString());
+            history.pushState(null, '', url.toString());
         }
 
         function hideProjects() {
