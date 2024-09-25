@@ -122,7 +122,7 @@ function sd_project_display($atts) {
 
     // Single semester dropdown
     echo '          <label class="form-check-label" for="filter2Option2">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse">';
+    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse" onclick="document.getElementById(\'filter2Option2\').checked = true;">';
     echo '              Option 2';
     echo '          </label>';
     echo '          <div class="collapse" id="singleSemesterCollapse">';
@@ -136,7 +136,7 @@ function sd_project_display($atts) {
 
     // Range semester dropdown
     echo '          <label class="form-check-label" for="filter2Option3">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">';
+    echo '              <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse" onclick="document.getElementById(\'filter2Option3\').checked = true;">';
     echo '              Option 3';
     echo '          </label>';
     echo '          <div class="collapse" id="rangeSemesterCollapse">';
