@@ -122,7 +122,7 @@ function sd_project_display($atts) {
 
     // Single semester dropdown
     echo '          <label class="form-check-label" for="filter2Option2">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse" onclick="document.getElementById(\'filter2Option2\').checked = true;">';
+    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse" onclick="document.getElementById(\'filter2Option1\').checked = false; document.getElementById(\'filter2Option2\').checked = true;">';
     echo '              Option 2';
     echo '          </label>';
     echo '          <div class="collapse" id="singleSemesterCollapse">';
