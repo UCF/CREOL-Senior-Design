@@ -280,7 +280,6 @@ function sd_project_display($atts) {
                         singleSemesterCollapse.classList.remove('show');
                         rangeSemesterCollapse.classList.remove('show');
                     }
-                    updateURL();
                 });
             }
 
