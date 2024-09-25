@@ -5,7 +5,10 @@ function sd_project_display($atts) {
     ob_start();
     
     // Get query variables
+    $sort_order = isset($_GET['sort_order']) ? sanitize_text_field($_GET['sort_order']) : 'ASC';
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
+    $start_semester = isset($_GET['start_semester']) ? sanitize_text_field($_GET['start_semester']) : '';
+    $end_semester = isset($_GET['end_semester']) ? sanitize_text_field($_GET['end_semester']) : '';
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
     
@@ -17,6 +20,16 @@ function sd_project_display($atts) {
         's' => $search,
     );
 
+    // Sorting
+    if ($sort_order === 'option2') {
+        $args['orderby'] = 'title';
+        $args['order'] = 'DESC';
+    } else {
+        $args['orderby'] = 'title';
+        $args['order'] = 'ASC';
+    }    
+
+    // Semester filtering
     if ($semester) {
         $args['tax_query'] = array(
             array(
@@ -25,8 +38,19 @@ function sd_project_display($atts) {
                 'terms' => $semester,
             ),
         );
+    } elseif ($start_semester && $end_semester) {
+        $args['tax_query'] = array(
+            'relation' => 'AND',
+            array(
+                'taxonomy' => 'sd_semester',
+                'field' => 'slug',
+                'terms' => range($start_semester, $end_semester),
+                'operator' => 'BETWEEN',
+            ),
+        );
     }
 
+    // Search filtering
     if ($search) {
         $args['meta_query'] = array(
             'relation' => 'OR',
@@ -37,6 +61,8 @@ function sd_project_display($atts) {
             )
         );
     }
+    
+    $query = new WP_Query($args);
     
     echo '<style>
         .custom-card {
@@ -61,8 +87,6 @@ function sd_project_display($atts) {
             margin-top: 10px;
         }
     </style>';
-    
-    $query = new WP_Query($args);
     
     // Display semester dropdown
     $terms = get_terms(array(
@@ -101,11 +125,11 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup1">Sort</label>';
     echo '      <div class="form-check mb-4" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1" checked>';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="option1" id="filter1Option1" checked>';
     echo '              A-Z';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
-    echo '              <input class="form-check-input" type="radio" name="filter1" value="option2" id="filter1Option2">';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="option2" id="filter1Option2">';
     echo '              Z-A';
     echo '          </label>';
     echo '      </div>';
@@ -226,6 +250,8 @@ function sd_project_display($atts) {
             console.log('Page loaded');
             const form = document.getElementById('utility-bar');
             const semesterSelector = document.getElementById('semesterSelector');
+            const startSemesterSelector = document.getElementById('startSemesterSelector');
+            const endSemesterSelector = document.getElementById('endSemesterSelector');
             const searchInput = document.getElementById('searchFilter');
             const filter2Dropdown = document.getElementById('filter2Option1');
             const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
@@ -266,6 +292,20 @@ function sd_project_display($atts) {
                 });
             }
 
+            if (startSemesterSelector) {
+                startSemesterSelector.addEventListener('change', function() {
+                    console.log('Start semester changed');
+                    updateURL();
+                });
+            }
+
+            if (endSemesterSelector) {
+                endSemesterSelector.addEventListener('change', function() {
+                    console.log('End semester changed');
+                    updateURL();
+                });
+            }
+
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     console.log('Search input changed');
@@ -281,6 +321,10 @@ function sd_project_display($atts) {
                 params.set('paged', '1');
                 if (semesterSelector) {
                     params.set('semester', semesterSelector.value);
+                }
+                if (startSemesterSelector && endSemesterSelector) {
+                    params.set('start_semester', startSemesterSelector.value);
+                    params.set('end_semester', endSemesterSelector.value);
                 }
                 if (searchInput) {
                     params.set('search', searchInput.value);
