@@ -273,12 +273,15 @@ function sd_project_display($atts) {
                     if (selectedValue === 'option2') {
                         singleSemesterCollapse.classList.add('show');
                         rangeSemesterCollapse.classList.remove('show');
+                        updateURL(selectedValue);
                     } else if (selectedValue === 'option3') {
                         singleSemesterCollapse.classList.remove('show');
                         rangeSemesterCollapse.classList.add('show');
+                        updateURL(selectedValue);
                     } else {
                         singleSemesterCollapse.classList.remove('show');
                         rangeSemesterCollapse.classList.remove('show');
+                        updateURL(selectedValue);
                     }
                 });
             }
@@ -286,21 +289,21 @@ function sd_project_display($atts) {
             if (semesterSelector) {
                 semesterSelector.addEventListener('change', function() {
                     console.log('Semester changed');
-                    updateURL();
+                    updateURL(filter2Dropdown.value);
                 });
             }
 
             if (startSemesterSelector) {
                 startSemesterSelector.addEventListener('change', function() {
                     console.log('Start semester changed');
-                    updateURL();
+                    updateURL(filter2Dropdown.value);
                 });
             }
 
             if (endSemesterSelector) {
                 endSemesterSelector.addEventListener('change', function() {
                     console.log('End semester changed');
-                    updateURL();
+                    updateURL(filter2Dropdown.value);
                 });
             }
 
@@ -311,24 +314,27 @@ function sd_project_display($atts) {
                 });
             }
 
-            function updateURL() {
+            function updateURL($type) {
                 console.log('Updating URL parameters');
                 const url = new URL(window.location);
                 const params = new URLSearchParams(url.search);
 
                 params.set('paged', '1');
-                if (semesterSelector && semesterSelector.value) {
+                if (searchInput) {
+                    params.set('search', searchInput.value);
+                }
+                if (semesterSelector && $type === 'option2') {
                     params.set('semester', semesterSelector.value);
                     params.set('start_semester', '');
                     params.set('end_semester', '');
-                }
-                if (startSemesterSelector && startSemesterSelector.value && endSemesterSelector && endSemesterSelector.value) {
+                } else if (startSemesterSelector && endSemesterSelector && $type === 'option3') {
                     params.set('start_semester', startSemesterSelector.value);
                     params.set('end_semester', endSemesterSelector.value);
                     params.set('semester', '');
-                }
-                if (searchInput) {
-                    params.set('search', searchInput.value);
+                } else {
+                    params.set('semester', '');
+                    params.set('start_semester', '');
+                    params.set('end_semester', '');
                 }
 
                 url.search = params.toString();
