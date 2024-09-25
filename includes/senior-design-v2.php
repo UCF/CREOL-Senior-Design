@@ -116,13 +116,13 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup2">Filter Group 2</label>';
     echo '      <div class="form-check" id="filterGroup2">';
     echo '          <label class="form-check-label" for="filter2Option1">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option1" id="filter2Option1">';
+    echo '              <input class="form-check-input" type="radio" name="filter2" value="option1" id="filter2Option1" onclick="handleRadioSelection(\'filter2Option1\')">';
     echo '              Option 1';
     echo '          </label>';
 
     // Single semester dropdown
     echo '          <label class="form-check-label" for="filter2Option2">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse">';
+    echo '              <input class="form-check-input" type="radio" name="filter2" value="option2" id="filter2Option2" data-toggle="collapse" data-target="#singleSemesterCollapse" onclick="handleRadioSelection(\'filter2Option2\')">';
     echo '              Option 2';
     echo '          </label>';
     echo '          <div class="collapse" id="singleSemesterCollapse">';
@@ -136,7 +136,7 @@ function sd_project_display($atts) {
 
     // Range semester dropdown
     echo '          <label class="form-check-label" for="filter2Option3">';
-    echo '              <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">';
+    echo '              <input class="form-check-input" type="radio" name="filter2" value="option3" id="filter2Option3" data-toggle="collapse" data-target="#rangeSemesterCollapse" onclick="handleRadioSelection(\'filter2Option3\')">';
     echo '              Option 3';
     echo '          </label>';
     echo '          <div class="collapse" id="rangeSemesterCollapse">';
@@ -274,6 +274,38 @@ function sd_project_display($atts) {
                     projects.appendChild(pBlock);
                 }
             }
+
+            function handleRadioSelection(selectedId) {
+                const option1 = document.getElementById('filter2Option1');
+                const option2 = document.getElementById('filter2Option2');
+                const option3 = document.getElementById('filter2Option3');
+
+                if (selectedId === 'filter2Option1') {
+                    option1.checked = true;
+                    option2.checked = false;
+                    option3.checked = false;
+                } else if (selectedId === 'filter2Option2') {
+                    option1.checked = false;
+                    option2.checked = true;
+                    option3.checked = false;
+                } else if (selectedId === 'filter2Option3') {
+                    option1.checked = false;
+                    option2.checked = false;
+                    option3.checked = true;
+                }
+            }
+
+            document.getElementById('filter2Option1').addEventListener('click', function() {
+                handleRadioSelection('filter2Option1');
+            });
+
+            document.getElementById('filter2Option2').addEventListener('click', function() {
+                handleRadioSelection('filter2Option2');
+            });
+
+            document.getElementById('filter2Option3').addEventListener('click', function() {
+                handleRadioSelection('filter2Option3');
+            });
         });
     </script>";
 
