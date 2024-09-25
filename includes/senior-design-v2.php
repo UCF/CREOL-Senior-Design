@@ -289,26 +289,26 @@ function sd_project_display($atts) {
                 });
             }
 
-            // if (semesterSelector) {
-            //     semesterSelector.addEventListener('change', function() {
-            //         console.log('Semester changed');
-            //         updateURL(filter2Dropdown.value);
-            //     });
-            // }
+            if (semesterSelector) {
+                semesterSelector.addEventListener('change', function() {
+                    console.log('Semester changed');
+                    updateURL(filter2Dropdown.value);
+                });
+            }
 
-            // if (startSemesterSelector) {
-            //     startSemesterSelector.addEventListener('change', function() {
-            //         console.log('Start semester changed');
-            //         updateURL(filter2Dropdown.value);
-            //     });
-            // }
+            if (startSemesterSelector) {
+                startSemesterSelector.addEventListener('change', function() {
+                    console.log('Start semester changed');
+                    updateURL(filter2Dropdown.value);
+                });
+            }
 
-            // if (endSemesterSelector) {
-            //     endSemesterSelector.addEventListener('change', function() {
-            //         console.log('End semester changed');
-            //         updateURL(filter2Dropdown.value);
-            //     });
-            // }
+            if (endSemesterSelector) {
+                endSemesterSelector.addEventListener('change', function() {
+                    console.log('End semester changed');
+                    updateURL(filter2Dropdown.value);
+                });
+            }
 
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
@@ -327,27 +327,24 @@ function sd_project_display($atts) {
                     params.set('search', searchInput.value);
                 }
                 if (semesterSelector && $type === 'option2') {
-                    params.set('semester', semesterSelector.value
-                    // if (semesterSelector.value === 'choose') {
-                    //     params.delete('semester');
-                    // } else {
-                    //     params.set('semester', semesterSelector.value);
-                    // }
+                    if (semesterSelector.value === 'choose') {
+                        params.delete('semester');
+                    } else {
+                        params.set('semester', semesterSelector.value);
+                    }
                     params.delete('start_semester');
                     params.delete('end_semester');
                 } else if (startSemesterSelector && endSemesterSelector && $type === 'option3') {
-                    params.set('start_semester', startSemesterSelector.value);
-                    params.set('end_semester', endSemesterSelector.value);
-                    // if (startSemesterSelector.value === 'choose') {
-                    //     params.delete('start_semester');
-                    // } else {
-                    //     params.set('start_semester', startSemesterSelector.value);
-                    // }
-                    // if (endSemesterSelector.value === 'choose') {
-                    //     params.delete('end_semester');
-                    // } else {
-                    //     params.set('end_semester', endSemesterSelector.value);
-                    // }
+                    if (startSemesterSelector.value === 'choose') {
+                        params.delete('start_semester');
+                    } else {
+                        params.set('start_semester', startSemesterSelector.value);
+                    }
+                    if (endSemesterSelector.value === 'choose') {
+                        params.delete('end_semester');
+                    } else {
+                        params.set('end_semester', endSemesterSelector.value);
+                    }
                     params.delete('semester');
                 } else {
                     params.delete('semester');
