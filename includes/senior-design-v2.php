@@ -147,6 +147,7 @@ function sd_project_display($atts) {
     echo '          <div class="collapse" id="singleSemesterCollapse">';
     echo '              <label for="semesterSelector">Select Semester</label>';
     echo '              <select class="form-control mb-4" id="semesterSelector" name="semester" style="width: 100%;">';
+    echo '                  <option value="choose">Select Semester</option>';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -158,6 +159,7 @@ function sd_project_display($atts) {
     echo '          <div class="collapse" id="rangeSemesterCollapse">';
     echo '              <label for="startSemesterSelector">Start Semester</label>';
     echo '              <select class="form-control mb-4" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
+    echo '                  <option value="choose">Select Semester</option>';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -165,6 +167,7 @@ function sd_project_display($atts) {
     echo '              </select>';
     echo '              <label for="endSemesterSelector">End Semester</label>';
     echo '              <select class="form-control mb-4" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
+    echo '                  <option value="choose">Select Semester</option>';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -286,26 +289,26 @@ function sd_project_display($atts) {
                 });
             }
 
-            if (semesterSelector) {
-                semesterSelector.addEventListener('change', function() {
-                    console.log('Semester changed');
-                    updateURL(filter2Dropdown.value);
-                });
-            }
+            // if (semesterSelector) {
+            //     semesterSelector.addEventListener('change', function() {
+            //         console.log('Semester changed');
+            //         updateURL(filter2Dropdown.value);
+            //     });
+            // }
 
-            if (startSemesterSelector) {
-                startSemesterSelector.addEventListener('change', function() {
-                    console.log('Start semester changed');
-                    updateURL(filter2Dropdown.value);
-                });
-            }
+            // if (startSemesterSelector) {
+            //     startSemesterSelector.addEventListener('change', function() {
+            //         console.log('Start semester changed');
+            //         updateURL(filter2Dropdown.value);
+            //     });
+            // }
 
-            if (endSemesterSelector) {
-                endSemesterSelector.addEventListener('change', function() {
-                    console.log('End semester changed');
-                    updateURL(filter2Dropdown.value);
-                });
-            }
+            // if (endSemesterSelector) {
+            //     endSemesterSelector.addEventListener('change', function() {
+            //         console.log('End semester changed');
+            //         updateURL(filter2Dropdown.value);
+            //     });
+            // }
 
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
@@ -324,17 +327,32 @@ function sd_project_display($atts) {
                     params.set('search', searchInput.value);
                 }
                 if (semesterSelector && $type === 'option2') {
-                    params.set('semester', semesterSelector.value);
-                    params.set('start_semester', '');
-                    params.set('end_semester', '');
+                    params.set('semester', semesterSelector.value
+                    // if (semesterSelector.value === 'choose') {
+                    //     params.delete('semester');
+                    // } else {
+                    //     params.set('semester', semesterSelector.value);
+                    // }
+                    params.delete('start_semester');
+                    params.delete('end_semester');
                 } else if (startSemesterSelector && endSemesterSelector && $type === 'option3') {
                     params.set('start_semester', startSemesterSelector.value);
                     params.set('end_semester', endSemesterSelector.value);
-                    params.set('semester', '');
+                    // if (startSemesterSelector.value === 'choose') {
+                    //     params.delete('start_semester');
+                    // } else {
+                    //     params.set('start_semester', startSemesterSelector.value);
+                    // }
+                    // if (endSemesterSelector.value === 'choose') {
+                    //     params.delete('end_semester');
+                    // } else {
+                    //     params.set('end_semester', endSemesterSelector.value);
+                    // }
+                    params.delete('semester');
                 } else {
-                    params.set('semester', '');
-                    params.set('start_semester', '');
-                    params.set('end_semester', '');
+                    params.delete('semester');
+                    params.delete('start_semester');
+                    params.delete('end_semester');
                 }
 
                 url.search = params.toString();
