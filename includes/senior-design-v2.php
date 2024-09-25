@@ -265,7 +265,6 @@ function sd_project_display($atts) {
                     event.preventDefault();
                     hideProjects();
                     updateURL();
-                    submitSearch();
                 });
             }
 
@@ -276,16 +275,14 @@ function sd_project_display($atts) {
                     if (selectedValue === 'option2') {
                         singleSemesterCollapse.classList.add('show');
                         rangeSemesterCollapse.classList.remove('show');
-                        updateURL(selectedValue);
                     } else if (selectedValue === 'option3') {
                         singleSemesterCollapse.classList.remove('show');
                         rangeSemesterCollapse.classList.add('show');
-                        updateURL(selectedValue);
                     } else {
                         singleSemesterCollapse.classList.remove('show');
                         rangeSemesterCollapse.classList.remove('show');
-                        updateURL(selectedValue);
                     }
+                    updateURL(selectedValue);
                 });
             }
 
@@ -357,15 +354,6 @@ function sd_project_display($atts) {
                 history.pushState(null, '', url.toString());
             }
 
-            function submitSearch() {
-                console.log('Submitting URL parameters');
-                const url = new URL(window.location);
-                const params = new URLSearchParams(url.search);
-                url.search = params.toString();
-                console.log('Redirecting to:', url.toString());
-                window.location.href = url.toString();
-            }
-
             function hideProjects() {
                 var projects = document.getElementById('sd-projects');
                 var footer = document.getElementById('pagination-container');
@@ -373,6 +361,7 @@ function sd_project_display($atts) {
                     footer.classList.add('hidden');
                 }
                 if (projects) {
+                    projects.innerHTML = ''; // Clear existing children
                     projects.classList.add('hidden');
                     projects.classList.add('load-message');
                     const pBlock = document.createElement('p');
