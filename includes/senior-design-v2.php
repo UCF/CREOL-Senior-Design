@@ -96,32 +96,29 @@ function sd_project_display($atts) {
     // Filter collapse
     echo '<div class="collapse filters-collapse mb-4" id="filtersCollapse">';
     echo '  <div class="card card-block">';
-    echo '      <p>Filters go here</p>';
     
     // Filter group 1 (A-Z + Z-A)
-    echo '      <label for="filterGroup1">Filter Group 1</label>';
+    echo '      <label for="filterGroup1">Sort</label>';
     echo '      <div class="form-check" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
     echo '              <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
-    echo '              Option 1';
+    echo '              A-Z';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
     echo '              <input class="form-check-input" type="radio" name="filter1" value="option2" id="filter1Option2">';
-    echo '              Option 2';
+    echo '              Z-A';
     echo '          </label>';
     echo '      </div>';
 
     // Filter group 2 (Semester selector)
     // All semesters, single semester, range semester
-    echo '      <label for="filterGroup2">Filter Group 2</label>';
+    echo '      <label for="filterGroup2">Semester Select</label>';
     echo '      <div class="form-check" id="filterGroup2">';
-    echo '          <label class="form-check-label" for="filter2Option1">';
-    echo '              <select class="form-control" name="filter2" id="filter2Option1">';
-    echo '                  <option value="option1">Option 1</option>';
-    echo '                  <option value="option2" data-toggle="collapse" data-target="#singleSemesterCollapse">Option 2</option>';
-    echo '                  <option value="option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">Option 3</option>';
-    echo '              </select>';
-    echo '          </label>';
+    echo '          <select class="form-control" name="filter2" id="filter2Option1">';
+    echo '              <option value="option1">All Semesters</option>';
+    echo '              <option value="option2" data-toggle="collapse" data-target="#singleSemesterCollapse">Single Semester</option>';
+    echo '              <option value="option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">semester Range</option>';
+    echo '          </select>';
 
     // Single semester dropdown
     echo '          <div class="collapse" id="singleSemesterCollapse">';
