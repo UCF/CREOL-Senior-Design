@@ -320,10 +320,13 @@ function sd_project_display($atts) {
                 params.set('paged', '1');
                 if (semesterSelector && semesterSelector.value) {
                     params.set('semester', semesterSelector.value);
+                    params.set('start_semester', '');
+                    params.set('end_semester', '');
                 }
                 if (startSemesterSelector && startSemesterSelector.value && endSemesterSelector && endSemesterSelector.value) {
                     params.set('start_semester', startSemesterSelector.value);
                     params.set('end_semester', endSemesterSelector.value);
+                    params.set('semester', '');
                 }
                 if (searchInput) {
                     params.set('search', searchInput.value);
