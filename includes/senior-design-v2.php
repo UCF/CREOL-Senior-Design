@@ -122,8 +122,8 @@ function sd_project_display($atts) {
 
     // Single semester dropdown
     echo '          <div class="collapse" id="singleSemesterCollapse">';
-    echo '              <label for="semesterSelector">Select Semester</label>';
-    echo '              <select class="form-control my-2" id="semesterSelector" name="semester" style="width: 100%;">';
+    echo '              <label for="semesterSelector mt-2">Select Semester</label>';
+    echo '              <select class="form-control mb-2" id="semesterSelector" name="semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -133,15 +133,15 @@ function sd_project_display($atts) {
 
     // Range semester dropdown
     echo '          <div class="collapse" id="rangeSemesterCollapse">';
-    echo '              <label for="startSemesterSelector">Start Semester</label>';
-    echo '              <select class="form-control my-2" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
+    echo '              <label for="startSemesterSelector mt-2">Start Semester</label>';
+    echo '              <select class="form-control mb-2" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
     echo '              </select>';
-    echo '              <label for="endSemesterSelector">End Semester</label>';
-    echo '              <select class="form-control my-2" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
+    echo '              <label for="endSemesterSelector mt-2">End Semester</label>';
+    echo '              <select class="form-control mb-2" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
