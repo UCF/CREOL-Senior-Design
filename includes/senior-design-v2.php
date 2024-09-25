@@ -30,22 +30,21 @@ function sd_project_display($atts) {
     }    
 
     // Semester filtering
-    if ($semester) {
+    if ($start_semester && $end_semester) {
         $args['tax_query'] = array(
-            array(
-                'taxonomy' => 'sd_semester',
-                'field' => 'slug',
-                'terms' => $semester,
-            ),
-        );
-    } elseif ($start_semester && $end_semester) {
-        $args['tax_query'] = array(
-            'relation' => 'AND',
             array(
                 'taxonomy' => 'sd_semester',
                 'field' => 'slug',
                 'terms' => range($start_semester, $end_semester),
                 'operator' => 'BETWEEN',
+            ),
+        );
+    } elseif ($semester) {
+        $args['tax_query'] = array(
+            array(
+                'taxonomy' => 'sd_semester',
+                'field' => 'slug',
+                'terms' => $semester,
             ),
         );
     }
@@ -319,10 +318,10 @@ function sd_project_display($atts) {
                 const params = new URLSearchParams(url.search);
 
                 params.set('paged', '1');
-                if (semesterSelector) {
+                if (semesterSelector && semesterSelector.value) {
                     params.set('semester', semesterSelector.value);
                 }
-                if (startSemesterSelector && endSemesterSelector) {
+                if (startSemesterSelector && startSemesterSelector.value && endSemesterSelector && endSemesterSelector.value) {
                     params.set('start_semester', startSemesterSelector.value);
                     params.set('end_semester', endSemesterSelector.value);
                 }
