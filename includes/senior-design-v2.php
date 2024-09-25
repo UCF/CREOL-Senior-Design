@@ -101,7 +101,7 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup1">Sort</label>';
     echo '      <div class="form-check" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1">';
+    echo '              <input class="form-check-input" type="radio" name="filter1" value="option1" id="filter1Option1" checked>';
     echo '              A-Z';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
@@ -117,12 +117,13 @@ function sd_project_display($atts) {
     echo '          <select class="form-control" name="filter2" id="filter2Option1">';
     echo '              <option value="option1">All Semesters</option>';
     echo '              <option value="option2" data-toggle="collapse" data-target="#singleSemesterCollapse">Single Semester</option>';
-    echo '              <option value="option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">semester Range</option>';
+    echo '              <option value="option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">Semester Range</option>';
     echo '          </select>';
 
     // Single semester dropdown
     echo '          <div class="collapse" id="singleSemesterCollapse">';
-    echo '              <select class="form-control" id="semesterSelector" name="semester" style="width: 100%;">';
+    echo '              <label for="semesterSelector">Select Semester</label>';
+    echo '              <select class="form-control my-2" id="semesterSelector" name="semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -132,13 +133,15 @@ function sd_project_display($atts) {
 
     // Range semester dropdown
     echo '          <div class="collapse" id="rangeSemesterCollapse">';
-    echo '              <select class="form-control" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
+    echo '              <label for="startSemesterSelector">Start Semester</label>';
+    echo '              <select class="form-control my-2" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
     echo '              </select>';
-    echo '              <select class="form-control" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
+    echo '              <label for="endSemesterSelector">End Semester</label>';
+    echo '              <select class="form-control my-2" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
