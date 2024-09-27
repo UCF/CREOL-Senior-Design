@@ -26,6 +26,14 @@ function sd_project_display($atts) {
         'posts_per_page' => 10,
         'paged' => $paged,
         's' => $search, // This will search in post title and content
+        'meta_query' => array(
+            'relation' => 'OR',
+            array(
+                'key' => 'project_contributors',
+                'value' => $search,
+                'compare' => 'LIKE'
+            )
+        )
     );
     
     // Sorting
@@ -234,8 +242,6 @@ function sd_project_display($atts) {
             echo '</ul></nav>';
             echo '</div>';
         }
-
-        wp_reset_postdata();
     } else {
         echo '<p>No projects found.</p>';
     }
@@ -427,6 +433,12 @@ function sd_project_display($atts) {
     });
     </script>";
 
+    wp_reset_postdata();
+
+    // Cache the output for 1 hour
+    set_transient($cache_key, ob_get_contents(), HOUR_IN_SECONDS);
+
+    // Return the output
     return ob_get_clean();
 }
 ?>
