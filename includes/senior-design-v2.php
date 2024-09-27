@@ -21,14 +21,13 @@ function sd_project_display($atts) {
         return ob_get_clean();
     }
 
-    // Query arguments
     $args = array(
         'post_type' => 'sd_project',
         'posts_per_page' => 10,
         'paged' => $paged,
-        's' => $search,
+        's' => $search, // This will search in post title and content
     );
-
+    
     // Sorting
     if ($sort_order === 'DESC') {
         $args['orderby'] = 'title';
@@ -36,8 +35,8 @@ function sd_project_display($atts) {
     } else {
         $args['orderby'] = 'title';
         $args['order'] = 'ASC';
-    }   
-
+    }
+    
     // Semester filtering
     if ($start_semester && $end_semester) {
         $args['tax_query'] = array(
@@ -57,7 +56,7 @@ function sd_project_display($atts) {
             ),
         );
     }
-
+    
     // Search filtering
     if ($search) {
         $args['meta_query'] = array(
