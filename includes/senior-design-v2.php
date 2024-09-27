@@ -261,6 +261,7 @@ function sd_project_display($atts) {
             const endSemesterSelector = document.getElementById('endSemesterSelector');
             const searchInput = document.getElementById('searchFilter');
             const filter2Dropdown = document.getElementById('filter2Option1');
+            const filter1Radio = document.getElementById('filter1Option1');
             const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
             const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
 
@@ -270,6 +271,14 @@ function sd_project_display($atts) {
                     event.preventDefault();
                     hideProjects();
                     updateURL(filter2Dropdown ? filter2Dropdown.value : '');
+                    fetchProjects();
+                });
+            }
+
+            if (filter1Radio) {
+                filter1Radio.addEventListener('change', function() {
+                    console.log('Filter 1 changed');
+                    updateURL(filter1Radio ? filter1Radio.value : '');
                     fetchProjects();
                 });
             }
