@@ -26,14 +26,6 @@ function sd_project_display($atts) {
         'posts_per_page' => 10,
         'paged' => $paged,
         's' => $search, // This will search in post title and content
-        'meta_query' => array(
-            'relation' => 'OR',
-            array(
-                'key' => 'project_contributors',
-                'value' => $search,
-                'compare' => 'LIKE'
-            )
-        )
     );
     
     // Sorting
