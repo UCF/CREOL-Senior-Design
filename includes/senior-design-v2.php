@@ -341,7 +341,7 @@ function sd_project_display($atts) {
                 console.log('Search input changed');
                 updateURL();
                 fetchProjects();
-            }, 300));
+            }, 0));
         }
 
         function debounce(func, wait) {
