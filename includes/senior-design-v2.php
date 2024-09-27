@@ -58,8 +58,6 @@ function sd_project_display($atts) {
     }
     
     $query = new WP_Query($args);
-    
-    echo '<p>Search parameter: ' . esc_html($search) . '</p>';
 
     ob_start();
     echo '<style>
