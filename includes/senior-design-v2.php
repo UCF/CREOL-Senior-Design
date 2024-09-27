@@ -334,6 +334,9 @@ function sd_project_display($atts) {
                 if (searchInput) {
                     params.set('search', searchInput.value);
                 }
+                if (filter2Dropdown) {
+                    params.set('sort_order', filter2Dropdown.value);
+                }
                 if (semesterSelector && type === 'option2') {
                     if (semesterSelector.value === 'choose') {
                         params.delete('semester');
