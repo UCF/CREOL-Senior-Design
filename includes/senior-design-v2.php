@@ -57,15 +57,15 @@ function sd_project_display($atts) {
         );
     }
     
-    // Search filtering
+    // Meta query for contributors
     if ($search) {
         $args['meta_query'] = array(
             'relation' => 'OR',
             array(
                 'key' => 'project_contributors',
                 'value' => $search,
-                'compare' => 'LIKE'
-            )
+                'compare' => 'LIKE',
+            ),
         );
     }
     
