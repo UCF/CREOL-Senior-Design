@@ -106,9 +106,6 @@ function sd_project_display($atts) {
     echo '      <div class="form-group ml-4">';
     echo '          <div class="input-group" style="width: 100%;">';
     echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search..." value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
-    echo '              <span class="input-group-btn">';
-    echo '                  <button class="btn btn-primary" type="submit"><i class="fa fa-search" aria-hidden="true"></i></button>';
-    echo '              </span>';
     echo '          </div>';
     echo '      </div>';
 
