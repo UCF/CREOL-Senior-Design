@@ -270,6 +270,7 @@ function sd_project_display($atts) {
                     event.preventDefault();
                     hideProjects();
                     updateURL(filter2Dropdown ? filter2Dropdown.value : '');
+                    fetchProjects();
                 });
             }
 
@@ -288,6 +289,7 @@ function sd_project_display($atts) {
                         rangeSemesterCollapse.classList.remove('show');
                     }
                     updateURL(selectedValue);
+                    fetchProjects();
                 });
             }
 
@@ -295,6 +297,7 @@ function sd_project_display($atts) {
                 semesterSelector.addEventListener('change', function() {
                     console.log('Semester changed');
                     updateURL(filter2Dropdown ? filter2Dropdown.value : '');
+                    fetchProjects();
                 });
             }
 
@@ -302,6 +305,7 @@ function sd_project_display($atts) {
                 startSemesterSelector.addEventListener('change', function() {
                     console.log('Start semester changed');
                     updateURL(filter2Dropdown ? filter2Dropdown.value : '');
+                    fetchProjects();
                 });
             }
 
@@ -309,6 +313,7 @@ function sd_project_display($atts) {
                 endSemesterSelector.addEventListener('change', function() {
                     console.log('End semester changed');
                     updateURL(filter2Dropdown ? filter2Dropdown.value : '');
+                    fetchProjects();
                 });
             }
 
@@ -316,6 +321,7 @@ function sd_project_display($atts) {
                 searchInput.addEventListener('input', function() {
                     console.log('Search input changed');
                     updateURL(filter2Dropdown ? filter2Dropdown.value : '');
+                    fetchProjects();
                 });
             }
 
@@ -359,6 +365,29 @@ function sd_project_display($atts) {
                 history.pushState(null, '', url.toString());
             }
 
+            function fetchProjects() {
+                console.log('Fetching projects');
+                const url = new URL(window.location);
+                const params = new URLSearchParams(url.search);
+
+                fetch(url.toString())
+                    .then(response => response.text())
+                    .then(data => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(data, 'text/html');
+                        const projects = doc.getElementById('sd-projects');
+                        const pagination = doc.getElementById('pagination-container');
+
+                        document.getElementById('sd-projects').innerHTML = projects.innerHTML;
+                        if (pagination) {
+                            document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                        } else {
+                            document.getElementById('pagination-container').innerHTML = '';
+                        }
+                    })
+                    .catch(error => console.error('Error fetching projects:', error));
+            }
+
             function hideProjects() {
                 var projects = document.getElementById('sd-projects');
                 var footer = document.getElementById('pagination-container');
@@ -376,7 +405,7 @@ function sd_project_display($atts) {
                 }
             }
         });
-    </script>";
+    </script>
 
     return ob_get_clean();
 }
