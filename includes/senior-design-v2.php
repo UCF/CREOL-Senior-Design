@@ -21,13 +21,13 @@ function sd_project_display($atts) {
     );
 
     // Sorting
-    if ($sort_order === 'option2') {
+    if ($sort_order === 'DESC') {
         $args['orderby'] = 'title';
         $args['order'] = 'DESC';
     } else {
         $args['orderby'] = 'title';
         $args['order'] = 'ASC';
-    }    
+    }   
 
     // Semester filtering
     if ($start_semester && $end_semester) {
@@ -129,11 +129,11 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup1">Sort</label>';
     echo '      <div class="form-check mb-4" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="option1" id="filter1Option1" checked>';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1" checked>';
     echo '              A-Z';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="option2" id="filter1Option2">';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2">';
     echo '              Z-A';
     echo '          </label>';
     echo '      </div>';
@@ -253,170 +253,181 @@ function sd_project_display($atts) {
     }
 
     echo "<script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded');
-            const form = document.getElementById('utility-bar');
-            const semesterSelector = document.getElementById('semesterSelector');
-            const startSemesterSelector = document.getElementById('startSemesterSelector');
-            const endSemesterSelector = document.getElementById('endSemesterSelector');
-            const searchInput = document.getElementById('searchFilter');
-            const filter2Dropdown = document.getElementById('filter2Option1');
-            const filter1Radio = document.getElementById('filter1Option1');
-            const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
-            const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Page loaded');
+        const form = document.getElementById('utility-bar');
+        const semesterSelector = document.getElementById('semesterSelector');
+        const startSemesterSelector = document.getElementById('startSemesterSelector');
+        const endSemesterSelector = document.getElementById('endSemesterSelector');
+        const searchInput = document.getElementById('searchFilter');
+        const filter2Dropdown = document.getElementById('filter2Option1');
+        const filter1Option1 = document.getElementById('filter1Option1');
+        const filter1Option2 = document.getElementById('filter1Option2');
+        const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
+        const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
 
-            if (form) {
-                form.addEventListener('submit', function(event) {
-                    console.log('Form submitted');
-                    event.preventDefault();
-                    hideProjects();
-                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
-                    fetchProjects();
-                });
-            }
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                console.log('Form submitted');
+                event.preventDefault();
+                hideProjects();
+                updateURL();
+                fetchProjects();
+            });
+        }
 
-            if (filter1Radio) {
-                filter1Radio.addEventListener('change', function() {
-                    console.log('Filter 1 changed');
-                    updateURL(filter1Radio ? filter1Radio.value : '');
-                    fetchProjects();
-                });
-            }
+        if (filter1Option1) {
+            filter1Option1.addEventListener('change', function() {
+                console.log('Sort order changed to A-Z');
+                updateURL();
+                fetchProjects();
+            });
+        }
 
-            if (filter2Dropdown) {
-                filter2Dropdown.addEventListener('change', function() {
-                    const selectedValue = filter2Dropdown.value;
+        if (filter1Option2) {
+            filter1Option2.addEventListener('change', function() {
+                console.log('Sort order changed to Z-A');
+                updateURL();
+                fetchProjects();
+            });
+        }
 
-                    if (selectedValue === 'option2') {
-                        singleSemesterCollapse.classList.add('show');
-                        rangeSemesterCollapse.classList.remove('show');
-                    } else if (selectedValue === 'option3') {
-                        singleSemesterCollapse.classList.remove('show');
-                        rangeSemesterCollapse.classList.add('show');
-                    } else {
-                        singleSemesterCollapse.classList.remove('show');
-                        rangeSemesterCollapse.classList.remove('show');
-                    }
-                    updateURL(selectedValue);
-                    fetchProjects();
-                });
-            }
+        if (filter2Dropdown) {
+            filter2Dropdown.addEventListener('change', function() {
+                const selectedValue = filter2Dropdown.value;
 
-            if (semesterSelector) {
-                semesterSelector.addEventListener('change', function() {
-                    console.log('Semester changed');
-                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
-                    fetchProjects();
-                });
-            }
+                if (selectedValue === 'option2') {
+                    singleSemesterCollapse.classList.add('show');
+                    rangeSemesterCollapse.classList.remove('show');
+                } else if (selectedValue === 'option3') {
+                    singleSemesterCollapse.classList.remove('show');
+                    rangeSemesterCollapse.classList.add('show');
+                } else {
+                    singleSemesterCollapse.classList.remove('show');
+                    rangeSemesterCollapse.classList.remove('show');
+                }
+                updateURL();
+                fetchProjects();
+            });
+        }
 
-            if (startSemesterSelector) {
-                startSemesterSelector.addEventListener('change', function() {
-                    console.log('Start semester changed');
-                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
-                    fetchProjects();
-                });
-            }
+        if (semesterSelector) {
+            semesterSelector.addEventListener('change', function() {
+                console.log('Semester changed');
+                updateURL();
+                fetchProjects();
+            });
+        }
 
-            if (endSemesterSelector) {
-                endSemesterSelector.addEventListener('change', function() {
-                    console.log('End semester changed');
-                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
-                    fetchProjects();
-                });
-            }
+        if (startSemesterSelector) {
+            startSemesterSelector.addEventListener('change', function() {
+                console.log('Start semester changed');
+                updateURL();
+                fetchProjects();
+            });
+        }
 
+        if (endSemesterSelector) {
+            endSemesterSelector.addEventListener('change', function() {
+                console.log('End semester changed');
+                updateURL();
+                fetchProjects();
+            });
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                console.log('Search input changed');
+                updateURL();
+                fetchProjects();
+            });
+        }
+
+        function updateURL() {
+            console.log('Updating URL parameters');
+            const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
+
+            params.set('paged', '1');
             if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    console.log('Search input changed');
-                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
-                    fetchProjects();
-                });
+                params.set('search', searchInput.value);
             }
-
-            function updateURL(type = '') {
-                console.log('Updating URL parameters');
-                const url = new URL(window.location);
-                const params = new URLSearchParams(url.search);
-
-                params.set('paged', '1');
-                if (searchInput) {
-                    params.set('search', searchInput.value);
-                }
-                if (filter1Radio) {
-                    params.set('sort_order', filter1Radio.value);
-                }
-                if (semesterSelector && type === 'option2') {
-                    if (semesterSelector.value === 'choose') {
-                        params.delete('semester');
-                    } else {
-                        params.set('semester', semesterSelector.value);
-                    }
-                    params.delete('start_semester');
-                    params.delete('end_semester');
-                } else if (startSemesterSelector && endSemesterSelector && type === 'option3') {
-                    if (startSemesterSelector.value === 'choose') {
-                        params.delete('start_semester');
-                    } else {
-                        params.set('start_semester', startSemesterSelector.value);
-                    }
-                    if (endSemesterSelector.value === 'choose') {
-                        params.delete('end_semester');
-                    } else {
-                        params.set('end_semester', endSemesterSelector.value);
-                    }
+            if (filter1Option1 && filter1Option1.checked) {
+                params.set('sort_order', 'ASC');
+            } else if (filter1Option2 && filter1Option2.checked) {
+                params.set('sort_order', 'DESC');
+            }
+            if (semesterSelector && filter2Dropdown.value === 'option2') {
+                if (semesterSelector.value === 'choose') {
                     params.delete('semester');
                 } else {
-                    params.delete('semester');
+                    params.set('semester', semesterSelector.value);
+                }
+                params.delete('start_semester');
+                params.delete('end_semester');
+            } else if (startSemesterSelector && endSemesterSelector && filter2Dropdown.value === 'option3') {
+                if (startSemesterSelector.value === 'choose') {
                     params.delete('start_semester');
+                } else {
+                    params.set('start_semester', startSemesterSelector.value);
+                }
+                if (endSemesterSelector.value === 'choose') {
                     params.delete('end_semester');
+                } else {
+                    params.set('end_semester', endSemesterSelector.value);
                 }
-
-                url.search = params.toString();
-                console.log('Updating URL to:', url.toString());
-                history.pushState(null, '', url.toString());
+                params.delete('semester');
+            } else {
+                params.delete('semester');
+                params.delete('start_semester');
+                params.delete('end_semester');
             }
 
-            function fetchProjects() {
-                console.log('Fetching projects');
-                const url = new URL(window.location);
-                const params = new URLSearchParams(url.search);
+            url.search = params.toString();
+            console.log('Updating URL to:', url.toString());
+            history.pushState(null, '', url.toString());
+        }
 
-                fetch(url.toString())
-                    .then(response => response.text())
-                    .then(data => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(data, 'text/html');
-                        const projects = doc.getElementById('sd-projects');
-                        const pagination = doc.getElementById('pagination-container');
+        function fetchProjects() {
+            console.log('Fetching projects');
+            const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
 
-                        document.getElementById('sd-projects').innerHTML = projects.innerHTML;
-                        if (pagination) {
-                            document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
-                        } else {
-                            document.getElementById('pagination-container').innerHTML = '';
-                        }
-                    })
-                    .catch(error => console.error('Error fetching projects:', error));
+            fetch(url.toString())
+                .then(response => response.text())
+                .then(data => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(data, 'text/html');
+                    const projects = doc.getElementById('sd-projects');
+                    const pagination = doc.getElementById('pagination-container');
+
+                    document.getElementById('sd-projects').innerHTML = projects.innerHTML;
+                    if (pagination) {
+                        document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                    } else {
+                        document.getElementById('pagination-container').innerHTML = '';
+                    }
+                })
+                .catch(error => console.error('Error fetching projects:', error));
+        }
+
+        function hideProjects() {
+            var projects = document.getElementById('sd-projects');
+            var footer = document.getElementById('pagination-container');
+            if (footer) {
+                footer.classList.add('hidden');
             }
-
-            function hideProjects() {
-                var projects = document.getElementById('sd-projects');
-                var footer = document.getElementById('pagination-container');
-                if (footer) {
-                    footer.classList.add('hidden');
-                }
-                if (projects) {
-                    projects.innerHTML = ''; // Clear existing children
-                    projects.classList.add('hidden');
-                    projects.classList.add('load-message');
-                    const pBlock = document.createElement('p');
-                    const textNode = document.createTextNode('Loading...');
-                    pBlock.appendChild(textNode);
-                    projects.appendChild(pBlock);
-                }
+            if (projects) {
+                projects.innerHTML = ''; // Clear existing children
+                projects.classList.add('hidden');
+                projects.classList.add('load-message');
+                const pBlock = document.createElement('p');
+                const textNode = document.createTextNode('Loading...');
+                pBlock.appendChild(textNode);
+                projects.appendChild(pBlock);
             }
-        });
+        }
+    });
     </script>";
 
     return ob_get_clean();
