@@ -343,7 +343,7 @@ function sd_project_display($atts) {
                 if (searchInput) {
                     params.set('search', searchInput.value);
                 }
-                if (filter1Dropdown) {
+                if (filter1Radio) {
                     params.set('sort_order', filter1Radio.value);
                 }
                 if (semesterSelector && type === 'option2') {
