@@ -264,7 +264,7 @@ function sd_project_display($atts) {
                     console.log('Form submitted');
                     event.preventDefault();
                     hideProjects();
-                    updateURL();
+                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
                 });
             }
 
@@ -289,32 +289,32 @@ function sd_project_display($atts) {
             if (semesterSelector) {
                 semesterSelector.addEventListener('change', function() {
                     console.log('Semester changed');
-                    updateURL(filter2Dropdown.value);
+                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
                 });
             }
 
             if (startSemesterSelector) {
                 startSemesterSelector.addEventListener('change', function() {
                     console.log('Start semester changed');
-                    updateURL(filter2Dropdown.value);
+                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
                 });
             }
 
             if (endSemesterSelector) {
                 endSemesterSelector.addEventListener('change', function() {
                     console.log('End semester changed');
-                    updateURL(filter2Dropdown.value);
+                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
                 });
             }
 
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
                     console.log('Search input changed');
-                    updateURL();
+                    updateURL(filter2Dropdown ? filter2Dropdown.value : '');
                 });
             }
 
-            function updateURL($type) {
+            function updateURL(type = '') {
                 console.log('Updating URL parameters');
                 const url = new URL(window.location);
                 const params = new URLSearchParams(url.search);
@@ -323,7 +323,7 @@ function sd_project_display($atts) {
                 if (searchInput) {
                     params.set('search', searchInput.value);
                 }
-                if (semesterSelector && $type === 'option2') {
+                if (semesterSelector && type === 'option2') {
                     if (semesterSelector.value === 'choose') {
                         params.delete('semester');
                     } else {
@@ -331,7 +331,7 @@ function sd_project_display($atts) {
                     }
                     params.delete('start_semester');
                     params.delete('end_semester');
-                } else if (startSemesterSelector && endSemesterSelector && $type === 'option3') {
+                } else if (startSemesterSelector && endSemesterSelector && type === 'option3') {
                     if (startSemesterSelector.value === 'choose') {
                         params.delete('start_semester');
                     } else {
