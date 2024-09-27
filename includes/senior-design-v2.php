@@ -11,7 +11,16 @@ function sd_project_display($atts) {
     $end_semester = isset($_GET['end_semester']) ? sanitize_text_field($_GET['end_semester']) : '';
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
-    
+
+    // Generate a unique cache key based on the query parameters
+    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'semester', 'start_semester', 'end_semester', 'search', 'paged')));
+    $cached_results = get_transient($cache_key);
+
+    if ($cached_results !== false) {
+        echo $cached_results;
+        return ob_get_clean();
+    }
+
     // Query arguments
     $args = array(
         'post_type' => 'sd_project',
@@ -60,14 +69,10 @@ function sd_project_display($atts) {
             )
         );
     }
-
-    // Debugging: Print query arguments
-    echo '<pre>';
-    print_r($args);
-    echo '</pre>';
     
     $query = new WP_Query($args);
     
+    ob_start();
     echo '<style>
         .custom-card {
             border-radius: 12px;
@@ -169,7 +174,6 @@ function sd_project_display($atts) {
     echo '              </select>';
     echo '              <label for="endSemesterSelector">End Semester</label>';
     echo '              <select class="form-control mb-4" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
-    echo '                  <option value="choose">Select Semester</option>';
     foreach ($terms as $term) {
         $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -333,11 +337,20 @@ function sd_project_display($atts) {
         }
 
         if (searchInput) {
-            searchInput.addEventListener('input', function() {
+            searchInput.addEventListener('input', debounce(function() {
                 console.log('Search input changed');
                 updateURL();
                 fetchProjects();
-            });
+            }, 300));
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
         }
 
         function updateURL() {
