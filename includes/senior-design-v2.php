@@ -405,7 +405,7 @@ function sd_project_display($atts) {
                 }
             }
         });
-    </script>
+    </script>";
 
     return ob_get_clean();
 }
