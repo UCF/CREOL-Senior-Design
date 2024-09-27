@@ -60,6 +60,11 @@ function sd_project_display($atts) {
             )
         );
     }
+
+    // Debugging: Print query arguments
+    echo '<pre>';
+    print_r($args);
+    echo '</pre>';
     
     $query = new WP_Query($args);
     
