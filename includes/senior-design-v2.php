@@ -432,7 +432,7 @@ function sd_project_display($atts) {
             });
         });
     });
-    </script>;
+    </script>
 
     <?php
     wp_reset_postdata();
