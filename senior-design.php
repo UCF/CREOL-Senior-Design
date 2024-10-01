@@ -27,7 +27,7 @@ add_action('wp_enqueue_scripts', 'select2_test_enqueue_scripts');
 function select2_test_shortcode() {
     ob_start();
     ?>
-    <select id="testSelect2" style="width: 100%;">
+    <select class="form-control" id="testSelect2" style="width: 100%;">
         <option value="1">Option 1</option>
         <option value="2">Option 2</option>
         <option value="3">Option 3</option>
