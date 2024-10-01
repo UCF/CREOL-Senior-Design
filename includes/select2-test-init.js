@@ -1,4 +1,4 @@
-jQuery(document).ready(function($) {
+$(function() {
     $('#testSelect2').select2({
         placeholder: "Select an option",
         allowClear: true,
