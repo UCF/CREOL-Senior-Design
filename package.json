@@ -27,5 +27,8 @@
   },
   "browserslist": [
     "last 2 versions"
-  ]
+  ],
+  "dependencies": {
+    "select2": "^4.1.0-rc.0"
+  }
 }

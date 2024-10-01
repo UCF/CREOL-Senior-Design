@@ -238,7 +238,8 @@ function sd_project_display($atts) {
         echo '<p>No projects found.</p>';
     }
 
-    echo "<script>
+    ?>
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
         console.log('Page loaded');
         const form = document.getElementById('utility-bar');
@@ -422,9 +423,18 @@ function sd_project_display($atts) {
                 projects.appendChild(pBlock);
             }
         }
-    });
-    </script>";
 
+        jQuery(document).ready(function($) {
+            $('#semesterSelector').select2({
+                placeholder: "Select Semesters",
+                allowClear: true, // This adds an "X" button to clear the selection
+                width: 'resolve' // This makes the dropdown fit the width of its container
+            });
+        });
+    });
+    </script>;
+
+    <?php
     wp_reset_postdata();
 
     // Cache the output for 1 hour
