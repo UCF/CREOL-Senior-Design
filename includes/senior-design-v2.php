@@ -424,7 +424,7 @@ function sd_project_display($atts) {
             }
         }
 
-        jQuery(document).ready(function($) {
+        $(function() {
             $('#semesterSelector').select2({
                 placeholder: "Select Semesters",
                 allowClear: true, // This adds an "X" button to clear the selection
