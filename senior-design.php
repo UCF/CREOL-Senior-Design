@@ -18,6 +18,9 @@ function select2_test_enqueue_scripts() {
 
     // Enqueue Select2 JS
     wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array('jquery'), null, true);
+
+    // Enqueue custom script to initialize Select2
+    wp_enqueue_script('select2-test-init', plugin_dir_url(__FILE__) . 'includes/select2-test-init.js', array('select2-js'), null, true);
 }
 add_action('wp_enqueue_scripts', 'select2_test_enqueue_scripts');
 
