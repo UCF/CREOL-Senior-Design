@@ -112,8 +112,8 @@ function sd_project_display($atts) {
 
     // Multi-select dropdown for semesters
     echo '          <div class="collapse" id="multiSemesterCollapse">';
-    echo '              <label for="multiSemesterSelector">Select Semesters</label>';
-    echo '              <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
+    echo '          <label for="multiSemesterSelector">Select Semesters:</label>';
+    echo '          <small class="form-text text-muted">Click in the box to open the dropdown menu.</small>';    echo '              <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
     foreach ($terms as $term) {
         $selected = in_array($term->slug, $selected_semesters) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
@@ -358,7 +358,6 @@ function sd_project_display($atts) {
 
         $(function() {
             $('#multiSemesterSelector').select2({
-                placeholder: 'Select semesters',
                 allowClear: true,
                 dropdownParent: $('#filtersCollapse'),
             });
