@@ -13,7 +13,7 @@ function sd_project_display($atts) {
 
     // Generate a unique cache key based on the query parameters
     $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'semester', 'selected_semesters', 'search', 'paged')));
-    $cached_results = get_transient($cache_key);
+    $cached_results = false; // get_transient($cache_key);
 
     if ($cached_results !== false) {
         echo $cached_results;
