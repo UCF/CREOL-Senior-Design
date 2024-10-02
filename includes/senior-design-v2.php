@@ -170,8 +170,13 @@ function sd_project_display($atts) {
             $link_with_params = esc_url_raw(add_query_arg([
                 'semester' => $semester,
                 'selected_semesters' => implode(',', $selected_semesters),
-                'search' => $search
+                'search' => $search,
+                'sort_order' => $sort_order
             ], $base_link));
+
+            // Remove empty parameters from the link
+            $link_with_params = preg_replace('/(&|\?)semester=&/', '$1', $link_with_params);
+            $link_with_params = preg_replace('/(&|\?)selected_semesters=&/', '$1', $link_with_params);
 
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
@@ -315,6 +320,13 @@ function sd_project_display($atts) {
             } else {
                 params.delete('semester');
                 params.delete('selected_semesters');
+            }
+
+            // Remove empty parameters
+            for (const [key, value] of params.entries()) {
+                if (!value) {
+                    params.delete(key);
+                }
             }
 
             url.search = params.toString();
