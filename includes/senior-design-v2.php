@@ -364,6 +364,7 @@ function sd_project_display($atts) {
 
         $(function() {
             $('#multiSemesterSelector').select2({
+                placeholder: 'Select semesters',
                 allowClear: true,
                 dropdownParent: $('#filtersCollapse'),
             });
