@@ -357,13 +357,7 @@ function sd_project_display($atts) {
         }
 
         $(function() {
-            $('#multiSemesterSelector').select2({
-                placeholder: {
-                    id: '1',
-                },
-                allowClear: true, // This adds an "X" button to clear the selection
-                width: 'resolve' // This makes the dropdown fit the width of its container
-            });
+            $('#multiSemesterSelector').select2();
         });
     });
     </script>
