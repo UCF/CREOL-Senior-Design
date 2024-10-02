@@ -112,7 +112,7 @@ function sd_project_display($atts) {
 
     // Multi-select dropdown for semesters
     echo '          <div class="collapse" id="multiSemesterCollapse">';
-    echo '          <label for="multiSemesterSelector">Select Semesters:</label>';
+    echo '          <label for="multiSemesterSelector">Select Semesters</label>';
     echo '          <small class="form-text text-muted">Click in the box to open the dropdown menu.</small>';    
     echo '              <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
     foreach ($terms as $term) {
