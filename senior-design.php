@@ -23,7 +23,7 @@ function select2_test_enqueue_scripts() {
     wp_enqueue_script('select2-test-init', plugin_dir_url(__FILE__) . 'includes/select2-test-init.js', array('select2-js'), null, true);
     
     // Enqueue compiled custom styles
-    wp_enqueue_style('custom-styles-css', plugin_dir_url(__FILE__) . 'static/css/style.css');
+    wp_enqueue_style('custom-styles-css', plugin_dir_url(__FILE__) . 'static/css/style.min.css');
 }
 add_action('wp_enqueue_scripts', 'select2_test_enqueue_scripts');
 
