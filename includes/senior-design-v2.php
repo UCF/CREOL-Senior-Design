@@ -358,7 +358,9 @@ function sd_project_display($atts) {
 
         $(function() {
             $('#multiSemesterSelector').select2({
-                dropdownParent: $('body')
+                placeholder: 'Select semesters',
+                allowClear: true,
+                dropdownParent: $('#multiSemesterCollapse'),
             });
         });
     });
