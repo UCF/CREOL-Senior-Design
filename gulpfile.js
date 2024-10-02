@@ -161,7 +161,7 @@ gulp.task('js', gulp.series('es-lint-plugin', 'js-build-plugin'));
 
 // Generates a README.md from README.txt
 gulp.task('readme', () => {
-  return gulp.src('readme.txt')
+  return gulp.src('README.txt')
     .pipe(readme({
       details: false,
       screenshot_ext: [] // eslint-disable-line camelcase
