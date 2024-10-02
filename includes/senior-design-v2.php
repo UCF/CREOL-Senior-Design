@@ -380,6 +380,15 @@ function sd_project_display($atts) {
                 allowClear: true,
                 dropdownParent: $('#filtersCollapse'),
             });
+
+            // Set the default value programmatically
+            const defaultOption = 'Summer 2024'; // Set your default option value here
+            $('#multiSemesterSelector').val(defaultOption).trigger('change');
+
+            // Allow clearing the selection
+            $('#multiSemesterSelector').on('select2:unselecting', function(e) {
+                $(this).val(null).trigger('change');
+            });
         });
     });
     </script>
