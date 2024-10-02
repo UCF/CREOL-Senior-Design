@@ -370,7 +370,7 @@ function sd_project_display($atts) {
     wp_reset_postdata();
 
     // Cache the output for 1 hour
-    set_transient($cache_key, ob_get_contents(), HOUR_IN_SECONDS);
+    // set_transient($cache_key, ob_get_contents(), HOUR_IN_SECONDS);
 
     // Return the output
     return ob_get_clean();
