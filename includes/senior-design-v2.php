@@ -360,7 +360,7 @@ function sd_project_display($atts) {
             $('#multiSemesterSelector').select2({
                 placeholder: 'Select semesters',
                 allowClear: true,
-                dropdownParent: $('#multiSemesterCollapse'),
+                dropdownParent: $('#filtersCollapse'),
             });
         });
     });
