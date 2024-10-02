@@ -166,7 +166,12 @@ function sd_project_display($atts) {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $link_with_params = esc_url_raw(add_query_arg(['semester' => $semester, 'search' => $search], $base_link));
+            // Include selected_semesters in the link parameters
+            $link_with_params = esc_url_raw(add_query_arg([
+                'semester' => $semester,
+                'selected_semesters' => implode(',', $selected_semesters),
+                'search' => $search
+            ], $base_link));
 
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
