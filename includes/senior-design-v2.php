@@ -7,13 +7,12 @@ function sd_project_display($atts) {
     // Get query variables
     $sort_order = isset($_GET['sort_order']) ? sanitize_text_field($_GET['sort_order']) : 'ASC';
     $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
-    $start_semester = isset($_GET['start_semester']) ? sanitize_text_field($_GET['start_semester']) : '';
-    $end_semester = isset($_GET['end_semester']) ? sanitize_text_field($_GET['end_semester']) : '';
+    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', $_GET['selected_semesters'])) : [];
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Generate a unique cache key based on the query parameters
-    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'semester', 'start_semester', 'end_semester', 'search', 'paged')));
+    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'semester', 'selected_semesters', 'search', 'paged')));
     $cached_results = get_transient($cache_key);
 
     if ($cached_results !== false) {
@@ -38,13 +37,12 @@ function sd_project_display($atts) {
     }
     
     // Semester filtering
-    if ($start_semester && $end_semester) {
+    if (!empty($selected_semesters)) {
         $args['tax_query'] = array(
             array(
                 'taxonomy' => 'sd_semester',
                 'field' => 'slug',
-                'terms' => range($start_semester, $end_semester),
-                'operator' => 'BETWEEN',
+                'terms' => $selected_semesters,
             ),
         );
     } elseif ($semester) {
@@ -128,41 +126,19 @@ function sd_project_display($atts) {
     echo '      </div>';
 
     // Filter group 2 (Semester selector)
-    // All semesters, single semester, range semester
     echo '      <label for="filterGroup2">Semester Select</label>';
     echo '      <div class="form-check mb-4" id="filterGroup2">';
     echo '          <select class="form-control mb-4" name="filter2" id="filter2Option1">';
     echo '              <option value="option1">All Semesters</option>';
-    echo '              <option value="option2" data-toggle="collapse" data-target="#singleSemesterCollapse">Single Semester</option>';
-    echo '              <option value="option3" data-toggle="collapse" data-target="#rangeSemesterCollapse">Semester Range</option>';
+    echo '              <option value="option2">Select Semesters</option>';
     echo '          </select>';
 
-    // Single semester dropdown
-    echo '          <div class="collapse" id="singleSemesterCollapse">';
-    echo '              <label for="semesterSelector">Select Semester</label>';
-    echo '              <select class="form-control mb-4" id="semesterSelector" name="semester" style="width: 100%;">';
-    echo '                  <option value="choose">Select Semester</option>';
+    // Multi-select dropdown for semesters
+    echo '          <div class="collapse" id="multiSemesterCollapse">';
+    echo '              <label for="multiSemesterSelector">Select Semesters</label>';
+    echo '              <select class="form-control mb-4" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
     foreach ($terms as $term) {
-        $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
-    }
-    echo '              </select>';
-    echo '          </div>';
-
-    // Range semester dropdown
-    echo '          <div class="collapse" id="rangeSemesterCollapse">';
-    echo '              <label for="startSemesterSelector">Start Semester</label>';
-    echo '              <select class="form-control mb-4" id="startSemesterSelector" name="start_semester" style="width: 100%;">';
-    echo '                  <option value="choose">Select Semester</option>';
-    foreach ($terms as $term) {
-        $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
-        echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
-    }
-    echo '              </select>';
-    echo '              <label for="endSemesterSelector">End Semester</label>';
-    echo '              <select class="form-control mb-4" id="endSemesterSelector" name="end_semester" style="width: 100%;">';
-    foreach ($terms as $term) {
-        $selected = ($semester == $term->slug) ? 'selected="selected"' : '';
+        $selected = in_array($term->slug, $selected_semesters) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
     }
     echo '              </select>';
@@ -244,14 +220,12 @@ function sd_project_display($atts) {
         console.log('Page loaded');
         const form = document.getElementById('utility-bar');
         const semesterSelector = document.getElementById('semesterSelector');
-        const startSemesterSelector = document.getElementById('startSemesterSelector');
-        const endSemesterSelector = document.getElementById('endSemesterSelector');
+        const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const searchInput = document.getElementById('searchFilter');
         const filter2Dropdown = document.getElementById('filter2Option1');
         const filter1Option1 = document.getElementById('filter1Option1');
         const filter1Option2 = document.getElementById('filter1Option2');
-        const singleSemesterCollapse = document.getElementById('singleSemesterCollapse');
-        const rangeSemesterCollapse = document.getElementById('rangeSemesterCollapse');
+        const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
 
         if (form) {
             form.addEventListener('submit', function(event) {
@@ -284,14 +258,9 @@ function sd_project_display($atts) {
                 const selectedValue = filter2Dropdown.value;
 
                 if (selectedValue === 'option2') {
-                    singleSemesterCollapse.classList.add('show');
-                    rangeSemesterCollapse.classList.remove('show');
-                } else if (selectedValue === 'option3') {
-                    singleSemesterCollapse.classList.remove('show');
-                    rangeSemesterCollapse.classList.add('show');
+                    multiSemesterCollapse.classList.add('show');
                 } else {
-                    singleSemesterCollapse.classList.remove('show');
-                    rangeSemesterCollapse.classList.remove('show');
+                    multiSemesterCollapse.classList.remove('show');
                 }
                 updateURL();
                 fetchProjects();
@@ -306,17 +275,9 @@ function sd_project_display($atts) {
             });
         }
 
-        if (startSemesterSelector) {
-            startSemesterSelector.addEventListener('change', function() {
-                console.log('Start semester changed');
-                updateURL();
-                fetchProjects();
-            });
-        }
-
-        if (endSemesterSelector) {
-            endSemesterSelector.addEventListener('change', function() {
-                console.log('End semester changed');
+        if (multiSemesterSelector) {
+            $(multiSemesterSelector).on('change', function() {
+                console.log('Selected semesters changed');
                 updateURL();
                 fetchProjects();
             });
@@ -353,30 +314,24 @@ function sd_project_display($atts) {
             } else if (filter1Option2 && filter1Option2.checked) {
                 params.set('sort_order', 'DESC');
             }
-            if (semesterSelector && filter2Dropdown.value === 'option2') {
+            if (semesterSelector && filter2Dropdown.value === 'option1') {
                 if (semesterSelector.value === 'choose') {
                     params.delete('semester');
                 } else {
                     params.set('semester', semesterSelector.value);
                 }
-                params.delete('start_semester');
-                params.delete('end_semester');
-            } else if (startSemesterSelector && endSemesterSelector && filter2Dropdown.value === 'option3') {
-                if (startSemesterSelector.value === 'choose') {
-                    params.delete('start_semester');
+                params.delete('selected_semesters');
+            } else if (multiSemesterSelector && filter2Dropdown.value === 'option2') {
+                const selectedSemesters = $(multiSemesterSelector).val();
+                if (selectedSemesters.length > 0) {
+                    params.set('selected_semesters', selectedSemesters.join(','));
                 } else {
-                    params.set('start_semester', startSemesterSelector.value);
-                }
-                if (endSemesterSelector.value === 'choose') {
-                    params.delete('end_semester');
-                } else {
-                    params.set('end_semester', endSemesterSelector.value);
+                    params.delete('selected_semesters');
                 }
                 params.delete('semester');
             } else {
                 params.delete('semester');
-                params.delete('start_semester');
-                params.delete('end_semester');
+                params.delete('selected_semesters');
             }
 
             url.search = params.toString();
@@ -425,7 +380,7 @@ function sd_project_display($atts) {
         }
 
         $(function() {
-            $('#semesterSelector').select2({
+            $('#multiSemesterSelector').select2({
                 placeholder: "Select Semesters",
                 allowClear: true, // This adds an "X" button to clear the selection
                 width: 'resolve' // This makes the dropdown fit the width of its container
