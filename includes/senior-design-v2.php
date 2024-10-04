@@ -207,6 +207,7 @@ function sd_project_display($atts) {
         var params = new URLSearchParams(window.location.search);
         const sortOrder = params.get('sort_order');
         const selectedSemesters = params.get('selected_semesters');
+        const search = params.get('search');
 
         if (sortOrder === 'DESC') {
             filter1Option2.checked = true;
@@ -220,6 +221,14 @@ function sd_project_display($atts) {
         } else {
             filter2Dropdown.value = 'option1';
             multiSemesterCollapse.classList.remove('show');
+            params.delete('selected_semesters');
+        }
+
+        if (search) {
+            searchInput.value = search;
+        } else {
+            searchInput.value = '';
+            params.delete('search');
         }
 
         // Event listeners
