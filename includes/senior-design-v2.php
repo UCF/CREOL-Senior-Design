@@ -343,33 +343,31 @@ function sd_project_display($atts) {
 
         function fetchProjects() {
             const url = new URL(window.location);
+            const params = new URLSearchParams(url.search);
+
+            // Always reset to page 1 when fetching new projects
+            params.set('paged', 1);
+            url.search = params.toString();
 
             fetch(url.toString())
-                .then(response => response.text())
-                .then(data => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(data, 'text/html');
-                    const projects = doc.getElementById('sd-projects');
-                    const pagination = doc.getElementById('pagination-container');
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const projects = doc.getElementById('sd-projects');
+                const pagination = doc.getElementById('pagination-container');
 
-                    const totalPages = doc.querySelectorAll('.pagination .page-item').length; // Check the number of pagination links
+                document.getElementById('sd-projects').innerHTML = projects.innerHTML;
+                if (pagination) {
+                document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                } else {
+                document.getElementById('pagination-container').innerHTML = '';
+                }
 
-                    if (totalPages > 0 && current_page > totalPages) {
-                        // Reset to the first page if the current page exceeds the available pages
-                        params.set('paged', 1);
-                        history.pushState(null, '', url.toString());
-                        fetchProjects(); // Re-fetch the projects
-                    } else {
-                        // Update the UI with new content
-                        document.getElementById('sd-projects').innerHTML = projects.innerHTML;
-                        if (pagination) {
-                            document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
-                        } else {
-                            document.getElementById('pagination-container').innerHTML = '';
-                        }
-                    }
-                })
-                .catch(error => console.error('Error fetching projects:', error));
+                // Update the URL without reloading the page
+                history.pushState(null, '', url.toString());
+            })
+            .catch(error => console.error('Error fetching projects:', error));
         }
 
         function hideProjects() {
