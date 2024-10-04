@@ -165,8 +165,9 @@ function sd_project_display($atts) {
             ], $base_link));
 
             // Remove empty parameters from the link
-            $link_with_params = preg_replace('/(&|\?)semester=&/', '$1', $link_with_params);
             $link_with_params = preg_replace('/(&|\?)selected_semesters=&/', '$1', $link_with_params);
+            $link_with_params = preg_replace('/(&|\?)search=&/', '$1', $link_with_params);
+            $link_with_params = preg_replace('/(&|\?)sort_order=&/', '$1', $link_with_params);
 
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
