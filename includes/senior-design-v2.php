@@ -6,13 +6,12 @@ function sd_project_display($atts) {
     
     // Get query variables
     $sort_order = isset($_GET['sort_order']) ? sanitize_text_field($_GET['sort_order']) : 'ASC';
-    $semester = isset($_GET['semester']) ? sanitize_text_field($_GET['semester']) : '';
     $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', $_GET['selected_semesters'])) : [];
     $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Generate a unique cache key based on the query parameters
-    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'semester', 'selected_semesters', 'search', 'paged')));
+    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'selected_semesters', 'search', 'paged')));
     $cached_results = false; // get_transient($cache_key);
 
     if ($cached_results !== false) {
@@ -43,14 +42,6 @@ function sd_project_display($atts) {
                 'taxonomy' => 'sd_semester',
                 'field' => 'slug',
                 'terms' => $selected_semesters,
-            ),
-        );
-    } elseif ($semester) {
-        $args['tax_query'] = array(
-            array(
-                'taxonomy' => 'sd_semester',
-                'field' => 'slug',
-                'terms' => $semester,
             ),
         );
     }
@@ -93,7 +84,7 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup1">Sort</label>';
     echo '      <div class="form-check mb-4" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1" checked>';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1">';
     echo '              A-Z';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
@@ -168,7 +159,6 @@ function sd_project_display($atts) {
 
             // Include selected_semesters in the link parameters
             $link_with_params = esc_url_raw(add_query_arg([
-                'semester' => $semester,
                 'selected_semesters' => implode(',', $selected_semesters),
                 'search' => $search,
                 'sort_order' => $sort_order
@@ -206,7 +196,6 @@ function sd_project_display($atts) {
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('utility-bar');
-        const semesterSelector = document.getElementById('semesterSelector');
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const searchInput = document.getElementById('searchFilter');
         const filter2Dropdown = document.getElementById('filter2Option1');
@@ -214,6 +203,26 @@ function sd_project_display($atts) {
         const filter1Option2 = document.getElementById('filter1Option2');
         const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
 
+        // Set defaults
+        var params = new URLSearchParams(window.location.search);
+        const sortOrder = params.get('sort_order');
+        const selectedSemesters = params.get('selected_semesters');
+
+        if (sortOrder === 'DESC') {
+            filter1Option2.checked = true;
+        } else {
+            filter1Option1.checked = true;
+        }
+
+        if (selectedSemesters) {
+            filter2Dropdown.value = 'option2';
+            multiSemesterCollapse.classList.add('show');
+        } else {
+            filter2Dropdown.value = 'option1';
+            multiSemesterCollapse.classList.remove('show');
+        }
+
+        // Event listeners
         if (form) {
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
@@ -251,13 +260,6 @@ function sd_project_display($atts) {
             });
         }
 
-        if (semesterSelector) {
-            semesterSelector.addEventListener('change', function() {
-                updateURL();
-                fetchProjects();
-            });
-        }
-
         if (multiSemesterSelector) {
             $(multiSemesterSelector).on('change', function() {
                 updateURL();
@@ -283,7 +285,7 @@ function sd_project_display($atts) {
 
         function updateURL() {
             const url = new URL(window.location);
-            const params = new URLSearchParams(url.search);
+            params = new URLSearchParams(url.search);
 
             if (searchInput) {
                 params.set('search', searchInput.value);
@@ -293,23 +295,14 @@ function sd_project_display($atts) {
             } else if (filter1Option2 && filter1Option2.checked) {
                 params.set('sort_order', 'DESC');
             }
-            if (semesterSelector && filter2Dropdown.value === 'option1') {
-                if (semesterSelector.value === 'choose') {
-                    params.delete('semester');
-                } else {
-                    params.set('semester', semesterSelector.value);
-                }
-                params.delete('selected_semesters');
-            } else if (multiSemesterSelector && filter2Dropdown.value === 'option2') {
+            if (multiSemesterSelector && filter2Dropdown.value === 'option2') {
                 const selectedSemesters = $(multiSemesterSelector).val();
                 if (selectedSemesters.length > 0) {
                     params.set('selected_semesters', selectedSemesters.join(','));
                 } else {
                     params.delete('selected_semesters');
                 }
-                params.delete('semester');
             } else {
-                params.delete('semester');
                 params.delete('selected_semesters');
             }
 
@@ -367,15 +360,6 @@ function sd_project_display($atts) {
                 placeholder: 'Select semesters',
                 allowClear: true,
                 dropdownParent: $('#filtersCollapse'),
-            });
-
-            // Set the default value programmatically
-            const defaultOption = 'Summer 2024'; // Set your default option value here
-            $('#multiSemesterSelector').val(defaultOption).trigger('change');
-
-            // Allow clearing the selection
-            $('#multiSemesterSelector').on('select2:unselecting', function(e) {
-                $(this).val(null).trigger('change');
             });
         });
     });
