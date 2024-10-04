@@ -352,11 +352,21 @@ function sd_project_display($atts) {
                     const projects = doc.getElementById('sd-projects');
                     const pagination = doc.getElementById('pagination-container');
 
-                    document.getElementById('sd-projects').innerHTML = projects.innerHTML;
-                    if (pagination) {
-                        document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                    const totalPages = doc.querySelectorAll('.pagination .page-item').length; // Check the number of pagination links
+
+                    if (totalPages > 0 && current_page > totalPages) {
+                        // Reset to the first page if the current page exceeds the available pages
+                        params.set('paged', 1);
+                        history.pushState(null, '', url.toString());
+                        fetchProjects(); // Re-fetch the projects
                     } else {
-                        document.getElementById('pagination-container').innerHTML = '';
+                        // Update the UI with new content
+                        document.getElementById('sd-projects').innerHTML = projects.innerHTML;
+                        if (pagination) {
+                            document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                        } else {
+                            document.getElementById('pagination-container').innerHTML = '';
+                        }
                     }
                 })
                 .catch(error => console.error('Error fetching projects:', error));
