@@ -159,9 +159,9 @@ function sd_project_display($atts) {
 
             // Include selected_semesters in the link parameters
             $link_with_params = esc_url_raw(add_query_arg([
-                'selected_semesters' => implode(',', $selected_semesters),
-                'search' => $search,
-                'sort_order' => $sort_order
+                'selected_semesters' => implode(',', $selected_semesters) || null,
+                'search' => $search || null,
+                'sort_order' => $sort_order || null,
             ], $base_link));
 
             if ($current_page > 1) {
