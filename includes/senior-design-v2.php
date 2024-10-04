@@ -164,11 +164,6 @@ function sd_project_display($atts) {
                 'sort_order' => $sort_order
             ], $base_link));
 
-            // Remove empty parameters from the link
-            $link_with_params = preg_replace('/(&|\?)selected_semesters=&/', '$1', $link_with_params);
-            $link_with_params = preg_replace('/(&|\?)search=&/', '$1', $link_with_params);
-            $link_with_params = preg_replace('/(&|\?)sort_order=&/', '$1', $link_with_params);
-
             if ($current_page > 1) {
                 echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
             }
@@ -297,17 +292,26 @@ function sd_project_display($atts) {
             const url = new URL(window.location);
             params = new URLSearchParams(url.search);
 
-            if (searchInput) {
-                params.set('search', searchInput.value);
+            // Update the search parameter
+            if (searchInput && searchInput.value.trim()) {
+                params.set('search', searchInput.value.trim());
+            } else {
+                params.delete('search');
             }
+
+            // Update the sort order parameter
             if (filter1Option1 && filter1Option1.checked) {
                 params.set('sort_order', 'ASC');
             } else if (filter1Option2 && filter1Option2.checked) {
                 params.set('sort_order', 'DESC');
+            } else {
+                params.delete('sort_order');
             }
+
+            // Update the selected semesters parameter
             if (multiSemesterSelector && filter2Dropdown.value === 'option2') {
                 const selectedSemesters = $(multiSemesterSelector).val();
-                if (selectedSemesters.length > 0) {
+                if (selectedSemesters && selectedSemesters.length > 0) {
                     params.set('selected_semesters', selectedSemesters.join(','));
                 } else {
                     params.delete('selected_semesters');
@@ -316,13 +320,14 @@ function sd_project_display($atts) {
                 params.delete('selected_semesters');
             }
 
-            // Remove empty parameters
+            // Remove any other parameters that are empty
             for (const [key, value] of params.entries()) {
-                if (!value) {
+                if (!value.trim()) {
                     params.delete(key);
                 }
             }
 
+            // Update the URL without reloading the page
             url.search = params.toString();
             history.pushState(null, '', url.toString());
         }
