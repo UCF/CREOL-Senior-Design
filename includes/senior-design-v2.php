@@ -205,7 +205,6 @@ function sd_project_display($atts) {
     ?>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Page loaded');
         const form = document.getElementById('utility-bar');
         const semesterSelector = document.getElementById('semesterSelector');
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
@@ -217,7 +216,6 @@ function sd_project_display($atts) {
 
         if (form) {
             form.addEventListener('submit', function(event) {
-                console.log('Form submitted');
                 event.preventDefault();
                 hideProjects();
                 updateURL();
@@ -227,7 +225,6 @@ function sd_project_display($atts) {
 
         if (filter1Option1) {
             filter1Option1.addEventListener('change', function() {
-                console.log('Sort order changed to A-Z');
                 updateURL();
                 fetchProjects();
             });
@@ -235,7 +232,6 @@ function sd_project_display($atts) {
 
         if (filter1Option2) {
             filter1Option2.addEventListener('change', function() {
-                console.log('Sort order changed to Z-A');
                 updateURL();
                 fetchProjects();
             });
@@ -257,7 +253,6 @@ function sd_project_display($atts) {
 
         if (semesterSelector) {
             semesterSelector.addEventListener('change', function() {
-                console.log('Semester changed');
                 updateURL();
                 fetchProjects();
             });
@@ -265,7 +260,6 @@ function sd_project_display($atts) {
 
         if (multiSemesterSelector) {
             $(multiSemesterSelector).on('change', function() {
-                console.log('Selected semesters changed');
                 updateURL();
                 fetchProjects();
             });
@@ -273,10 +267,9 @@ function sd_project_display($atts) {
 
         if (searchInput) {
             searchInput.addEventListener('input', debounce(function() {
-                console.log('Search input changed');
                 updateURL();
                 fetchProjects();
-            }, 0));
+            }, 300));
         }
 
         function debounce(func, wait) {
@@ -289,11 +282,9 @@ function sd_project_display($atts) {
         }
 
         function updateURL() {
-            console.log('Updating URL parameters');
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
-            params.set('paged', '1');
             if (searchInput) {
                 params.set('search', searchInput.value);
             }
@@ -330,14 +321,11 @@ function sd_project_display($atts) {
             }
 
             url.search = params.toString();
-            console.log('Updating URL to:', url.toString());
             history.pushState(null, '', url.toString());
         }
 
         function fetchProjects() {
-            console.log('Fetching projects');
             const url = new URL(window.location);
-            const params = new URLSearchParams(url.search);
 
             fetch(url.toString())
                 .then(response => response.text())
@@ -358,8 +346,8 @@ function sd_project_display($atts) {
         }
 
         function hideProjects() {
-            var projects = document.getElementById('sd-projects');
-            var footer = document.getElementById('pagination-container');
+            const projects = document.getElementById('sd-projects');
+            const footer = document.getElementById('pagination-container');
             if (footer) {
                 footer.classList.add('hidden');
             }
