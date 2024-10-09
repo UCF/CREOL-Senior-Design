@@ -157,7 +157,7 @@ function sd_project_display($atts) {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            // $query_args = array();
+            $query_args = array();
 
             // if ($sort_order) {
             //     $query_args['sort_order'] = $sort_order;
