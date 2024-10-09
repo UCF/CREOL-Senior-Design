@@ -335,6 +335,9 @@ function sd_project_display($atts) {
 
             // Always reset to page 1 when fetching new projects
             params.set('paged', 1);
+            
+            // Remove the page number from the URL path
+            url.pathname = url.pathname.replace(/\/page\/\d+/, '');
             url.search = params.toString();
 
             fetch(url.toString())
