@@ -6,8 +6,8 @@ function sd_project_display($atts) {
     
     // Get query variables
     $sort_order = isset($_GET['sort_order']) ? sanitize_text_field(wp_unslash($_GET['sort_order'])) : 'ASC';
-    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', wp_unslash(urldecode($_GET['selected_semesters'])))) : [];
-    $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';
+    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_semesters']))) : [];
+    $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';    
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Generate a unique cache key based on the query parameters
@@ -293,25 +293,30 @@ function sd_project_display($atts) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
-            // Set parameters as needed
+            // Set search parameter if needed
             if (searchInput.value.trim()) {
                 params.set('search', searchInput.value.trim());
             } else {
                 params.delete('search');
             }
 
-            // Set other parameters as necessary
+            // Set sort_order parameter based on selection
             const sortOrder = filter1Option1.checked ? 'ASC' : 'DESC';
             params.set('sort_order', sortOrder);
 
+            // Handle multi-select dropdown for semesters
             if (filter2Dropdown.value === 'option2') {
                 const selectedSemesters = $(multiSemesterSelector).val();
                 if (selectedSemesters && selectedSemesters.length > 0) {
-                    params.set('selected_semesters', selectedSemesters.join(','));
+                    params.set('selected_semesters', selectedSemesters.join(',')); // Join semesters with a comma
+                } else {
+                    params.delete('selected_semesters');
                 }
+            } else {
+                params.delete('selected_semesters');
             }
 
-            // Decode the URL before pushing the state
+            // Update URL with decoded string to avoid double-encoding
             url.search = params.toString();
             const decodedUrl = decodeURIComponent(url.toString());
             history.pushState(null, '', decodedUrl);
@@ -346,7 +351,6 @@ function sd_project_display($atts) {
             })
             .catch(error => console.error('Error fetching projects:', error));
         }
-
 
         function hideProjects() {
             const projects = document.getElementById('sd-projects');
