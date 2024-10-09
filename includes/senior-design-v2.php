@@ -34,7 +34,7 @@ function sd_project_display($atts) {
         $args['order'] = 'ASC';
     }
     
-    echo'console.log($selected_semesters)';
+    echo '<p>Semesters: ' . esc_html($selected_semesters) . '</p>';
 
     // Semester filtering
     if (!empty($selected_semesters)) {
