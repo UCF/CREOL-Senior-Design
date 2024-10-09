@@ -157,19 +157,19 @@ function sd_project_display($atts) {
             $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
             $current_page = max(1, get_query_var('paged'));
 
-            $query_args = array();
+            // $query_args = array();
 
-            if ($sort_order) {
-                $query_args['sort_order'] = $sort_order;
-            }
+            // if ($sort_order) {
+            //     $query_args['sort_order'] = $sort_order;
+            // }
 
-            if ($selected_semesters) {
-                $query_args['selected_semesters'] = implode(',', $selected_semesters);
-            }
+            // if ($selected_semesters) {
+            //     $query_args['selected_semesters'] = implode(',', $selected_semesters);
+            // }
 
-            if ($search) {
-                $query_args['search'] = $search;
-            }
+            // if ($search) {
+            //     $query_args['search'] = $search;
+            // }
 
             $link_with_params = esc_url_raw(add_query_arg($query_args, $base_link));
 
