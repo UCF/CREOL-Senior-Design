@@ -158,7 +158,7 @@ function sd_project_display($atts) {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
 
-            $base_link = esc_url_raw(remove_query_arg(['paged'], get_pagenum_link(1)));
+            $base_link = remove_query_arg(['paged'], get_pagenum_link(1));
             $current_page = max(1, get_query_var('paged'));
 
             $query_args = array();
@@ -170,7 +170,7 @@ function sd_project_display($atts) {
             }
 
             for ($i = 1; $i <= $total_pages; $i++) {
-                $page_link = esc_url_raw(add_query_arg(['paged' => $i], $link_with_params));
+                $page_link = add_query_arg(['paged' => $i], $base_link);
                 if ($i == $current_page) {
                     echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
                 } else {
