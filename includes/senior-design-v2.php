@@ -6,8 +6,7 @@ function sd_project_display($atts) {
     
     // Get query variables
     $sort_order = isset($_GET['sort_order']) ? sanitize_text_field($_GET['sort_order']) : 'ASC';
-    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', $_GET['selected_semesters'])) : [];
-    $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
+    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', urldecode($_GET['selected_semesters']))) : [];    $search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Generate a unique cache key based on the query parameters
