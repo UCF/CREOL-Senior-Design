@@ -289,42 +289,25 @@ function sd_project_display($atts) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
-            // Update the search parameter
-            if (searchInput && searchInput.value.trim()) {
+            // Set parameters as needed
+            if (searchInput.value.trim()) {
                 params.set('search', searchInput.value.trim());
             } else {
                 params.delete('search');
             }
 
-            // Update the sort order parameter
-            if (filter1Option1 && filter1Option1.checked) {
-                params.set('sort_order', 'ASC');
-            } else if (filter1Option2 && filter1Option2.checked) {
-                params.set('sort_order', 'DESC');
-            } else {
-                params.delete('sort_order');
-            }
+            // Set other parameters as necessary
+            const sortOrder = filter1Option1.checked ? 'ASC' : 'DESC';
+            params.set('sort_order', sortOrder);
 
-            // Update the selected semesters parameter
-            if (multiSemesterSelector && filter2Dropdown.value === 'option2') {
+            if (filter2Dropdown.value === 'option2') {
                 const selectedSemesters = $(multiSemesterSelector).val();
                 if (selectedSemesters && selectedSemesters.length > 0) {
                     params.set('selected_semesters', selectedSemesters.join(','));
-                } else {
-                    params.delete('selected_semesters');
-                }
-            } else {
-                params.delete('selected_semesters');
-            }
-
-            // Remove any other parameters that are empty
-            for (const [key, value] of params.entries()) {
-                if (!value.trim()) {
-                    params.delete(key);
                 }
             }
 
-            // Update the URL without reloading the page
+            // Decode the URL before pushing the state
             url.search = params.toString();
             const decodedUrl = decodeURIComponent(url.toString());
             history.pushState(null, '', decodedUrl);
@@ -334,14 +317,9 @@ function sd_project_display($atts) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
-            // Always reset to page 1 when fetching new projects
-            params.set('paged', 1);
-
-            // Remove the page number from the URL path
-            url.pathname = url.pathname.replace(/\/page\/\d+/, '');
+            params.set('paged', 1);  // Always reset to the first page
             url.search = params.toString();
 
-            // Decode the URL to handle HTML entities and special characters
             const decodedUrl = decodeURIComponent(url.toString());
 
             fetch(decodedUrl)
@@ -359,11 +337,12 @@ function sd_project_display($atts) {
                     document.getElementById('pagination-container').innerHTML = '';
                 }
 
-                // Update the URL without reloading the page
+                // Update URL again with the decoded string
                 history.pushState(null, '', decodedUrl);
             })
             .catch(error => console.error('Error fetching projects:', error));
         }
+
 
         function hideProjects() {
             const projects = document.getElementById('sd-projects');
