@@ -293,33 +293,26 @@ function sd_project_display($atts) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
-            // Set search parameter if needed
             if (searchInput.value.trim()) {
                 params.set('search', searchInput.value.trim());
             } else {
                 params.delete('search');
             }
 
-            // Set sort_order parameter based on selection
             const sortOrder = filter1Option1.checked ? 'ASC' : 'DESC';
             params.set('sort_order', sortOrder);
 
-            // Handle multi-select dropdown for semesters
             if (filter2Dropdown.value === 'option2') {
                 const selectedSemesters = $(multiSemesterSelector).val();
                 if (selectedSemesters && selectedSemesters.length > 0) {
-                    params.set('selected_semesters', selectedSemesters.join(',')); // Join semesters with a comma
-                } else {
-                    params.delete('selected_semesters');
+                    params.set('selected_semesters', selectedSemesters.join(','));
                 }
             } else {
                 params.delete('selected_semesters');
             }
 
-            // Update URL with decoded string to avoid double-encoding
-            url.search = params.toString();
-            const decodedUrl = decodeURIComponent(url.toString());
-            history.pushState(null, '', decodedUrl);
+            // Directly update the URL with a simple pushState, no additional encoding
+            history.pushState(null, '', url.pathname + '?' + params.toString());
         }
 
         function fetchProjects() {
