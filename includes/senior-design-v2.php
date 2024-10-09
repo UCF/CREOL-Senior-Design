@@ -287,7 +287,7 @@ function sd_project_display($atts) {
 
         function updateURL() {
             const url = new URL(window.location);
-            params = new URLSearchParams(url.search);
+            const params = new URLSearchParams(url.search);
 
             // Update the search parameter
             if (searchInput && searchInput.value.trim()) {
@@ -326,7 +326,8 @@ function sd_project_display($atts) {
 
             // Update the URL without reloading the page
             url.search = params.toString();
-            history.pushState(null, '', url.toString());
+            const decodedUrl = decodeURIComponent(url.toString());
+            history.pushState(null, '', decodedUrl);
         }
 
         function fetchProjects() {
@@ -340,7 +341,7 @@ function sd_project_display($atts) {
             url.pathname = url.pathname.replace(/\/page\/\d+/, '');
             url.search = params.toString();
 
-            // Decode the URL to handle HTML entities
+            // Decode the URL to handle HTML entities and special characters
             const decodedUrl = decodeURIComponent(url.toString());
 
             fetch(decodedUrl)
@@ -353,13 +354,13 @@ function sd_project_display($atts) {
 
                 document.getElementById('sd-projects').innerHTML = projects.innerHTML;
                 if (pagination) {
-                document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                    document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
                 } else {
-                document.getElementById('pagination-container').innerHTML = '';
+                    document.getElementById('pagination-container').innerHTML = '';
                 }
 
                 // Update the URL without reloading the page
-                history.pushState(null, '', url.toString());
+                history.pushState(null, '', decodedUrl);
             })
             .catch(error => console.error('Error fetching projects:', error));
         }
