@@ -159,18 +159,6 @@ function sd_project_display($atts) {
 
             $query_args = array();
 
-            // if ($sort_order) {
-            //     $query_args['sort_order'] = $sort_order;
-            // }
-
-            // if ($selected_semesters) {
-            //     $query_args['selected_semesters'] = implode(',', $selected_semesters);
-            // }
-
-            // if ($search) {
-            //     $query_args['search'] = $search;
-            // }
-
             $link_with_params = esc_url_raw(add_query_arg($query_args, $base_link));
 
             if ($current_page > 1) {
