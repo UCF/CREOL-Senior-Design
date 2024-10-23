@@ -26,7 +26,7 @@
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
-                echo "<div class='updated p-4'>";
+                echo "<div class='updated'>";
                 echo "<p>";
                 echo "Upload a ZIP file containing the CSV and project files:";
                 echo "</p>";
