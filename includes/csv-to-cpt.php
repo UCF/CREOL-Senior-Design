@@ -22,64 +22,6 @@
      *      5. Add "autocorrection" of CSV fields.
      */
 
-        // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
-        // This button triggers the import process
-        add_action('admin_notices', function() {
-            $screen = get_current_screen();
-            if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
-            echo "<div class='updated'>";
-            echo "<p>";
-            echo "To import Senior Design Projects from the CSV, click the button to the right.";
-            echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
-            echo "</p>";
-            echo "</div>";
-            
-            // Adds the HTML structure for the progress bar that appears during the import process
-            echo "<div id='progress-container' style='display: none; margin: 20px 0;'>
-                <div id='progress-bar' style='width: 0%; background: green; height: 20px;'></div>
-                <p id='progress-text'>Starting...</p>
-            </div>";
-            
-            // JavaScript for handling the progress bar and import confirmation
-            ?>
-            <script type="text/javascript">
-                document.getElementById('insert-sd-projects-button').addEventListener('click', function(e) {
-                // Shows a confirmation popup before starting the import process
-                if (!confirm('Are you sure you want to import the Senior Design Projects from the CSV? This action cannot be undone.')) {
-                    e.preventDefault();
-                } else {
-                    // Shows the progress bar and starts the update process
-                    document.getElementById('progress-container').style.display = 'block';
-                    updateProgress();
-                }
-                });
-            
-                // Function to update the progress bar by querying the server
-                function updateProgress() {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check&nonce=' . wp_create_nonce('insert_sd_projects_nonce')); ?>', true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                    var response = JSON.parse(xhr.responseText);
-                    var percent = response.percent;
-                    var status = response.status;
-                    document.getElementById('progress-bar').style.width = percent + '%';
-                    document.getElementById('progress-text').innerText = status;
-                    // Continuously updates the progress until it reaches 100%
-                    if (percent < 100) {
-                        setTimeout(updateProgress, 1000); // Check progress every second
-                    }
-                    } else {
-                    console.error('Failed to retrieve progress.');
-                    }
-                };
-                xhr.send();
-                }
-            </script>
-            <?php
-            }
-        });
-
         // Adds an admin notice for file upload
         add_action('admin_notices', function() {
             $screen = get_current_screen();
