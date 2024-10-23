@@ -160,20 +160,12 @@ function sd_project_display($atts) {
 
             $current_page = max(1, get_query_var('paged'));
 
-            if ($current_page > 1) {
-            echo '<li class="page-item"><a class="page-link" href="#" data-page="' . ($current_page - 1) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
-            }
-
             for ($i = 1; $i <= $total_pages; $i++) {
             if ($i == $current_page) {
                 echo '<li class="page-item active"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
             } else {
                 echo '<li class="page-item"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
             }
-            }
-
-            if ($current_page < $total_pages) {
-            echo '<li class="page-item"><a class="page-link" href="#" data-page="' . ($current_page + 1) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
             }
 
             echo '</ul></nav>';
