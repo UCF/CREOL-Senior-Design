@@ -88,11 +88,50 @@
             echo "<p>";
             echo "Upload a ZIP file containing the CSV and project files:";
             echo "</p>";
-            echo "<form method='post' enctype='multipart/form-data'>";
+            echo "<form id='upload-zip-form' method='post' enctype='multipart/form-data'>";
             echo "<input type='file' name='sd_project_zip' accept='.zip' required />";
             echo "<input type='submit' name='upload_sd_project_zip' class='button button-primary' value='Upload ZIP' />";
             echo "</form>";
             echo "</div>";
+
+            // Adds the HTML structure for the progress bar that appears during the upload process
+            echo "<div id='upload-progress-container' style='display: none; margin: 20px 0;'>
+                <div id='upload-progress-bar' style='width: 0%; background: green; height: 20px;'></div>
+                <p id='upload-progress-text'>Starting upload...</p>
+            </div>";
+
+            // JavaScript for handling the progress bar and upload confirmation
+            ?>
+            <script type="text/javascript">
+                document.getElementById('upload-zip-form').addEventListener('submit', function(e) {
+                // Shows the progress bar and starts the upload process
+                document.getElementById('upload-progress-container').style.display = 'block';
+                updateUploadProgress();
+                });
+
+                // Function to update the progress bar during the upload process
+                function updateUploadProgress() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '<?php echo admin_url('admin-ajax.php?action=upload_progress_check&nonce=' . wp_create_nonce('upload_sd_projects_nonce')); ?>', true);
+                xhr.upload.onprogress = function(e) {
+                    if (e.lengthComputable) {
+                    var percent = (e.loaded / e.total) * 100;
+                    document.getElementById('upload-progress-bar').style.width = percent + '%';
+                    document.getElementById('upload-progress-text').innerText = 'Uploading... ' + Math.round(percent) + '%';
+                    }
+                };
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                    document.getElementById('upload-progress-text').innerText = 'Upload complete!';
+                    } else {
+                    document.getElementById('upload-progress-text').innerText = 'Upload failed.';
+                    }
+                };
+                var formData = new FormData(document.getElementById('upload-zip-form'));
+                xhr.send(formData);
+                }
+            </script>
+            <?php
             }
         });
 
@@ -203,6 +242,28 @@
             // Calculates the percentage of progress based on the offset and total rows
             $percent = min(100, ($offset / $total_rows) * 100);
             $status = ($percent < 100) ? 'Processing...' : 'Complete';
+        
+            // Sends a JSON response with the progress percentage and status
+            wp_send_json(array(
+            'percent' => $percent,
+            'status' => $status
+            ));
+        });
+
+        // Handles the AJAX request to check the progress of the upload process
+        add_action('wp_ajax_upload_progress_check', function() {
+            check_ajax_referer('upload_sd_projects_nonce', 'nonce');
+            
+            // Retrieves the current offset and total rows to calculate progress
+            $offset = get_transient('sd_projects_import_offset') ?: 0;
+            $total_rows = get_transient('sd_projects_import_total_rows') ?: 100; // Default to 100 if not set
+        
+            // Prevents division by zero errors
+            $total_rows = max($total_rows, 1);
+        
+            // Calculates the percentage of progress based on the offset and total rows
+            $percent = min(100, ($offset / $total_rows) * 100);
+            $status = ($percent < 100) ? 'Uploading...' : 'Complete';
         
             // Sends a JSON response with the progress percentage and status
             wp_send_json(array(
