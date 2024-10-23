@@ -80,6 +80,115 @@
             }
         });
 
+        // Adds an admin notice for file upload
+        add_action('admin_notices', function() {
+            $screen = get_current_screen();
+            if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
+            echo "<div class='updated'>";
+            echo "<p>";
+            echo "Upload a ZIP file containing the CSV and project files:";
+            echo "</p>";
+            echo "<form method='post' enctype='multipart/form-data'>";
+            echo "<input type='file' name='sd_project_zip' accept='.zip' required />";
+            echo "<input type='submit' name='upload_sd_project_zip' class='button button-primary' value='Upload ZIP' />";
+            echo "</form>";
+            echo "</div>";
+            }
+        });
+
+        // Handles the file upload
+        add_action('admin_init', function() {
+            if (isset($_POST['upload_sd_project_zip']) && !empty($_FILES['sd_project_zip']['tmp_name'])) {
+            $uploaded_file = $_FILES['sd_project_zip'];
+            $upload_dir = wp_upload_dir();
+            $upload_path = $upload_dir['path'] . '/' . basename($uploaded_file['name']);
+
+            if (move_uploaded_file($uploaded_file['tmp_name'], $upload_path)) {
+                // Process the uploaded ZIP file
+                global $extracted_dir;
+                $extracted_dir = $upload_dir['path'] . '/extracted/';
+                
+                if (!file_exists($extracted_dir)) {
+                mkdir($extracted_dir, 0777, true);
+                error_log("Created extracted directory: " . $extracted_dir);
+                }
+
+                $zip = new ZipArchive;
+                if ($zip->open($upload_path) === TRUE) {
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $filename = $zip->getNameIndex($i);
+                    $fileinfo = pathinfo($filename);
+                    error_log('File name: ' . $filename);
+
+                    if (strpos($fileinfo['basename'], '.') !== false) {
+                    copy("zip://$upload_path#$filename", $extracted_dir . $fileinfo['basename']);
+                    }
+                }
+                $zip->close();
+                } else {
+                error_log('Failed to open uploaded ZIP file.');
+                return;
+                }
+
+                // Locate and read the CSV file for importing data
+                $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
+                if (!file_exists($csv_file_path)) {
+                error_log('CSV file not found.');
+                return;
+                }
+
+                if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
+                $headers = fgetcsv($handle); // *These headers are subject to change
+                $batch_size = 10;
+                $offset = get_transient('sd_projects_import_offset') ?: 0;
+                $total_rows = count_rows($csv_file_path);
+                set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
+                $batch = [];
+
+                while (($rows = fgetcsv($handle)) !== FALSE) {
+                    $data = array_combine($headers, $rows);
+                    if ($offset > 0) {
+                    $offset--;
+                    continue;
+                    }
+                    $batch[] = $data;
+                    if (count($batch) === $batch_size) {
+                    foreach ($batch as $row) {
+                        error_log(print_r($row, true));
+                        process_row($row);
+                        $offset++;
+                        $percent = min(100, ($offset / $total_rows) * 100);
+                        $status = ($percent < 100) ? 'Processing...' : 'Complete';
+                        set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
+                    }
+                    $batch = [];
+                    sleep(1);
+                    }
+                }
+
+                if (!empty($batch)) {
+                    foreach ($batch as $row) {
+                    error_log(print_r($row, true));
+                    process_row($row);
+                    $offset++;
+                    $percent = min(100, ($offset / $total_rows) * 100);
+                    $status = ($percent < 100) ? 'Processing...' : 'Complete';
+                    set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
+                    }
+                }
+
+                fclose($handle);
+                delete_transient('sd_projects_import_offset');
+                delete_transient('sd_projects_import_total_rows');
+                } else {
+                error_log('Failed to open the CSV file.');
+                }
+            } else {
+                error_log('Failed to upload ZIP file.');
+            }
+            }
+        });
+
         // Handles the AJAX request to check the progress of the import process
         add_action('wp_ajax_progress_check', function() {
             check_ajax_referer('insert_sd_projects_nonce', 'nonce');
@@ -104,126 +213,92 @@
 
         // This executes when the page is loaded after clicking the action button
         add_action('admin_init', function() {
-
-            // If the URL is not set to 'insert_sd_projects', the function will return without executing
-            if ( !isset($_GET['insert_sd_projects'])) {
-                return;
+            if (!isset($_GET['insert_sd_projects'])) {
+            return;
             }
 
-            // Defines the custom post type (CPT) for Senior Design Projects
             $project = array(
-                'custom-post-type' => 'sd_project',
+            'custom-post-type' => 'sd_project',
             );
             
-            // Define paths for plugin directory, ZIP file, and extraction directory
             $plugin_dir = plugin_dir_path(__FILE__);
             $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip'; // *This ZIP name is subject to change
             global $extracted_dir;
             $extracted_dir = $plugin_dir . 'extracted/';  
             
-            // Creates the extraction directory if it doesn't exist
             if (!file_exists($extracted_dir)) {
-                mkdir($extracted_dir, 0777, true);
-                error_log("Created extracted directory: " . $extracted_dir);
+            mkdir($extracted_dir, 0777, true);
+            error_log("Created extracted directory: " . $extracted_dir);
             }
 
-            // Extracts the contents of the main ZIP file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
-                for ($i = 0; $i < $zip->numFiles; $i++) {
-                    $filename = $zip->getNameIndex($i);
-                    $fileinfo = pathinfo($filename);
-                    error_log('File name: ' . $filename);
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $filename = $zip->getNameIndex($i);
+                $fileinfo = pathinfo($filename);
+                error_log('File name: ' . $filename);
 
-                    // Copies the files directly from the ZIP to the extraction directory
-                    // This avoids nested directories
-                    if (strpos($fileinfo['basename'], '.') !== false) {
-                        copy("zip://$zip_file_path#$filename", $extracted_dir . $fileinfo['basename']);
-                    }
+                if (strpos($fileinfo['basename'], '.') !== false) {
+                copy("zip://$zip_file_path#$filename", $extracted_dir . $fileinfo['basename']);
                 }
-                $zip->close();
+            }
+            $zip->close();
             } else {
-                error_log('Failed to open main ZIP file.');
-                return;
+            error_log('Failed to open main ZIP file.');
+            return;
             }
 
-            // Locates and reads the CSV file for importing data
             $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
             if (!file_exists($csv_file_path)) {
-                error_log('CSV file not found.');
-                return;
+            error_log('CSV file not found.');
+            return;
             }
 
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
-                // Reads the header row from the CSV file
-                $headers = fgetcsv($handle); // *These headers are subject to change
-            
-                // Define the batch size for processing rows
-                $batch_size = 10;
-            
-                // Retrieves the current offset or sets it to 0 if not found
-                $offset = get_transient('sd_projects_import_offset') ?: 0;
-                $total_rows = count_rows($csv_file_path); // Counts the total number of rows in the CSV
-                set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
-            
-                // Initializes an empty batch array to hold CSV rows for processing
-                $batch = [];
-            
-                // Process each row in the CSV
-                while (($rows = fgetcsv($handle)) !== FALSE) {
-                    $data = array_combine($headers, $rows);
-                    
-                    // Skips rows until the current offset is reached
-                    if ($offset > 0) {
-                        $offset--;
-                        continue;
-                    }
-            
-                    // Adds the row to the batch
-                    $batch[] = $data;
-            
-                    // Processes the batch if the batch size is reached
-                    if (count($batch) === $batch_size) {
-                        foreach ($batch as $row) {
-                            error_log(print_r($row, true));
-                            process_row($row);
-            
-                            // Updates the offset and progress
-                            $offset++;
-                            $percent = min(100, ($offset / $total_rows) * 100);
-                            $status = ($percent < 100) ? 'Processing...' : 'Complete';
-                            set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
-                        }
-            
-                        // Clears the batch after processing
-                        $batch = [];
-            
-                        // Sleep to avoid hitting server limits
-                        sleep(1);
-                    }
-                }
-            
-                // Processes any remaining rows in the batch
-                if (!empty($batch)) {
-                    foreach ($batch as $row) {
-                        error_log(print_r($row, true));
-                        process_row($row);
-            
-                        // Updates the offset and progress
-                        $offset++;
-                        $percent = min(100, ($offset / $total_rows) * 100);
-                        $status = ($percent < 100) ? 'Processing...' : 'Complete';
-                        set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
-                    }
-                }
-            
-                fclose($handle);
+            $headers = fgetcsv($handle); // *These headers are subject to change
+            $batch_size = 10;
+            $offset = get_transient('sd_projects_import_offset') ?: 0;
+            $total_rows = count_rows($csv_file_path);
+            set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
+            $batch = [];
 
-                // Clears transients after completion
-                delete_transient('sd_projects_import_offset');
-                delete_transient('sd_projects_import_total_rows');
+            while (($rows = fgetcsv($handle)) !== FALSE) {
+                $data = array_combine($headers, $rows);
+                if ($offset > 0) {
+                $offset--;
+                continue;
+                }
+                $batch[] = $data;
+                if (count($batch) === $batch_size) {
+                foreach ($batch as $row) {
+                    error_log(print_r($row, true));
+                    process_row($row);
+                    $offset++;
+                    $percent = min(100, ($offset / $total_rows) * 100);
+                    $status = ($percent < 100) ? 'Processing...' : 'Complete';
+                    set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
+                }
+                $batch = [];
+                sleep(1);
+                }
+            }
+
+            if (!empty($batch)) {
+                foreach ($batch as $row) {
+                error_log(print_r($row, true));
+                process_row($row);
+                $offset++;
+                $percent = min(100, ($offset / $total_rows) * 100);
+                $status = ($percent < 100) ? 'Processing...' : 'Complete';
+                set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
+                }
+            }
+
+            fclose($handle);
+            delete_transient('sd_projects_import_offset');
+            delete_transient('sd_projects_import_total_rows');
             } else {
-                error_log('Failed to open the CSV file.');
+            error_log('Failed to open the CSV file.');
             }            
         });
 
