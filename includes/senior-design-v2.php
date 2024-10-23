@@ -244,9 +244,9 @@ function sd_project_display($atts) {
             const selectedValue = filter2Dropdown.value;
 
             if (selectedValue === 'option2') {
-                multiSemesterCollapse.classList.add('show');
+            multiSemesterCollapse.classList.add('show');
             } else {
-                multiSemesterCollapse.classList.remove('show');
+            multiSemesterCollapse.classList.remove('show');
             }
             updateURL();
             fetchProjects();
@@ -271,10 +271,10 @@ function sd_project_display($atts) {
             paginationContainer.addEventListener('click', function(event) {
             const target = event.target;
             if (target.tagName === 'A' && target.dataset.page) {
-                event.preventDefault();
-                const page = target.dataset.page;
-                updateURL(page);
-                fetchProjects(page);
+            event.preventDefault();
+            const page = target.dataset.page;
+            updateURL(page);
+            fetchProjects(page);
             }
             });
         }
@@ -304,7 +304,9 @@ function sd_project_display($atts) {
             if (filter2Dropdown.value === 'option2') {
             const selectedSemesters = $(multiSemesterSelector).val();
             if (selectedSemesters && selectedSemesters.length > 0) {
-                params.set('selected_semesters', selectedSemesters.join(','));
+            params.set('selected_semesters', selectedSemesters.join(','));
+            } else {
+            params.delete('selected_semesters');
             }
             } else {
             params.delete('selected_semesters');
@@ -335,9 +337,9 @@ function sd_project_display($atts) {
 
             document.getElementById('sd-projects').innerHTML = projects.innerHTML;
             if (pagination) {
-                document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+            document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
             } else {
-                document.getElementById('pagination-container').innerHTML = '';
+            document.getElementById('pagination-container').innerHTML = '';
             }
 
             // Update URL again with the decoded string
@@ -368,12 +370,16 @@ function sd_project_display($atts) {
             placeholder: 'Select semesters',
             allowClear: true,
             dropdownParent: $('#filtersCollapse'),
+            }).on('select2:unselecting', function() {
+            // Clear the semester params when the select2 is cleared
+            updateURL();
+            fetchProjects();
             });
         });
         });
         </script>
 
-    <?php
+        <?php
     wp_reset_postdata();
 
     // Cache the output for 1 hour
