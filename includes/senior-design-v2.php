@@ -158,40 +158,34 @@ function sd_project_display($atts) {
             echo '<nav aria-label="Page navigation">';
             echo '<ul class="pagination justify-content-center">';
 
-            $base_link = remove_query_arg(['paged'], get_pagenum_link(1));
             $current_page = max(1, get_query_var('paged'));
 
-            $query_args = array();
-
-            $link_with_params = esc_url_raw(add_query_arg($query_args, $base_link));
-
             if ($current_page > 1) {
-                echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page - 1], $link_with_params)) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
+            echo '<li class="page-item"><a class="page-link" href="#" data-page="' . ($current_page - 1) . '" aria-label="Previous"><span aria-hidden="true">&laquo;</span><span class="sr-only">Previous</span></a></li>';
             }
 
             for ($i = 1; $i <= $total_pages; $i++) {
-                $page_link = add_query_arg(['paged' => $i], $base_link);
-                if ($i == $current_page) {
-                    echo '<li class="page-item active"><a class="page-link" href="#">' . $i . '</a></li>';
-                } else {
-                    echo '<li class="page-item"><a class="page-link" href="' . $page_link . '">' . $i . '</a></li>';
-                }
+            if ($i == $current_page) {
+                echo '<li class="page-item active"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
+            } else {
+                echo '<li class="page-item"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
+            }
             }
 
             if ($current_page < $total_pages) {
-                echo '<li class="page-item"><a class="page-link" href="' . esc_url_raw(add_query_arg(['paged' => $current_page + 1], $link_with_params)) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
+            echo '<li class="page-item"><a class="page-link" href="#" data-page="' . ($current_page + 1) . '" aria-label="Next"><span aria-hidden="true">&raquo;</span><span class="sr-only">Next</span></a></li>';
             }
 
             echo '</ul></nav>';
             echo '</div>';
         }
-    } else {
+        } else {
         echo '<p>No projects found.</p>';
-    }
+        }
 
-    ?>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
+        ?>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('utility-bar');
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const searchInput = document.getElementById('searchFilter');
@@ -199,6 +193,7 @@ function sd_project_display($atts) {
         const filter1Option1 = document.getElementById('filter1Option1');
         const filter1Option2 = document.getElementById('filter1Option2');
         const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
+        const paginationContainer = document.getElementById('pagination-container');
 
         // Set defaults
         var params = new URLSearchParams(window.location.search);
@@ -231,95 +226,109 @@ function sd_project_display($atts) {
         // Event listeners
         if (form) {
             form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                hideProjects();
-                updateURL();
-                fetchProjects();
+            event.preventDefault();
+            hideProjects();
+            updateURL();
+            fetchProjects();
             });
         }
 
         if (filter1Option1) {
             filter1Option1.addEventListener('change', function() {
-                updateURL();
-                fetchProjects();
+            updateURL();
+            fetchProjects();
             });
         }
 
         if (filter1Option2) {
             filter1Option2.addEventListener('change', function() {
-                updateURL();
-                fetchProjects();
+            updateURL();
+            fetchProjects();
             });
         }
 
         if (filter2Dropdown) {
             filter2Dropdown.addEventListener('change', function() {
-                const selectedValue = filter2Dropdown.value;
+            const selectedValue = filter2Dropdown.value;
 
-                if (selectedValue === 'option2') {
-                    multiSemesterCollapse.classList.add('show');
-                } else {
-                    multiSemesterCollapse.classList.remove('show');
-                }
-                updateURL();
-                fetchProjects();
+            if (selectedValue === 'option2') {
+                multiSemesterCollapse.classList.add('show');
+            } else {
+                multiSemesterCollapse.classList.remove('show');
+            }
+            updateURL();
+            fetchProjects();
             });
         }
 
         if (multiSemesterSelector) {
             $(multiSemesterSelector).on('change', function() {
-                updateURL();
-                fetchProjects();
+            updateURL();
+            fetchProjects();
             });
         }
 
         if (searchInput) {
             searchInput.addEventListener('input', debounce(function() {
-                updateURL();
-                fetchProjects();
+            updateURL();
+            fetchProjects();
             }, 300));
+        }
+
+        if (paginationContainer) {
+            paginationContainer.addEventListener('click', function(event) {
+            const target = event.target;
+            if (target.tagName === 'A' && target.dataset.page) {
+                event.preventDefault();
+                const page = target.dataset.page;
+                updateURL(page);
+                fetchProjects(page);
+            }
+            });
         }
 
         function debounce(func, wait) {
             let timeout;
             return function(...args) {
-                const context = this;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
             };
         }
 
-        function updateURL() {
+        function updateURL(page = 1) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
             if (searchInput.value.trim()) {
-                params.set('search', searchInput.value.trim());
+            params.set('search', searchInput.value.trim());
             } else {
-                params.delete('search');
+            params.delete('search');
             }
 
             const sortOrder = filter1Option1.checked ? 'ASC' : 'DESC';
             params.set('sort_order', sortOrder);
 
             if (filter2Dropdown.value === 'option2') {
-                const selectedSemesters = $(multiSemesterSelector).val();
-                if (selectedSemesters && selectedSemesters.length > 0) {
-                    params.set('selected_semesters', selectedSemesters.join(','));
-                }
-            } else {
-                params.delete('selected_semesters');
+            const selectedSemesters = $(multiSemesterSelector).val();
+            if (selectedSemesters && selectedSemesters.length > 0) {
+                params.set('selected_semesters', selectedSemesters.join(','));
             }
+            } else {
+            params.delete('selected_semesters');
+            }
+
+            params.set('paged', page);
 
             // Directly update the URL with a simple pushState, no additional encoding
             history.pushState(null, '', url.pathname + '?' + params.toString());
         }
 
-        function fetchProjects() {
+        function fetchProjects(page = 1) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
 
-            params.set('paged', 1);  // Always reset to the first page
+            params.set('paged', page);  // Set to the specified page
             url.search = params.toString();
 
             const decodedUrl = decodeURIComponent(url.toString());
@@ -327,20 +336,20 @@ function sd_project_display($atts) {
             fetch(decodedUrl)
             .then(response => response.text())
             .then(data => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data, 'text/html');
-                const projects = doc.getElementById('sd-projects');
-                const pagination = doc.getElementById('pagination-container');
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data, 'text/html');
+            const projects = doc.getElementById('sd-projects');
+            const pagination = doc.getElementById('pagination-container');
 
-                document.getElementById('sd-projects').innerHTML = projects.innerHTML;
-                if (pagination) {
-                    document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
-                } else {
-                    document.getElementById('pagination-container').innerHTML = '';
-                }
+            document.getElementById('sd-projects').innerHTML = projects.innerHTML;
+            if (pagination) {
+                document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+            } else {
+                document.getElementById('pagination-container').innerHTML = '';
+            }
 
-                // Update URL again with the decoded string
-                history.pushState(null, '', decodedUrl);
+            // Update URL again with the decoded string
+            history.pushState(null, '', decodedUrl);
             })
             .catch(error => console.error('Error fetching projects:', error));
         }
@@ -349,28 +358,28 @@ function sd_project_display($atts) {
             const projects = document.getElementById('sd-projects');
             const footer = document.getElementById('pagination-container');
             if (footer) {
-                footer.classList.add('hidden');
+            footer.classList.add('hidden');
             }
             if (projects) {
-                projects.innerHTML = ''; // Clear existing children
-                projects.classList.add('hidden');
-                projects.classList.add('load-message');
-                const pBlock = document.createElement('p');
-                const textNode = document.createTextNode('Loading...');
-                pBlock.appendChild(textNode);
-                projects.appendChild(pBlock);
+            projects.innerHTML = ''; // Clear existing children
+            projects.classList.add('hidden');
+            projects.classList.add('load-message');
+            const pBlock = document.createElement('p');
+            const textNode = document.createTextNode('Loading...');
+            pBlock.appendChild(textNode);
+            projects.appendChild(pBlock);
             }
         }
 
         $(function() {
             $('#multiSemesterSelector').select2({
-                placeholder: 'Select semesters',
-                allowClear: true,
-                dropdownParent: $('#filtersCollapse'),
+            placeholder: 'Select semesters',
+            allowClear: true,
+            dropdownParent: $('#filtersCollapse'),
             });
         });
-    });
-    </script>
+        });
+        </script>
 
     <?php
     wp_reset_postdata();
