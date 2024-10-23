@@ -84,54 +84,84 @@
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
-            echo "<div class='updated'>";
-            echo "<p>";
-            echo "Upload a ZIP file containing the CSV and project files:";
-            echo "</p>";
-            echo "<form id='upload-zip-form' method='post' enctype='multipart/form-data'>";
-            echo "<input type='file' name='sd_project_zip' accept='.zip' required />";
-            echo "<input type='submit' name='upload_sd_project_zip' class='button button-primary' value='Upload ZIP' />";
-            echo "</form>";
-            echo "</div>";
+                echo "<div class='updated'>";
+                echo "<p>";
+                echo "Upload a ZIP file containing the CSV and project files:";
+                echo "</p>";
+                echo "<form id='upload-zip-form' method='post' enctype='multipart/form-data'>";
+                echo "<input type='file' name='sd_project_zip' accept='.zip' required />";
+                echo "<input type='submit' name='upload_sd_project_zip' class='button button-primary' value='Upload ZIP' />";
+                echo "</form>";
+                echo "</div>";
+        
+                // Adds the HTML structure for the progress bar that appears during the upload process
+                echo "<div id='upload-progress-container' style='display: none; margin: 20px 0;'>
+                    <div id='upload-progress-bar' style='width: 0%; background: green; height: 20px;'></div>
+                    <p id='upload-progress-text'>Starting upload...</p>
+                </div>";
+        
+                // JavaScript for handling the progress bar and upload confirmation
+                ?>
+                <script type="text/javascript">
+                    document.getElementById('upload-zip-form').addEventListener('submit', function(e) {
+                        // Shows the progress bar and starts the upload process
+                        document.getElementById('upload-progress-container').style.display = 'block';
+                        updateUploadProgress();
+                    });
 
-            // Adds the HTML structure for the progress bar that appears during the upload process
-            echo "<div id='upload-progress-container' style='display: none; margin: 20px 0;'>
-                <div id='upload-progress-bar' style='width: 0%; background: green; height: 20px;'></div>
-                <p id='upload-progress-text'>Starting upload...</p>
-            </div>";
-
-            // JavaScript for handling the progress bar and upload confirmation
-            ?>
-            <script type="text/javascript">
-                document.getElementById('upload-zip-form').addEventListener('submit', function(e) {
-                // Shows the progress bar and starts the upload process
-                document.getElementById('upload-progress-container').style.display = 'block';
-                updateUploadProgress();
-                });
-
-                // Function to update the progress bar during the upload process
-                function updateUploadProgress() {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '<?php echo admin_url('admin-ajax.php?action=upload_progress_check&nonce=' . wp_create_nonce('upload_sd_projects_nonce')); ?>', true);
-                xhr.upload.onprogress = function(e) {
-                    if (e.lengthComputable) {
-                    var percent = (e.loaded / e.total) * 100;
-                    document.getElementById('upload-progress-bar').style.width = percent + '%';
-                    document.getElementById('upload-progress-text').innerText = 'Uploading... ' + Math.round(percent) + '%';
+                    // Function to update the progress bar during the upload process
+                    function updateUploadProgress() {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '<?php echo admin_url('admin-ajax.php?action=upload_progress_check&nonce=' . wp_create_nonce('upload_sd_projects_nonce')); ?>', true);
+                        xhr.upload.onprogress = function(e) {
+                            if (e.lengthComputable) {
+                                var percent = (e.loaded / e.total) * 100;
+                                document.getElementById('upload-progress-bar').style.width = percent + '%';
+                                document.getElementById('upload-progress-text').innerText = 'Uploading... ' + Math.round(percent) + '%';
+                            }
+                        };
+                        xhr.onload = function() {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                document.getElementById('upload-progress-text').innerText = 'Upload complete!';
+                                // Start batch processing after upload is complete
+                                startBatchProcessing();
+                            } else {
+                                document.getElementById('upload-progress-text').innerText = 'Upload failed.';
+                            }
+                        };
+                        var formData = new FormData(document.getElementById('upload-zip-form'));
+                        xhr.send(formData);
                     }
-                };
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                    document.getElementById('upload-progress-text').innerText = 'Upload complete!';
-                    } else {
-                    document.getElementById('upload-progress-text').innerText = 'Upload failed.';
+
+                    // Function to start batch processing
+                    function startBatchProcessing() {
+                        document.getElementById('upload-progress-text').innerText = 'Processing...';
+                        updateBatchProgress();
                     }
-                };
-                var formData = new FormData(document.getElementById('upload-zip-form'));
-                xhr.send(formData);
-                }
-            </script>
-            <?php
+
+                    // Function to update the batch processing progress
+                    function updateBatchProgress() {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=batch_progress_check&nonce=' . wp_create_nonce('batch_processing_nonce')); ?>', true);
+                        xhr.onload = function() {
+                            if (xhr.status >= 200 && xhr.status < 300) {
+                                var response = JSON.parse(xhr.responseText);
+                                var percent = response.percent;
+                                var status = response.status;
+                                document.getElementById('upload-progress-bar').style.width = percent + '%';
+                                document.getElementById('upload-progress-text').innerText = status;
+                                // Continuously updates the progress until it reaches 100%
+                                if (percent < 100) {
+                                    setTimeout(updateBatchProgress, 1000); // Check progress every second
+                                }
+                            } else {
+                                console.error('Failed to retrieve batch progress.');
+                            }
+                        };
+                        xhr.send();
+                    }
+                </script>
+                <?php
             }
         });
 
@@ -228,25 +258,25 @@
             }
         });
 
-        // Handles the AJAX request to check the progress of the import process
-        add_action('wp_ajax_progress_check', function() {
-            check_ajax_referer('insert_sd_projects_nonce', 'nonce');
+        // Handles the AJAX request to check the progress of the batch processing
+        add_action('wp_ajax_batch_progress_check', function() {
+            check_ajax_referer('batch_processing_nonce', 'nonce');
             
             // Retrieves the current offset and total rows to calculate progress
             $offset = get_transient('sd_projects_import_offset') ?: 0;
             $total_rows = get_transient('sd_projects_import_total_rows') ?: 100; // Default to 100 if not set
-        
+
             // Prevents division by zero errors
             $total_rows = max($total_rows, 1);
-        
+
             // Calculates the percentage of progress based on the offset and total rows
             $percent = min(100, ($offset / $total_rows) * 100);
             $status = ($percent < 100) ? 'Processing...' : 'Complete';
-        
+
             // Sends a JSON response with the progress percentage and status
             wp_send_json(array(
-            'percent' => $percent,
-            'status' => $status
+                'percent' => $percent,
+                'status' => $status
             ));
         });
 
