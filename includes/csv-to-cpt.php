@@ -33,13 +33,13 @@
             echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
             echo "</p>";
             echo "</div>";
-        
+            
             // Adds the HTML structure for the progress bar that appears during the import process
             echo "<div id='progress-container' style='display: none; margin: 20px 0;'>
                 <div id='progress-bar' style='width: 0%; background: green; height: 20px;'></div>
                 <p id='progress-text'>Starting...</p>
             </div>";
-        
+            
             // JavaScript for handling the progress bar and import confirmation
             ?>
             <script type="text/javascript">
@@ -53,7 +53,7 @@
                     updateProgress();
                 }
                 });
-        
+            
                 // Function to update the progress bar by querying the server
                 function updateProgress() {
                 var xhr = new XMLHttpRequest();
@@ -70,7 +70,7 @@
                         setTimeout(updateProgress, 1000); // Check progress every second
                     }
                     } else {
-                    error_log('Failed to retrieve progress.');
+                    console.error('Failed to retrieve progress.');
                     }
                 };
                 xhr.send();
