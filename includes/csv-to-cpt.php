@@ -93,6 +93,7 @@
             echo "<input type='hidden' name='nonce' value='" . wp_create_nonce('upload_zip_file_nonce') . "' />";
             echo "<input type='submit' class='button button-primary' value='Upload ZIP' />";
             echo "</form>";
+            echo "<div id='upload-feedback' style='margin-top: 10px;'></div>";
             echo "</p>";
             echo "</div>";
             }
@@ -104,7 +105,7 @@
 
             // Check if a file was uploaded
             if (!isset($_FILES['zip_file']) || $_FILES['zip_file']['error'] != UPLOAD_ERR_OK) {
-            echo "<div class='error notice is-dismissible'><p>No file uploaded or there was an upload error.</p></div>";
+            wp_send_json_error('No file uploaded or there was an upload error.');
             return;
             }
 
@@ -114,11 +115,40 @@
             $upload_path = $upload_dir['path'] . '/' . basename($uploaded_file['name']);
 
             if (move_uploaded_file($uploaded_file['tmp_name'], $upload_path)) {
-            echo "<div class='updated notice is-dismissible'><p>File uploaded successfully.</p></div>";
+            wp_send_json_success('File uploaded successfully.');
             } else {
-            echo "<div class='error notice is-dismissible'><p>Failed to move uploaded file.</p></div>";
+            wp_send_json_error('Failed to move uploaded file.');
             }
         });
+
+        // JavaScript for handling the file upload and providing feedback
+        ?>
+        <script type="text/javascript">
+            document.getElementById('upload-zip-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var formData = new FormData(this);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action, true);
+
+            xhr.onload = function() {
+                var feedback = document.getElementById('upload-feedback');
+                if (xhr.status >= 200 && xhr.status < 300) {
+                var response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                    feedback.innerHTML = "<div class='updated notice is-dismissible'><p>" + response.data + "</p></div>";
+                } else {
+                    feedback.innerHTML = "<div class='error notice is-dismissible'><p>" + response.data + "</p></div>";
+                }
+                } else {
+                feedback.innerHTML = "<div class='error notice is-dismissible'><p>Failed to upload file.</p></div>";
+                }
+            };
+
+            xhr.send(formData);
+            });
+        </script>
+        <?php
 
         // Handles the AJAX request to check the progress of the import process
         add_action('wp_ajax_progress_check', function() {
