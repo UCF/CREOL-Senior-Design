@@ -27,9 +27,7 @@
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
                 echo "<div class='updated'>";
-                echo "<p>";
-                echo "To import Senior Design Projects from a ZIP file, upload the ZIP file using the button below.";
-                echo "</p>";
+                echo "<p>To import Senior Design Projects from a ZIP file, upload the ZIP file using the button below.</p>";
                 echo "</div>";
                 
                 // Form for file upload
@@ -38,8 +36,8 @@
                 echo "<input type='submit' class='button button-primary' value='Upload ZIP File' />";
                 echo "</form>";
 
-                // Handling notifications after file upload
-                if (isset($_POST['zip_file']) && !empty($_FILES['zip_file']['name'])) {
+                // Handle file upload
+                if (isset($_FILES['zip_file']) && !empty($_FILES['zip_file']['name'])) {
                     handle_zip_file_upload(); // Call your file handling function here
                 }
             }
@@ -64,8 +62,7 @@
             $uploaded_file = wp_handle_upload($file, ['test_form' => false]);
 
             if ($uploaded_file && !isset($uploaded_file['error'])) {
-                $upload_dir = wp_upload_dir();
-                $file_path = $upload_dir['path'] . '/' . basename($uploaded_file['file']);
+                $file_path = $uploaded_file['file']; // Get the full path of the uploaded file
 
                 // Call your ZIP parsing function here.
                 parse_zip_file($file_path); // Pass the file path to your parsing function.
@@ -76,133 +73,43 @@
             }
         }
 
-        // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
-        // This button triggers the import process
-        add_action('admin_notices', function() {
-            $screen = get_current_screen();
-            if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
-            echo "<div class='updated'>";
-            echo "<p>";
-            echo "To import Senior Design Projects from the CSV, click the button to the right.";
-            echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
-            echo "</p>";
-            echo "</div>";
-            
-            // Adds the HTML structure for the progress bar that appears during the import process
-            echo "<div id='progress-container' style='display: none; margin: 20px 0;'>
-                <div id='progress-bar' style='width: 0%; background: green; height: 20px;'></div>
-                <p id='progress-text'>Starting...</p>
-            </div>";
-            
-            // JavaScript for handling the progress bar and import confirmation
-            ?>
-            <script type="text/javascript">
-                document.getElementById('insert-sd-projects-button').addEventListener('click', function(e) {
-                // Shows a confirmation popup before starting the import process
-                if (!confirm('Are you sure you want to import the Senior Design Projects from the CSV? This action cannot be undone.')) {
-                    e.preventDefault();
-                } else {
-                    // Shows the progress bar and starts the update process
-                    document.getElementById('progress-container').style.display = 'block';
-                    updateProgress();
-                }
-                });
-            
-                // Function to update the progress bar by querying the server
-                function updateProgress() {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check&nonce=' . wp_create_nonce('insert_sd_projects_nonce')); ?>', true);
-                xhr.onload = function() {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                    var response = JSON.parse(xhr.responseText);
-                    var percent = response.percent;
-                    var status = response.status;
-                    document.getElementById('progress-bar').style.width = percent + '%';
-                    document.getElementById('progress-text').innerText = status;
-                    // Continuously updates the progress until it reaches 100%
-                    if (percent < 100) {
-                        setTimeout(updateProgress, 1000); // Check progress every second
-                    }
-                    } else {
-                    console.error('Failed to retrieve progress.');
-                    }
-                };
-                xhr.send();
-                }
-            </script>
-            <?php
-            }
-        });
-
-        // Handles the AJAX request to check the progress of the import process
-        add_action('wp_ajax_progress_check', function() {
-            check_ajax_referer('insert_sd_projects_nonce', 'nonce');
-            
-            // Retrieves the current offset and total rows to calculate progress
-            $offset = get_transient('sd_projects_import_offset') ?: 0;
-            $total_rows = get_transient('sd_projects_import_total_rows') ?: 100; // Default to 100 if not set
-        
-            // Prevents division by zero errors
-            $total_rows = max($total_rows, 1);
-        
-            // Calculates the percentage of progress based on the offset and total rows
-            $percent = min(100, ($offset / $total_rows) * 100);
-            $status = ($percent < 100) ? 'Processing...' : 'Complete';
-        
-            // Sends a JSON response with the progress percentage and status
-            wp_send_json(array(
-            'percent' => $percent,
-            'status' => $status
-            ));
-        });
-
         // This executes when the page is loaded after clicking the action button
         add_action('admin_init', function() {
-
-            // If the URL is not set to 'insert_sd_projects', the function will return without executing
             if ( !isset($_GET['insert_sd_projects'])) {
                 return;
             }
 
-            // Defines the custom post type (CPT) for Senior Design Projects
-            $project = array(
-                'custom-post-type' => 'sd_project',
-            );
-            
-            // Define paths for plugin directory, ZIP file, and extraction directory
-            $plugin_dir = plugin_dir_path(__FILE__);
-            $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip'; // *This ZIP name is subject to change
+            // No longer define $zip_file_path here; use the uploaded file instead
+            $upload_dir = wp_upload_dir();
+            $zip_file_path = $upload_dir['basedir'] . '/' . basename($_FILES['zip_file']['name']); // Adjusting to use the uploaded file path
+
             global $extracted_dir;
-            $extracted_dir = $plugin_dir . 'extracted/';  
-            
-            // Creates the extraction directory if it doesn't exist
+            $extracted_dir = plugin_dir_path(__FILE__) . 'extracted/';  
+
+            // Ensure extraction directory exists
             if (!file_exists($extracted_dir)) {
                 mkdir($extracted_dir, 0777, true);
-                error_log("Created extracted directory: " . $extracted_dir);
             }
 
-            // Extracts the contents of the main ZIP file
+            // Extract the uploaded ZIP file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
                 for ($i = 0; $i < $zip->numFiles; $i++) {
                     $filename = $zip->getNameIndex($i);
                     $fileinfo = pathinfo($filename);
-                    error_log('File name: ' . $filename);
-
-                    // Copies the files directly from the ZIP to the extraction directory
-                    // This avoids nested directories
+                    // Check if the file has a valid extension and copy it
                     if (strpos($fileinfo['basename'], '.') !== false) {
                         copy("zip://$zip_file_path#$filename", $extracted_dir . $fileinfo['basename']);
                     }
                 }
                 $zip->close();
             } else {
-                error_log('Failed to open main ZIP file.');
+                error_log('Failed to open uploaded ZIP file.');
                 return;
             }
 
-            // Locates and reads the CSV file for importing data
-            $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
+            // Locate and read the CSV file for importing data
+            $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // This is subject to change
             if (!file_exists($csv_file_path)) {
                 error_log('CSV file not found.');
                 return;
