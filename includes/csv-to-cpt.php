@@ -27,56 +27,96 @@
         add_action('admin_notices', function() {
             $screen = get_current_screen();
             if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
-                echo "<div class='updated'>";
-                echo "<p>";
-                echo "To import Senior Design Projects from the CSV, click the button to the right.";
-                echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
-                echo "</p>";
-                echo "</div>";
+            echo "<div class='updated'>";
+            echo "<p>";
+            echo "To import Senior Design Projects from the CSV, click the button to the right.";
+            echo "<a id='insert-sd-projects-button' class='button button-primary' style='margin:0.25em 1em' href='{$_SERVER["REQUEST_URI"]}&insert_sd_projects'>Insert Posts</a>";
+            echo "</p>";
+            echo "</div>";
         
-                // Adds the HTML structure for the progress bar that appears during the import process
-                echo "<div id='progress-container' style='display: none; margin: 20px 0;'>
-                    <div id='progress-bar' style='width: 0%; background: green; height: 20px;'></div>
-                    <p id='progress-text'>Starting...</p>
-                </div>";
+            // Adds the HTML structure for the progress bar that appears during the import process
+            echo "<div id='progress-container' style='display: none; margin: 20px 0;'>
+                <div id='progress-bar' style='width: 0%; background: green; height: 20px;'></div>
+                <p id='progress-text'>Starting...</p>
+            </div>";
         
-                // JavaScript for handling the progress bar and import confirmation
-                ?>
-                <script type="text/javascript">
-                    document.getElementById('insert-sd-projects-button').addEventListener('click', function(e) {
-                        // Shows a confirmation popup before starting the import process
-                        if (!confirm('Are you sure you want to import the Senior Design Projects from the CSV? This action cannot be undone.')) {
-                            e.preventDefault();
-                        } else {
-                            // Shows the progress bar and starts the update process
-                            document.getElementById('progress-container').style.display = 'block';
-                            updateProgress();
-                        }
-                    });
+            // JavaScript for handling the progress bar and import confirmation
+            ?>
+            <script type="text/javascript">
+                document.getElementById('insert-sd-projects-button').addEventListener('click', function(e) {
+                // Shows a confirmation popup before starting the import process
+                if (!confirm('Are you sure you want to import the Senior Design Projects from the CSV? This action cannot be undone.')) {
+                    e.preventDefault();
+                } else {
+                    // Shows the progress bar and starts the update process
+                    document.getElementById('progress-container').style.display = 'block';
+                    updateProgress();
+                }
+                });
         
-                    // Function to update the progress bar by querying the server
-                    function updateProgress() {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check&nonce=' . wp_create_nonce('insert_sd_projects_nonce')); ?>', true);
-                        xhr.onload = function() {
-                            if (xhr.status >= 200 && xhr.status < 300) {
-                                var response = JSON.parse(xhr.responseText);
-                                var percent = response.percent;
-                                var status = response.status;
-                                document.getElementById('progress-bar').style.width = percent + '%';
-                                document.getElementById('progress-text').innerText = status;
-                                // Continuously updates the progress until it reaches 100%
-                                if (percent < 100) {
-                                    setTimeout(updateProgress, 1000); // Check progress every second
-                                }
-                            } else {
-                                error_log('Failed to retrieve progress.');
-                            }
-                        };
-                        xhr.send();
+                // Function to update the progress bar by querying the server
+                function updateProgress() {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '<?php echo admin_url('admin-ajax.php?action=progress_check&nonce=' . wp_create_nonce('insert_sd_projects_nonce')); ?>', true);
+                xhr.onload = function() {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                    var response = JSON.parse(xhr.responseText);
+                    var percent = response.percent;
+                    var status = response.status;
+                    document.getElementById('progress-bar').style.width = percent + '%';
+                    document.getElementById('progress-text').innerText = status;
+                    // Continuously updates the progress until it reaches 100%
+                    if (percent < 100) {
+                        setTimeout(updateProgress, 1000); // Check progress every second
                     }
-                </script>
-                <?php
+                    } else {
+                    error_log('Failed to retrieve progress.');
+                    }
+                };
+                xhr.send();
+                }
+            </script>
+            <?php
+            }
+        });
+
+        // Adds an action button to upload a ZIP file to the WP uploads directory
+        add_action('admin_notices', function() {
+            $screen = get_current_screen();
+            if ($screen->post_type == 'sd_project' && $screen->base == 'edit') {
+            echo "<div class='updated'>";
+            echo "<p>";
+            echo "To upload a ZIP file, use the form below.";
+            echo "<form id='upload-zip-form' method='post' enctype='multipart/form-data' action='" . admin_url('admin-ajax.php') . "'>";
+            echo "<input type='file' name='zip_file' accept='.zip' required />";
+            echo "<input type='hidden' name='action' value='upload_zip_file' />";
+            echo "<input type='hidden' name='nonce' value='" . wp_create_nonce('upload_zip_file_nonce') . "' />";
+            echo "<input type='submit' class='button button-primary' value='Upload ZIP' />";
+            echo "</form>";
+            echo "</p>";
+            echo "</div>";
+            }
+        });
+
+        // Handles the AJAX request to upload a ZIP file
+        add_action('wp_ajax_upload_zip_file', function() {
+            check_ajax_referer('upload_zip_file_nonce', 'nonce');
+
+            // Check if a file was uploaded
+            if (!isset($_FILES['zip_file']) || $_FILES['zip_file']['error'] != UPLOAD_ERR_OK) {
+            wp_send_json_error('No file uploaded or there was an upload error.');
+            return;
+            }
+
+            // Handle the file upload
+            $uploaded_file = $_FILES['zip_file'];
+            $upload_dir = wp_upload_dir();
+            $upload_path = $upload_dir['path'] . '/' . basename($uploaded_file['name']);
+
+            if (move_uploaded_file($uploaded_file['tmp_name'], $upload_path)) {
+            wp_send_json_success('File uploaded successfully.');
+            } else {
+            wp_send_json_error('Failed to move uploaded file.');
             }
         });
 
@@ -97,10 +137,10 @@
         
             // Sends a JSON response with the progress percentage and status
             wp_send_json(array(
-                'percent' => $percent,
-                'status' => $status
+            'percent' => $percent,
+            'status' => $status
             ));
-        });        
+        });
 
         // This executes when the page is loaded after clicking the action button
         add_action('admin_init', function() {
