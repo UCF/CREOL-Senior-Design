@@ -104,7 +104,7 @@
 
             // Check if a file was uploaded
             if (!isset($_FILES['zip_file']) || $_FILES['zip_file']['error'] != UPLOAD_ERR_OK) {
-            wp_send_json_error('No file uploaded or there was an upload error.');
+            echo "<div class='error notice is-dismissible'><p>No file uploaded or there was an upload error.</p></div>";
             return;
             }
 
@@ -114,9 +114,9 @@
             $upload_path = $upload_dir['path'] . '/' . basename($uploaded_file['name']);
 
             if (move_uploaded_file($uploaded_file['tmp_name'], $upload_path)) {
-            wp_send_json_success('File uploaded successfully.');
+            echo "<div class='updated notice is-dismissible'><p>File uploaded successfully.</p></div>";
             } else {
-            wp_send_json_error('Failed to move uploaded file.');
+            echo "<div class='error notice is-dismissible'><p>Failed to move uploaded file.</p></div>";
             }
         });
 
