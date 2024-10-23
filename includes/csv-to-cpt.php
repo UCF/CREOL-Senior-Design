@@ -22,6 +22,44 @@
      *      5. Add "autocorrection" of CSV fields.
      */
 
+        // Adds a custom endpoint to handle ZIP file uploads
+        add_action('admin_init', 'handle_zip_file_upload');
+
+        function handle_zip_file_upload() {
+            if (isset($_FILES['zip_file']) && !empty($_FILES['zip_file']['name'])) {
+                if (!current_user_can('manage_options')) {
+                    wp_die('You do not have sufficient permissions to upload files.');
+                }
+        
+                // Check the file is a ZIP.
+                $file = $_FILES['zip_file'];
+                $file_type = wp_check_filetype($file['name']);
+        
+                if ($file_type['ext'] !== 'zip') {
+                    wp_die('Only ZIP files are allowed.');
+                }
+        
+                // Handle file upload.
+                $uploaded_file = wp_handle_upload($file, ['test_form' => false]);
+        
+                if ($uploaded_file && !isset($uploaded_file['error'])) {
+                    $upload_dir = wp_upload_dir();
+                    $file_path = $upload_dir['path'] . '/' . basename($uploaded_file['file']);
+        
+                    // Call your ZIP parsing function here.
+                    parse_zip_file($file_path); // Pass the file path to your parsing function.
+        
+                    echo '<div class="notice notice-success is-dismissible">';
+                    echo '<p>File uploaded successfully and parsing started.</p>';
+                    echo '</div>';
+                } else {
+                    echo '<div class="notice notice-error is-dismissible">';
+                    echo '<p>Error: ' . esc_html($uploaded_file['error']) . '</p>';
+                    echo '</div>';
+                }
+            }
+        }   
+
         // Adds an action button to the Senior Design Projects page in WordPress with a confirmation popup
         // This button triggers the import process
         add_action('admin_notices', function() {
