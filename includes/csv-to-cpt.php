@@ -54,7 +54,7 @@
             $file_type = wp_check_filetype($file['name']);
 
             if ($file_type['ext'] !== 'zip') {
-                echo '<div class="notice notice-error is-dismissible"><p>Only ZIP files are allowed.</p></div>';
+                echo '<div class="notice notice-error is-dismissible"><p>Only ZIP files are allowed. Your file extension: ' . esc_html($file_type['ext']) . '</p></div>';
                 return;
             }
 
