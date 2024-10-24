@@ -15,9 +15,6 @@ if ( ! defined( 'WPINC' ) ) {
 function select2_test_enqueue_scripts() {
     // Enqueue Select2 CSS
     wp_enqueue_style('select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
-    
-    // Enqueue compiled custom styles
-    wp_enqueue_style('custom-styles-css', plugin_dir_url(__FILE__) . 'static/css/style.min.css');
 
     // Enqueue Select2 JS
     wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array('jquery'), null, true);
@@ -28,6 +25,4 @@ add_action('wp_enqueue_scripts', 'select2_test_enqueue_scripts');
 require_once 'includes/senior-design-v2.php';
 require_once 'includes/csv-to-cpt.php';
 
-
-// add_shortcode( 'senior-design', 'senior_design_display');
 add_shortcode('sd_project_display', 'sd_project_display');
