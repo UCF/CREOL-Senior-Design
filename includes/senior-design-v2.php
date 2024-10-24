@@ -56,6 +56,40 @@ function sd_project_display($atts) {
         'hide_empty' => false,
     ));
 
+    ?>
+    <style>
+        .sd-card {
+        border-radius: 12px;
+        border-style: none;
+        box-shadow: 0 0 10px 0 rgba(0, 0, 0, .15);
+        margin-bottom: 20px;
+        padding: 20px;
+        transition: box-shadow .3s ease-in-out;
+        }
+
+        .sd-card:hover {
+        box-shadow: 0 0 10px 2px rgba(0, 0, 0, .15);
+        }
+
+        .hidden {
+        display: none;
+        }
+
+        .load-message {
+        display: block;
+        }
+
+        .filters-collapse {
+        margin-top: 10px;
+        width: 100%;
+        }
+
+        .select2-container .select2-selection--multiple {
+        padding: 10px;
+        }   
+    </style>
+    <?php     
+
     echo '<div class="container mb-4">';
     echo '  <div class="row">';
     echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
@@ -126,7 +160,7 @@ function sd_project_display($atts) {
             $contributors = get_field('project_contributors');
 
             echo '<div class="card-box col-12">';
-            echo '<div class="card custom-card">';
+            echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
             echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
             if ($contributors)
