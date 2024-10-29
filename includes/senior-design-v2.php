@@ -165,7 +165,7 @@ function sd_project_display($atts) {
             echo '    <div class="card-body">';
             echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
             if ($sponsor)
-                echo '        <p class="my-1 font-weight-bold">Sponsor: ' . esc_html($sponsor) . '</p>';
+                echo '        <p class="my-1">Sponsored by: <strong> ' . esc_html($sponsor) . ' </strong></p>';
             if ($contributors)
                 echo '        <p class="my-1">' . esc_html($contributors) . '</p>';
             if ($short_report || $long_report || $presentation) {
