@@ -373,7 +373,12 @@
             // Attaches the contributors text field to the CPT
             if (!empty($data['project_contributors'])) {
                 update_field('project_contributors', $data['project_contributors'], $post_id);
-            }     
+            }
+
+            // Attaches the sponsor text field to the CPT
+            if (!empty($data['sponsor'])) {
+                update_field('sponsor', $data['sponsor'], $post_id);
+            }   
 
             /** 
              * Goal: Assign semester taxonomies to our SD projects

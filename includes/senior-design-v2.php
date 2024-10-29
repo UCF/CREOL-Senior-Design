@@ -158,11 +158,14 @@ function sd_project_display($atts) {
             $long_report = get_field('long_report_file');
             $presentation = get_field('presentation_slides_file');
             $contributors = get_field('project_contributors');
+            $sponsor = get_field('sponsor');
 
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
             echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
+            if ($sponsor)
+                echo '        <p class="my-1 font-weight-bold">Sponsor: ' . esc_html($sponsor) . '</p>';
             if ($contributors)
                 echo '        <p class="my-1">' . esc_html($contributors) . '</p>';
             if ($short_report || $long_report || $presentation) {
