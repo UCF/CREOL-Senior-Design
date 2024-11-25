@@ -163,11 +163,11 @@ function sd_project_display($atts) {
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
+            echo '        <h5 class="card-title my-3"><strong>Title: </strong> ' . get_the_title() . '</h5>';
             if ($sponsor)
-                echo '        <p class="my-1">Sponsored by: <strong> ' . esc_html($sponsor) . ' </strong></p>';
+                echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
             if ($contributors)
-                echo '        <p class="my-1">' . esc_html($contributors) . '</p>';
+                echo '        <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
             if ($short_report || $long_report || $presentation) {
                 echo '        <p class="my-1"><strong>View: </strong>';
                 if ($short_report)
