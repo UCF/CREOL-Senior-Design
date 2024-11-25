@@ -115,7 +115,7 @@ function sd_project_display($atts) {
     echo '  <div class="card card-block">';
     
     // Filter group 1 (A-Z + Z-A)
-    echo '      <label for="filterGroup1">Sort</label>';
+    echo '      <label for="filterGroup1">Sort by title</label>';
     echo '      <div class="form-check mb-4" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
     echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1">';
