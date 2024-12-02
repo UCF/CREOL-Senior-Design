@@ -483,9 +483,9 @@
 
                 // Determine the appropriate ACF field based on the file name
                 // *These ACF field names are subject to change
-                if (strpos(basename($file_path), 'Short_Report') !== FALSE) {
+                if (strpos(basename($file_path), 'Conference') !== FALSE) {
                     $pdf_field = 'short_report_file';
-                } elseif (strpos(basename($file_path), 'Long_Report') !== FALSE) {
+                } elseif (strpos(basename($file_path), 'Design_Doc') !== FALSE) {
                     $pdf_field = 'long_report_file';
                 } elseif (strpos(basename($file_path), 'Presentation') !== FALSE) {
                     $pdf_field = 'presentation_slides_file';
