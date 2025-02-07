@@ -26,14 +26,14 @@ function sd_project_display($atts) {
         's' => $search, // This will search in post title and content
     );
     
-    // Sorting
-    if ($sort_order === 'DESC') {
-        $args['orderby'] = 'title';
-        $args['order'] = 'DESC';
-    } else {
-        $args['orderby'] = 'title';
-        $args['order'] = 'ASC';
-    }
+    // // Sorting
+    // if ($sort_order === 'DESC') {
+    //     $args['orderby'] = 'title';
+    //     $args['order'] = 'DESC';
+    // } else {
+    //     $args['orderby'] = 'title';
+    //     $args['order'] = 'ASC';
+    // }
 
     // Semester filtering
     if (!empty($selected_semesters)) {
@@ -152,71 +152,69 @@ function sd_project_display($atts) {
     echo '</div>';
 
     echo '<div id="sd-projects">';
-    if ($query->have_posts()) {
-        // Get all posts and organize them by semester
+        if ($query->have_posts()) {
+        // Group projects by semester without sorting them first
         $semester_groups = array();
         while ($query->have_posts()) : $query->the_post();
-        $terms = get_the_terms(get_the_ID(), 'sd_semester');
-        $semester = $terms ? $terms[0]->name : '';
-    
-        if (!isset($semester_groups[$semester])) {
-            $semester_groups[$semester] = array();
+            $terms = get_the_terms(get_the_ID(), 'sd_semester');
+            $semester = $terms ? $terms[0]->name : '';
+
+            if (!isset($semester_groups[$semester])) {
+                $semester_groups[$semester] = array();
+            }
+
+            $title = get_the_title();
+            ob_start();
+            $short_report   = get_field('short_report_file');
+            $long_report    = get_field('long_report_file');
+            $presentation   = get_field('presentation_slides_file');
+            $contributors   = get_field('project_contributors');
+            $sponsor        = get_field('sponsor');
+
+            echo '<div class="card-box col-12">';
+            echo '<div class="card sd-card">';
+            echo '    <div class="card-body">';
+            echo '        <h5 class="card-title my-3">' . esc_html($title) . '</h5>';
+            if ($sponsor)
+                echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
+            if ($contributors)
+                echo '        <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
+            if ($short_report || $long_report || $presentation) {
+                echo '        <p class="my-1"><strong>View: </strong>';
+                if ($short_report)
+                    echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
+                if ($long_report)
+                    echo '            <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
+                if ($presentation)
+                    echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
+                echo '        </p>';
+            }
+            echo '    </div>';
+            echo '</div>';
+            echo '</div>';
+
+            $semester_groups[$semester][] = array(
+                'title'   => $title,
+                'content' => ob_get_clean()
+            );
+        endwhile;
+
+        // Optionally, sort semesters in reverse chronological order (if your labels allow that)
+        krsort($semester_groups);
+
+        // Now, for each semester group, sort the projects alphabetically by title (A-Z)
+        foreach ($semester_groups as $semester => $posts) {
+            usort($posts, function($a, $b) {
+                return strcmp($a['title'], $b['title']);
+            });
+
+            echo '<h3 class="w-100 mt-4 mb-3">' . esc_html($semester) . '</h3>';
+            echo '<div class="row">';
+            foreach ($posts as $post_data) {
+                echo $post_data['content'];
+            }
+            echo '</div>';
         }
-        
-        // Store title along with content
-        $title = get_the_title();
-        ob_start();
-        $short_report   = get_field('short_report_file');
-        $long_report    = get_field('long_report_file');
-        $presentation   = get_field('presentation_slides_file');
-        $contributors   = get_field('project_contributors');
-        $sponsor        = get_field('sponsor');
-    
-        echo '<div class="card-box col-12">';
-        echo '<div class="card sd-card">';
-        echo '    <div class="card-body">';
-        echo '        <h5 class="card-title my-3">' . esc_html($title) . '</h5>';
-        if ($sponsor)
-            echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
-        if ($contributors)
-            echo '        <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
-        if ($short_report || $long_report || $presentation) {
-            echo '        <p class="my-1"><strong>View: </strong>';
-            if ($short_report)
-                echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
-            if ($long_report)
-                echo '            <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
-            if ($presentation)
-                echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
-            echo '        </p>';
-        }
-        echo '    </div>';
-        echo '</div>';
-        echo '</div>';
-    
-        $semester_groups[$semester][] = array(
-            'title'   => $title,
-            'content' => ob_get_clean()
-        );
-    endwhile;
-    
-    // Optionally, sort semesters in reverse chronological order (if your labels allow that)
-    krsort($semester_groups);
-    
-    // Output each semester group with projects sorted A-Z by title
-    foreach ($semester_groups as $semester => $posts) {
-        // Sort posts alphabetically by title
-        usort($posts, function($a, $b) {
-            return strcmp($a['title'], $b['title']);
-        });
-    
-        echo '<h3 class="w-100 mt-4 mb-3">' . esc_html($semester) . '</h3>';
-        echo '<div class="row">';
-        foreach ($posts as $post_data) {
-            echo $post_data['content'];
-        }
-        echo '</div>';
-    }
 
         // Pagination controls
         $total_pages = $query->max_num_pages;
