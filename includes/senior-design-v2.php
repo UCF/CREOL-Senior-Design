@@ -151,38 +151,67 @@ function sd_project_display($atts) {
     echo '  </div>';
     echo '</div>';
 
-    echo '<div id="sd-projects">';
-    if ($query->have_posts()) {
-        while ($query->have_posts()) : $query->the_post();
-            $short_report = get_field('short_report_file');
-            $long_report = get_field('long_report_file');
-            $presentation = get_field('presentation_slides_file');
-            $contributors = get_field('project_contributors');
-            $sponsor = get_field('sponsor');
+    // After running your WP_Query and before any output
+    $grouped_projects = array();
 
+    // Loop projects and group them by semester term
+    if ( $query->have_posts() ) {
+        while ( $query->have_posts() ) {
+            $query->the_post();
+            $post_id = get_the_ID();
+            $terms = get_the_terms( $post_id, 'sd_semester' );
+            
+            if ( $terms && ! is_wp_error( $terms ) ) {
+                foreach ( $terms as $term ) {
+                    $grouped_projects[ $term->slug ][] = $post_id;
+                }
+            } else {
+                // Optionally group projects with no semester under an "uncategorized" key
+                $grouped_projects['uncategorized'][] = $post_id;
+            }
+        }
+        wp_reset_postdata();
+    }
+
+    // Now, output each semester group:
+    foreach ( $grouped_projects as $semester_slug => $posts ) {
+        // Get term details for header display; handle 'uncategorized' if needed
+        if ( 'uncategorized' === $semester_slug ) {
+            $semester_name = 'Uncategorized';
+        } else {
+            $term_obj = get_term_by( 'slug', $semester_slug, 'sd_semester' );
+            $semester_name = $term_obj ? $term_obj->name : $semester_slug;
+        }
+        
+        echo '<h2>' . esc_html( $semester_name ) . ' Projects</h2>';
+        echo '<div class="semester-projects">';
+        
+        foreach ( $posts as $post_id ) {
+            // Option 1: Setup post data each time
+            $post = get_post( $post_id );
+            setup_postdata( $post );
+            
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">Title: ' . get_the_title() . '</h5>';
-            if ($sponsor)
-                echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
-            if ($contributors)
-                echo '        <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
-            if ($short_report || $long_report || $presentation) {
-                echo '        <p class="my-1"><strong>View: </strong>';
-                if ($short_report)
-                    echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
-                if ($long_report)
-                    echo '            <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
-                if ($presentation)
-                    echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
-                echo '        </p>';
-            };
+            echo '        <h5 class="card-title my-3">Title: ' . get_the_title( $post_id ) . '</h5>';
+            $sponsor = get_field( 'sponsor', $post_id );
+            if ( $sponsor ) {
+                echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html( $sponsor ) . '</p>';
+            }
+            $contributors = get_field( 'project_contributors', $post_id );
+            if ( $contributors ) {
+                echo '        <p class="my-1"><strong>Members: </strong>' . esc_html( $contributors ) . '</p>';
+            }
+            // Add other project fields as needed
             echo '    </div>';
             echo '</div>';
             echo '</div>';
-        endwhile;
+            
+        }
+        wp_reset_postdata();
         echo '</div>';
+    }
 
         // Pagination controls
         $total_pages = $query->max_num_pages;
