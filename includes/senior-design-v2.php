@@ -189,11 +189,11 @@ function sd_project_display($atts) {
             $post = get_post( $post_id );
             setup_postdata( $post );
             
-            $short_report = get_field('short_report_file');
-            $long_report = get_field('long_report_file');
-            $presentation = get_field('presentation_slides_file');
-            $contributors = get_field('project_contributors');
-            $sponsor = get_field('sponsor');
+            $short_report = get_field('short_report_file', $post_id);
+            $long_report = get_field('long_report_file', $post_id);
+            $presentation = get_field('presentation_slides_file', $post_id);
+            $contributors = get_field('project_contributors', $post_id);
+            $sponsor = get_field('sponsor', $post_id);
             
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
