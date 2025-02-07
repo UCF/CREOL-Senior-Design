@@ -151,41 +151,6 @@ function sd_project_display($atts) {
     echo '  </div>';
     echo '</div>';
 
-    // Build an array of projects grouped by semester
-    $projectsBySemester = [];
-
-    if ($query->have_posts()) {
-        while ($query->have_posts()) : $query->the_post();
-            // Retrieve the project's semester terms
-            $semesters = get_the_terms(get_the_ID(), 'sd_semester');
-            if ($semesters && !is_wp_error($semesters)) {
-                foreach ($semesters as $semester) {
-                    $projectsBySemester[$semester->name][] = get_the_ID();
-                }
-            }
-        endwhile;
-    }
-
-    // Now output the projects grouped by semester
-    foreach ($projectsBySemester as $semester_name => $project_ids) {
-        echo '<h3>' . esc_html($semester_name) . '</h3>';
-        foreach ($project_ids as $post_id) {
-            // Setup post data for each project
-            $post = get_post($post_id);
-            setup_postdata($post);
-            
-            echo '<div class="card-box col-12">';
-            echo '<div class="card sd-card">';
-            echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">Title: ' . get_the_title($post_id) . '</h5>';
-            // Add additional project details as needed...
-            echo '    </div>';
-            echo '</div>';
-            echo '</div>';
-        }
-        wp_reset_postdata();
-    }
-
     echo '<div id="sd-projects">';
     if ($query->have_posts()) {
         while ($query->have_posts()) : $query->the_post();
