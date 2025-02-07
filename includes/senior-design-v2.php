@@ -35,6 +35,34 @@ function sd_project_display($atts) {
         wp_reset_postdata();
     }
 
+    // Define the order of terms within a year
+    $term_order = array('spring' => 1, 'summer' => 2, 'fall' => 3);
+
+    // Sort the grouped projects based on year and term order
+    uksort($grouped_projects, function($a, $b) use ($term_order) {
+        // Extract year and term from the slug
+        preg_match('/(spring|summer|fall)-(\d{4})/', $a, $matches_a);
+        preg_match('/(spring|summer|fall)-(\d{4})/', $b, $matches_b);
+
+        if ($matches_a && $matches_b) {
+            $term_a = $matches_a[1];
+            $year_a = (int)$matches_a[2];
+            $term_b = $matches_b[1];
+            $year_b = (int)$matches_b[2];
+
+            // Compare years first
+            if ($year_a !== $year_b) {
+                return $year_b - $year_a; // Descending order for years
+            }
+
+            // If years are the same, compare terms
+            return $term_order[$term_a] - $term_order[$term_b];
+        }
+
+        // Handle cases where the slug doesn't match the pattern
+        return strcmp($a, $b);
+    });
+
     // Now, output each semester group:
     foreach ($grouped_projects as $semester_slug => $posts) {
         if ('uncategorized' === $semester_slug) {
