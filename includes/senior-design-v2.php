@@ -1,15 +1,14 @@
 <?php
 /**
  * Plugin Name: SD Project Display Shortcode
- * Description: Shortcode to display projects with filtering, search, pagination, and now sorting by sd_semester.
- * Version: 1.0
+ * Description: Shortcode to display projects with filtering, search, pagination, and sorting by sd_semester. Projects are grouped by semester.
+ * Version: 1.1
  * Author: Your Name
  */
 
 /**
  * Filter function to modify the WP_Query clauses when ordering by sd_semester.
- * This function joins the term relationship, term taxonomy, and terms tables
- * and orders the posts by the sd_semester term name.
+ * This function joins the taxonomy tables and orders posts by the sd_semester term name.
  *
  * @param array    $clauses The query clauses.
  * @param WP_Query $query   The current WP_Query instance.
@@ -19,26 +18,25 @@ function sd_orderby_semester( $clauses, $query ) {
     global $wpdb;
     // Only modify the query if ordering by sd_semester.
     if ( 'sd_semester' === $query->get('orderby') ) {
-        // Join the term relationship, term taxonomy, and terms tables.
+        // Join term relationship, term taxonomy, and terms tables.
         $clauses['join'] .= " LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id ";
         $clauses['join'] .= " LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id ";
         $clauses['join'] .= " LEFT JOIN {$wpdb->terms} AS t ON tt.term_id = t.term_id ";
-        // Limit the join to the sd_semester taxonomy.
+        // Limit to the sd_semester taxonomy.
         $clauses['where'] .= " AND tt.taxonomy = 'sd_semester' ";
-        // Ensure the order is either ASC or DESC.
+        // Validate order.
         $order = strtoupper( $query->get('order') );
         if ( ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
             $order = 'ASC';
         }
-        // Order by the term name and use post date as a fallback.
+        // Order by the term name (and then by post date as a fallback).
         $clauses['orderby'] = "t.name $order, {$wpdb->posts}.post_date DESC";
     }
     return $clauses;
 }
 
 /**
- * Shortcode to display projects with filter, search, and pagination.
- * The projects are now sorted by their sd_semester taxonomy term.
+ * Shortcode to display projects with filter, search, pagination, and grouping by semester.
  *
  * @param array $atts Shortcode attributes.
  * @return string HTML output for the projects.
@@ -47,7 +45,8 @@ function sd_project_display($atts) {
     ob_start();
     
     // Get query variables.
-    $sort_order = isset($_GET['sort_order']) ? sanitize_text_field(wp_unslash($_GET['sort_order'])) : 'ASC';
+    // Default sort_order is now 'DESC'.
+    $sort_order = isset($_GET['sort_order']) ? sanitize_text_field(wp_unslash($_GET['sort_order'])) : 'DESC';
     $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_semesters']))) : [];
     $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';    
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
@@ -69,7 +68,7 @@ function sd_project_display($atts) {
         's'              => $search, // Searches in post title and content.
         // Sorting by the sd_semester taxonomy term name.
         'orderby'        => 'sd_semester',
-        'order'          => $sort_order === 'DESC' ? 'DESC' : 'ASC',
+        'order'          => $sort_order === 'ASC' ? 'ASC' : 'DESC',
     );
     
     // Semester filtering.
@@ -120,7 +119,15 @@ function sd_project_display($atts) {
         }
         .select2-container .select2-selection--multiple {
             padding: 10px;
-        }   
+        }
+        .semester-header {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            font-size: 1.5em;
+            color: #333;
+        }
     </style>
     <?php     
 
@@ -151,13 +158,12 @@ function sd_project_display($atts) {
     // Filter group 1 (Semester sort order).
     echo '      <label for="filterGroup1">Sort by Semester</label>';
     echo '      <div class="form-check mb-4" id="filterGroup1">';
+    // Radio button labels adjusted to "Ascending" and "Descending".
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1">';
-    echo '              A-Z';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1"> Ascending';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2">';
-    echo '              Z-A';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Descending';
     echo '          </label>';
     echo '      </div>';
 
@@ -187,7 +193,28 @@ function sd_project_display($atts) {
 
     echo '<div id="sd-projects">';
     if ($query->have_posts()) {
+
+        // Track the current semester header so we output it once per group.
+        $current_semester = '';
+
         while ($query->have_posts()) : $query->the_post();
+
+            // Get the semester term associated with the current project.
+            $project_terms = get_the_terms(get_the_ID(), 'sd_semester');
+            if ( $project_terms && ! is_wp_error($project_terms) ) {
+                // Since each project has one term, use the first.
+                $project_semester = $project_terms[0]->name;
+            } else {
+                $project_semester = 'Uncategorized';
+            }
+
+            // If this project's semester is different from the previous one, output a header.
+            if ($project_semester !== $current_semester) {
+                echo '<h3 class="semester-header">' . esc_html($project_semester) . '</h3>';
+                $current_semester = $project_semester;
+            }
+
+            // Retrieve custom fields.
             $short_report  = get_field('short_report_file');
             $long_report   = get_field('long_report_file');
             $presentation  = get_field('presentation_slides_file');
@@ -195,30 +222,30 @@ function sd_project_display($atts) {
             $sponsor       = get_field('sponsor');
 
             echo '<div class="card-box col-12">';
-            echo '<div class="card sd-card">';
-            echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">Title: ' . get_the_title() . '</h5>';
+            echo '  <div class="card sd-card">';
+            echo '      <div class="card-body">';
+            echo '          <h5 class="card-title my-3">Title: ' . get_the_title() . '</h5>';
             if ($sponsor) {
-                echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
+                echo '          <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . '</p>';
             }
             if ($contributors) {
-                echo '        <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
+                echo '          <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
             }
             if ($short_report || $long_report || $presentation) {
-                echo '        <p class="my-1"><strong>View: </strong>';
+                echo '          <p class="my-1"><strong>View: </strong>';
                 if ($short_report) {
-                    echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
+                    echo '              <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
                 }
                 if ($long_report) {
-                    echo '            <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
+                    echo '              <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
                 }
                 if ($presentation) {
-                    echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
+                    echo '              <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
                 }
-                echo '        </p>';
+                echo '          </p>';
             }
-            echo '    </div>';
-            echo '</div>';
+            echo '      </div>';
+            echo '  </div>';
             echo '</div>';
         endwhile;
         echo '</div>';
@@ -262,10 +289,11 @@ function sd_project_display($atts) {
         const selectedSemesters = params.get('selected_semesters');
         const search = params.get('search');
 
-        if (sortOrder === 'DESC') {
-            filter1Option2.checked = true;
-        } else {
+        // Default to descending if sort_order is not set.
+        if (sortOrder === 'ASC') {
             filter1Option1.checked = true;
+        } else {
+            filter1Option2.checked = true;
         }
 
         if (selectedSemesters) {
