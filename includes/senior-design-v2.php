@@ -36,7 +36,7 @@ function sd_project_display($atts) {
     }
 
     // Define the order of terms within a year
-    $term_order = array('spring' => 1, 'summer' => 2, 'fall' => 3);
+    $term_order = array('spring' => 1, 'fall' => 2, 'summer' => 3);
 
     // Sort the grouped projects based on year and term order
     uksort($grouped_projects, function($a, $b) use ($term_order) {
