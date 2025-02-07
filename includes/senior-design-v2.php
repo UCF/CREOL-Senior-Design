@@ -1,5 +1,22 @@
 <?php
 
+function sd_order_by_taxonomy( $clauses, $wp_query ) {
+    // Only modify if our query uses the custom 'term_order' ordering
+    if ( isset( $wp_query->query_vars['orderby'] ) && 'term_order' === $wp_query->query_vars['orderby'] ) {
+      global $wpdb;
+      // Join term relationship and term taxonomy tables for sd_semester taxonomy
+      $clauses['join'] .= " LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id";
+      $clauses['join'] .= " LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id";
+      // Ensure we use only sd_semester terms
+      $clauses['where'] .= " AND tt.taxonomy = 'sd_semester'";
+      // Order by the term_order column (or change to tt.name to sort alphabetically)
+      $order = $wp_query->get( 'order' );
+      $clauses['orderby'] = "tt.term_order " . $order;
+    }
+    return $clauses;
+  }
+  add_filter( 'posts_clauses', 'sd_order_by_taxonomy', 10, 2 );
+
 // Shortcode to display projects with filter, search, and pagination
 function sd_project_display($atts) {
     ob_start();
@@ -26,12 +43,12 @@ function sd_project_display($atts) {
         's' => $search, // This will search in post title and content
     );
     
-    // Sorting
+    // Sorting based on the associated sd_semester taxonomy term order
     if ($sort_order === 'DESC') {
-        $args['orderby'] = 'title';
+        $args['orderby'] = 'term_order'; // custom key, see filter below
         $args['order'] = 'DESC';
     } else {
-        $args['orderby'] = 'title';
+        $args['orderby'] = 'term_order';
         $args['order'] = 'ASC';
     }
 
