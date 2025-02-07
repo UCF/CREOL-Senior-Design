@@ -175,7 +175,7 @@ function sd_project_display($atts) {
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">' . get_the_title() . '</h5>';
+            echo '        <h5 class="card-title my-3">' . get_the_title($post_id) . '</h5>';
             if ($sponsor)
                 echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
             if ($contributors)
