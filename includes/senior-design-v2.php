@@ -27,7 +27,7 @@ function sd_orderby_semester( $clauses, $query ) {
         // Validate order.
         $order = strtoupper( $query->get('order') );
         if ( ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
-            $order = 'ASC';
+            $order = 'DESC';
         }
         // Order by the term name (and then by post date as a fallback).
         $clauses['orderby'] = "t.name $order, {$wpdb->posts}.post_date DESC";
