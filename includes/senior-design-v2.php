@@ -268,9 +268,9 @@ function sd_project_display($atts) {
             echo '</ul></nav>';
             echo '</div>';
         }
-        } else {
-        echo '<p>No projects found.</p>';
-        }
+        // } else {
+        // echo '<p>No projects found.</p>';
+        // }
 
         ?>
         <script>
