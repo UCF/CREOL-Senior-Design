@@ -24,8 +24,8 @@ function sd_project_display($atts) {
         'posts_per_page' => 10,
         'paged' => $paged,
         's' => $search, // This will search in post title and content
-        'orderby' => 'meta_value',
-        'meta_key' => 'sd_semester',
+        'orderby_taxonomy' => 'sd_semester', // Custom query var to sort projects by their semester term name
+        'order' => $sort_order,
     );
     
     // // Sorting
