@@ -5,13 +5,12 @@ function sd_project_display($atts) {
     ob_start();
     
     // Get query variables
-    $sort_order = isset($_GET['sort_order']) ? sanitize_text_field(wp_unslash($_GET['sort_order'])) : 'ASC';
     $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_semesters']))) : [];
     $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';    
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Generate a unique cache key based on the query parameters
-    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'selected_semesters', 'search', 'paged')));
+    $cache_key = 'sd_project_display_' . md5(serialize(compact('selected_semesters', 'search', 'paged')));
     $cached_results = false; // get_transient($cache_key);
 
     if ($cached_results !== false) {
@@ -25,7 +24,7 @@ function sd_project_display($atts) {
         'paged' => $paged,
         's' => $search, // This will search in post title and content
         'orderby_taxonomy' => 'sd_semester', // Custom query var to sort projects by their semester term name
-        'order' => $sort_order,
+        'order' => 'ASC',
     );
 
     // Semester filtering
@@ -107,20 +106,7 @@ function sd_project_display($atts) {
     echo '<div class="collapse filters-collapse mb-4" id="filtersCollapse">';
     echo '  <div class="card card-block">';
     
-    // Filter group 1 (A-Z + Z-A)
-    echo '      <label for="filterGroup1">Sort by title</label>';
-    echo '      <div class="form-check mb-4" id="filterGroup1">';
-    echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1">';
-    echo '              A-Z';
-    echo '          </label>';
-    echo '          <label class="form-check-label mr-2" for="filter1Option2">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2">';
-    echo '              Z-A';
-    echo '          </label>';
-    echo '      </div>';
-
-    // Filter group 2 (Semester selector)
+    // Filter group: Semester selector
     echo '      <label for="filterGroup2">Semester Select</label>';
     echo '      <div class="form-check mb-4" id="filterGroup2">';
     echo '          <select class="form-control mb-4" name="filter2" id="filter2Option1">';
@@ -241,22 +227,13 @@ function sd_project_display($atts) {
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const searchInput = document.getElementById('searchFilter');
         const filter2Dropdown = document.getElementById('filter2Option1');
-        const filter1Option1 = document.getElementById('filter1Option1');
-        const filter1Option2 = document.getElementById('filter1Option2');
         const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
         const paginationContainer = document.getElementById('pagination-container');
 
         // Set defaults
         var params = new URLSearchParams(window.location.search);
-        const sortOrder = params.get('sort_order');
         const selectedSemesters = params.get('selected_semesters');
         const search = params.get('search');
-
-        if (sortOrder === 'DESC') {
-            filter1Option2.checked = true;
-        } else {
-            filter1Option1.checked = true;
-        }
 
         if (selectedSemesters) {
             filter2Dropdown.value = 'option2';
@@ -279,20 +256,6 @@ function sd_project_display($atts) {
             form.addEventListener('submit', function(event) {
                 event.preventDefault();
                 hideProjects();
-                updateURL();
-                fetchProjects();
-            });
-        }
-
-        if (filter1Option1) {
-            filter1Option1.addEventListener('change', function() {
-                updateURL();
-                fetchProjects();
-            });
-        }
-
-        if (filter1Option2) {
-            filter1Option2.addEventListener('change', function() {
                 updateURL();
                 fetchProjects();
             });
@@ -356,9 +319,6 @@ function sd_project_display($atts) {
             } else {
                 params.delete('search');
             }
-
-            const sortOrder = filter1Option1.checked ? 'ASC' : 'DESC';
-            params.set('sort_order', sortOrder);
 
             if (filter2Dropdown.value === 'option2') {
                 const selectedSemesters = $(multiSemesterSelector).val();
