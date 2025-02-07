@@ -189,6 +189,7 @@ function sd_project_display($atts) {
             $post = get_post( $post_id );
             setup_postdata( $post );
             
+            $title = get_field( 'title', $post_id );
             $short_report = get_field('short_report_file', $post_id);
             $long_report = get_field('long_report_file', $post_id);
             $presentation = get_field('presentation_slides_file', $post_id);
@@ -198,7 +199,7 @@ function sd_project_display($atts) {
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">Title: ' . get_the_title() . '</h5>';
+            echo '        <h5 class="card-title my-3">Title: ' . esc_html($title) . '</h5>';
             if ($sponsor)
                 echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
             if ($contributors)
