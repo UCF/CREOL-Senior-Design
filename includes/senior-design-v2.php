@@ -171,6 +171,8 @@ function sd_project_display($atts) {
             }
         }
         wp_reset_postdata();
+    } else {
+        echo '<p>No projects found.</p>';
     }
 
     // Now, output each semester group:
@@ -213,29 +215,26 @@ function sd_project_display($atts) {
         echo '</div>';
     }
 
-        // Pagination controls
-        $total_pages = $query->max_num_pages;
-        if ($total_pages > 1) {
-            echo '<div id="pagination-container">';
-            echo '<nav aria-label="Page navigation">';
-            echo '<ul class="pagination justify-content-center">';
+    // Pagination controls
+    $total_pages = $query->max_num_pages;
+    if ($total_pages > 1) {
+        echo '<div id="pagination-container">';
+        echo '<nav aria-label="Page navigation">';
+        echo '<ul class="pagination justify-content-center">';
 
-            $current_page = max(1, get_query_var('paged'));
+        $current_page = max(1, get_query_var('paged'));
 
-            for ($i = 1; $i <= $total_pages; $i++) {
-            if ($i == $current_page) {
-                echo '<li class="page-item active"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-            } else {
-                echo '<li class="page-item"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-            }
-            }
-
-            echo '</ul></nav>';
-            echo '</div>';
-        }
+        for ($i = 1; $i <= $total_pages; $i++) {
+        if ($i == $current_page) {
+            echo '<li class="page-item active"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
         } else {
-        echo '<p>No projects found.</p>';
+            echo '<li class="page-item"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
         }
+        }
+
+        echo '</ul></nav>';
+        echo '</div>';
+    }
 
         ?>
         <script>
