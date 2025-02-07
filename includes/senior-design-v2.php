@@ -27,15 +27,6 @@ function sd_project_display($atts) {
         'orderby_taxonomy' => 'sd_semester', // Custom query var to sort projects by their semester term name
         'order' => $sort_order,
     );
-    
-    // // Sorting
-    // if ($sort_order === 'DESC') {
-    //     // $args['orderby'] = 'title';
-    //     // $args['order'] = 'DESC';
-    // } else {
-    //     // $args['orderby'] = 'title';
-    //     // $args['order'] = 'ASC';
-    // }
 
     // Semester filtering
     if (!empty($selected_semesters)) {
@@ -61,33 +52,33 @@ function sd_project_display($atts) {
     ?>
     <style>
         .sd-card {
-        border-radius: 12px;
-        border-style: none;
-        box-shadow: 0 0 10px 0 rgba(0, 0, 0, .15);
-        margin-bottom: 20px;
-        padding: 20px;
-        transition: box-shadow .3s ease-in-out;
+            border-radius: 12px;
+            border-style: none;
+            box-shadow: 0 0 10px 0 rgba(0, 0, 0, .15);
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: box-shadow .3s ease-in-out;
         }
 
         .sd-card:hover {
-        box-shadow: 0 0 10px 2px rgba(0, 0, 0, .15);
+            box-shadow: 0 0 10px 2px rgba(0, 0, 0, .15);
         }
 
         .hidden {
-        display: none;
+            display: none;
         }
 
         .load-message {
-        display: block;
+            display: block;
         }
 
         .filters-collapse {
-        margin-top: 10px;
-        width: 100%;
+            margin-top: 10px;
+            width: 100%;
         }
 
         .select2-container .select2-selection--multiple {
-        padding: 10px;
+            padding: 10px;
         }   
     </style>
     <?php     
@@ -189,7 +180,6 @@ function sd_project_display($atts) {
             $post = get_post( $post_id );
             setup_postdata( $post );
             
-            $title = get_field( 'title', $post_id );
             $short_report = get_field('short_report_file', $post_id);
             $long_report = get_field('long_report_file', $post_id);
             $presentation = get_field('presentation_slides_file', $post_id);
@@ -199,7 +189,7 @@ function sd_project_display($atts) {
             echo '<div class="card-box col-12">';
             echo '<div class="card sd-card">';
             echo '    <div class="card-body">';
-            echo '        <h5 class="card-title my-3">Title: ' . esc_html($title) . '</h5>';
+            echo '        <h5 class="card-title my-3">Title: ' . get_the_title($post_id) . '</h5>';
             if ($sponsor)
                 echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
             if ($contributors)
@@ -222,66 +212,31 @@ function sd_project_display($atts) {
         echo '</div>';
     }
 
-    // echo '<div id="sd-projects">';
-    // if ($query->have_posts()) {
-    //     while ($query->have_posts()) : $query->the_post();
-    //         $short_report = get_field('short_report_file');
-    //         $long_report = get_field('long_report_file');
-    //         $presentation = get_field('presentation_slides_file');
-    //         $contributors = get_field('project_contributors');
-    //         $sponsor = get_field('sponsor');
+    // Pagination controls
+    $total_pages = $query->max_num_pages;
+    if ($total_pages > 1) {
+        echo '<div id="pagination-container">';
+        echo '<nav aria-label="Page navigation">';
+        echo '<ul class="pagination justify-content-center">';
 
-    //         echo '<div class="card-box col-12">';
-    //         echo '<div class="card sd-card">';
-    //         echo '    <div class="card-body">';
-    //         echo '        <h5 class="card-title my-3">Title: ' . get_the_title() . '</h5>';
-    //         if ($sponsor)
-    //             echo '        <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . ' </p>';
-    //         if ($contributors)
-    //             echo '        <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
-    //         if ($short_report || $long_report || $presentation) {
-    //             echo '        <p class="my-1"><strong>View: </strong>';
-    //             if ($short_report)
-    //                 echo '            <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
-    //             if ($long_report)
-    //                 echo '            <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
-    //             if ($presentation)
-    //                 echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
-    //             echo '        </p>';
-    //         };
-    //         echo '    </div>';
-    //         echo '</div>';
-    //         echo '</div>';
-    //     endwhile;
-    //     echo '</div>';
+        $current_page = max(1, get_query_var('paged'));
 
-        // Pagination controls
-        $total_pages = $query->max_num_pages;
-        if ($total_pages > 1) {
-            echo '<div id="pagination-container">';
-            echo '<nav aria-label="Page navigation">';
-            echo '<ul class="pagination justify-content-center">';
-
-            $current_page = max(1, get_query_var('paged'));
-
-            for ($i = 1; $i <= $total_pages; $i++) {
+        for ($i = 1; $i <= $total_pages; $i++) {
             if ($i == $current_page) {
                 echo '<li class="page-item active"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
             } else {
                 echo '<li class="page-item"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
             }
-            }
-
-            echo '</ul></nav>';
-            echo '</div>';
         }
-        // } else {
-        // echo '<p>No projects found.</p>';
-        // }
 
-        ?>
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        echo '</ul></nav>';
+        echo '</div>';
+    } else {
+        echo '<p>No projects found.</p>';
+    }
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
         const form = document.getElementById('utility-bar');
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const searchInput = document.getElementById('searchFilter');
@@ -322,73 +277,73 @@ function sd_project_display($atts) {
         // Event listeners
         if (form) {
             form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            hideProjects();
-            updateURL();
-            fetchProjects();
+                event.preventDefault();
+                hideProjects();
+                updateURL();
+                fetchProjects();
             });
         }
 
         if (filter1Option1) {
             filter1Option1.addEventListener('change', function() {
-            updateURL();
-            fetchProjects();
+                updateURL();
+                fetchProjects();
             });
         }
 
         if (filter1Option2) {
             filter1Option2.addEventListener('change', function() {
-            updateURL();
-            fetchProjects();
+                updateURL();
+                fetchProjects();
             });
         }
 
         if (filter2Dropdown) {
             filter2Dropdown.addEventListener('change', function() {
-            const selectedValue = filter2Dropdown.value;
+                const selectedValue = filter2Dropdown.value;
 
-            if (selectedValue === 'option2') {
-            multiSemesterCollapse.classList.add('show');
-            } else {
-            multiSemesterCollapse.classList.remove('show');
-            }
-            updateURL();
-            fetchProjects();
+                if (selectedValue === 'option2') {
+                    multiSemesterCollapse.classList.add('show');
+                } else {
+                    multiSemesterCollapse.classList.remove('show');
+                }
+                updateURL();
+                fetchProjects();
             });
         }
 
         if (multiSemesterSelector) {
             $(multiSemesterSelector).on('change', function() {
-            updateURL();
-            fetchProjects();
+                updateURL();
+                fetchProjects();
             });
         }
 
         if (searchInput) {
             searchInput.addEventListener('input', debounce(function() {
-            updateURL();
-            fetchProjects();
+                updateURL();
+                fetchProjects();
             }, 300));
         }
 
         if (paginationContainer) {
             paginationContainer.addEventListener('click', function(event) {
-            const target = event.target;
-            if (target.tagName === 'A' && target.dataset.page) {
-            event.preventDefault();
-            const page = target.dataset.page;
-            updateURL(page);
-            fetchProjects(page);
-            }
+                const target = event.target;
+                if (target.tagName === 'A' && target.dataset.page) {
+                    event.preventDefault();
+                    const page = target.dataset.page;
+                    updateURL(page);
+                    fetchProjects(page);
+                }
             });
         }
 
         function debounce(func, wait) {
             let timeout;
             return function(...args) {
-            const context = this;
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), wait);
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
             };
         }
 
@@ -397,23 +352,23 @@ function sd_project_display($atts) {
             const params = new URLSearchParams(url.search);
 
             if (searchInput.value.trim()) {
-            params.set('search', searchInput.value.trim());
+                params.set('search', searchInput.value.trim());
             } else {
-            params.delete('search');
+                params.delete('search');
             }
 
             const sortOrder = filter1Option1.checked ? 'ASC' : 'DESC';
             params.set('sort_order', sortOrder);
 
             if (filter2Dropdown.value === 'option2') {
-            const selectedSemesters = $(multiSemesterSelector).val();
-            if (selectedSemesters && selectedSemesters.length > 0) {
-            params.set('selected_semesters', selectedSemesters.join(','));
+                const selectedSemesters = $(multiSemesterSelector).val();
+                if (selectedSemesters && selectedSemesters.length > 0) {
+                    params.set('selected_semesters', selectedSemesters.join(','));
+                } else {
+                    params.delete('selected_semesters');
+                }
             } else {
-            params.delete('selected_semesters');
-            }
-            } else {
-            params.delete('selected_semesters');
+                params.delete('selected_semesters');
             }
 
             params.set('paged', page);
@@ -434,20 +389,20 @@ function sd_project_display($atts) {
             fetch(decodedUrl)
             .then(response => response.text())
             .then(data => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data, 'text/html');
-            const projects = doc.getElementById('sd-projects');
-            const pagination = doc.getElementById('pagination-container');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const projects = doc.getElementById('sd-projects');
+                const pagination = doc.getElementById('pagination-container');
 
-            document.getElementById('sd-projects').innerHTML = projects.innerHTML;
-            if (pagination) {
-            document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
-            } else {
-            document.getElementById('pagination-container').innerHTML = '';
-            }
+                document.getElementById('sd-projects').innerHTML = projects.innerHTML;
+                if (pagination) {
+                    document.getElementById('pagination-container').innerHTML = pagination.innerHTML;
+                } else {
+                    document.getElementById('pagination-container').innerHTML = '';
+                }
 
-            // Update URL again with the decoded string
-            history.pushState(null, '', decodedUrl);
+                // Update URL again with the decoded string
+                history.pushState(null, '', decodedUrl);
             })
             .catch(error => console.error('Error fetching projects:', error));
         }
@@ -456,34 +411,34 @@ function sd_project_display($atts) {
             const projects = document.getElementById('sd-projects');
             const footer = document.getElementById('pagination-container');
             if (footer) {
-            footer.classList.add('hidden');
+                footer.classList.add('hidden');
             }
             if (projects) {
-            projects.innerHTML = ''; // Clear existing children
-            projects.classList.add('hidden');
-            projects.classList.add('load-message');
-            const pBlock = document.createElement('p');
-            const textNode = document.createTextNode('Loading...');
-            pBlock.appendChild(textNode);
-            projects.appendChild(pBlock);
+                projects.innerHTML = ''; // Clear existing children
+                projects.classList.add('hidden');
+                projects.classList.add('load-message');
+                const pBlock = document.createElement('p');
+                const textNode = document.createTextNode('Loading...');
+                pBlock.appendChild(textNode);
+                projects.appendChild(pBlock);
             }
         }
 
         $(function() {
             $('#multiSemesterSelector').select2({
-            placeholder: 'Select semesters',
-            allowClear: true,
-            dropdownParent: $('#filtersCollapse'),
+                placeholder: 'Select semesters',
+                allowClear: true,
+                dropdownParent: $('#filtersCollapse'),
             }).on('select2:unselecting', function() {
-            // Clear the semester params when the select2 is cleared
-            updateURL();
-            fetchProjects();
+                // Clear the semester params when the select2 is cleared
+                updateURL();
+                fetchProjects();
             });
         });
-        });
-        </script>
+    });
+    </script>
 
-        <?php
+    <?php
     wp_reset_postdata();
 
     // Cache the output for 1 hour
