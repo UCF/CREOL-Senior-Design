@@ -153,21 +153,17 @@ function sd_project_display($atts) {
 
     echo '<div id="sd-projects">';
     if ($query->have_posts()) {
-        // Group posts by semester
-        $current_semester = '';
+        // Get all posts and organize them by semester
+        $semester_groups = array();
         while ($query->have_posts()) : $query->the_post();
             $terms = get_the_terms(get_the_ID(), 'sd_semester');
             $semester = $terms ? $terms[0]->name : '';
             
-            if ($semester !== $current_semester) {
-            if ($current_semester !== '') {
-                echo '</div>'; // Close previous semester group
+            if (!isset($semester_groups[$semester])) {
+            $semester_groups[$semester] = array();
             }
-            echo '<h3 class="w-100 mt-4 mb-3">' . esc_html($semester) . '</h3>';
-            echo '<div class="row">'; // Start new semester group
-            $current_semester = $semester;
-            }
-
+            
+            ob_start();
             $short_report = get_field('short_report_file');
             $long_report = get_field('long_report_file');
             $presentation = get_field('presentation_slides_file');
@@ -191,13 +187,25 @@ function sd_project_display($atts) {
             if ($presentation)
                 echo '            <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
             echo '        </p>';
-            };
+            }
             echo '    </div>';
             echo '</div>';
             echo '</div>';
+            
+            $semester_groups[$semester][] = ob_get_clean();
         endwhile;
-        if ($current_semester !== '') {
-            echo '</div>'; // Close last semester group
+
+        // Sort semesters in reverse chronological order
+        krsort($semester_groups);
+
+        // Display the grouped content
+        foreach ($semester_groups as $semester => $posts) {
+            echo '<h3 class="w-100 mt-4 mb-3">' . esc_html($semester) . '</h3>';
+            echo '<div class="row">';
+            foreach ($posts as $post_content) {
+            echo $post_content;
+            }
+            echo '</div>';
         }
         echo '</div>';
 
