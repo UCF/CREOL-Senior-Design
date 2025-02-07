@@ -24,16 +24,18 @@ function sd_project_display($atts) {
         'posts_per_page' => 10,
         'paged' => $paged,
         's' => $search, // This will search in post title and content
+        'orderby' => 'meta_value',
+        'meta_key' => 'sd_semester',
     );
     
-    // Sorting
-    if ($sort_order === 'DESC') {
-        // $args['orderby'] = 'title';
-        // $args['order'] = 'DESC';
-    } else {
-        // $args['orderby'] = 'title';
-        // $args['order'] = 'ASC';
-    }
+    // // Sorting
+    // if ($sort_order === 'DESC') {
+    //     // $args['orderby'] = 'title';
+    //     // $args['order'] = 'DESC';
+    // } else {
+    //     // $args['orderby'] = 'title';
+    //     // $args['order'] = 'ASC';
+    // }
 
     // Semester filtering
     if (!empty($selected_semesters)) {
