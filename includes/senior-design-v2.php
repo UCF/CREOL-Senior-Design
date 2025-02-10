@@ -93,10 +93,10 @@ function sd_project_display($atts) {
         );
     }
     
-    // Add filter to modify WP_Query clauses for ordering by sd_semester.
-    add_filter('posts_clauses', 'sd_orderby_semester', 10, 2);
+    // Add our custom sorting filter.
+    add_filter('posts_clauses', 'sd_orderby_semester_date', 10, 2);
     $query = new WP_Query($args);
-    remove_filter('posts_clauses', 'sd_orderby_semester', 10);
+    remove_filter('posts_clauses', 'sd_orderby_semester_date', 10);
 
     ob_start();
     
