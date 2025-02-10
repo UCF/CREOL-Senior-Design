@@ -21,7 +21,7 @@ function select2_test_enqueue_scripts() {
 }
 add_action('wp_enqueue_scripts', 'select2_test_enqueue_scripts');
 
-// require_once 'includes/senior-design-layout.php';
+require_once 'functions.php';
 require_once 'includes/senior-design-v2.php';
 require_once 'includes/csv-to-cpt.php';
 
