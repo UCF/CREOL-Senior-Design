@@ -7,33 +7,44 @@
  */
 
 /**
- * Filter function to modify the WP_Query clauses when ordering by sd_semester.
- * This function joins the taxonomy tables and orders posts by the sd_semester term name.
+ * Filter function to modify WP_Query clauses when ordering by the taxonomy term meta 'semester_date'.
+ * This joins in the termmeta table for the sd_semester taxonomy and orders by the meta value.
  *
  * @param array    $clauses The query clauses.
  * @param WP_Query $query   The current WP_Query instance.
  * @return array Modified query clauses.
  */
-function sd_orderby_semester( $clauses, $query ) {
+function sd_orderby_semester_date( $clauses, $query ) {
     global $wpdb;
-    // Only modify the query if ordering by sd_semester.
-    if ( 'sd_semester' === $query->get('orderby') ) {
-        // Join term relationship, term taxonomy, and terms tables.
-        $clauses['join'] .= " LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id ";
-        $clauses['join'] .= " LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id ";
-        $clauses['join'] .= " LEFT JOIN {$wpdb->terms} AS t ON tt.term_id = t.term_id ";
-        // Limit to the sd_semester taxonomy.
+    
+    // Only modify the query if the 'orderby' parameter is set to our custom key.
+    if ( 'sd_semester_date' === $query->get('orderby') ) {
+        // Join the term relationships, term taxonomy, terms, and termmeta tables.
+        $clauses['join'] .= " 
+            LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id 
+            LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
+            LEFT JOIN {$wpdb->terms} AS t ON tt.term_id = t.term_id 
+            LEFT JOIN {$wpdb->termmeta} AS tm ON t.term_id = tm.term_id AND tm.meta_key = 'semester_date' 
+        ";
+        
+        // Ensure we are only dealing with the sd_semester taxonomy.
         $clauses['where'] .= " AND tt.taxonomy = 'sd_semester' ";
-        // Validate order.
+        
+        // Get the order direction.
         $order = strtoupper( $query->get('order') );
         if ( ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
             $order = 'DESC';
         }
-        // Order by the term name (and then by post date as a fallback).
-        $clauses['orderby'] = "t.name $order, {$wpdb->posts}.post_date DESC";
+        
+        // Order by the term meta value (cast to a decimal for proper numeric ordering),
+        // then by the term name as a fallback, and finally by the post date.
+        $clauses['orderby'] = "CAST(tm.meta_value AS DECIMAL(10,2)) $order, t.name $order, {$wpdb->posts}.post_date DESC";
     }
+    
     return $clauses;
 }
+add_filter('posts_clauses', 'sd_orderby_semester_date', 10, 2);
+
 
 /**
  * Shortcode to display projects with filter, search, pagination, and grouping by semester.
@@ -60,16 +71,16 @@ function sd_project_display($atts) {
         return ob_get_clean();
     }
 
-    // Build query arguments.
     $args = array(
         'post_type'      => 'sd_project',
         'posts_per_page' => 10,
         'paged'          => $paged,
         's'              => $search, // Searches in post title and content.
-        // Sorting by the sd_semester taxonomy term name.
-        'orderby'        => 'sd_semester',
+        // Use our custom orderby key so that our filter function runs.
+        'orderby'        => 'sd_semester_date',
         'order'          => $sort_order === 'ASC' ? 'ASC' : 'DESC',
     );
+    
     
     // Semester filtering.
     if ( ! empty( $selected_semesters ) ) {
