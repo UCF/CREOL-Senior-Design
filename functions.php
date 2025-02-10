@@ -1,3 +1,4 @@
+<?php
 // Add field to the add new term screen
 function sd_add_semester_date_field() {
     ?>
