@@ -171,10 +171,10 @@ function sd_project_display($atts) {
     echo '      <div class="form-check mb-4" id="filterGroup1">';
     // Radio button labels adjusted to "Ascending" and "Descending".
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1"> Ascending';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1"> Oldest';
     echo '          </label>';
     echo '          <label class="form-check-label mr-2" for="filter1Option2">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Descending';
+    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Newest';
     echo '          </label>';
     echo '      </div>';
 
