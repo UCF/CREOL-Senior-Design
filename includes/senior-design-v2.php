@@ -7,6 +7,32 @@
  */
 
 /**
+ * Note Section:
+ * 
+ * Working combinations:
+ * Single semester, no year
+ * No semester, single year
+ * No semester, no year
+ * Single semester, single year
+ * 
+ * Broken combinations:
+ * Single semester, many years
+ * Many semesters, no year
+ * Many semesters, single year
+ * Many semester, many years
+ * No semester, many years
+ * 
+ * Issues:
+ * - When selecting multiple semesters, the query returns all semesters and years (may it breaks and returns default?)
+ * - When selecting multiple years, the query returns nothing (maybe it attempts to return projects that fall under all years provided, essentially AND instead of OR?)
+ * 
+ * Potential solutions:
+ * - Look into the SQL query to see how the WHERE clause is being built.
+ * - Check the WHERE clause to ensure that it is using OR for multiple years and semesters.
+ * - Ensure that the WHERE clause is properly filtering the results based on the selected years and semesters.
+ */
+
+/**
  * Filter function to modify WP_Query clauses when ordering by the taxonomy term meta 'semester_date'
  * and filtering by selected years and semesters.
  *
@@ -22,11 +48,8 @@ function sd_orderby_semester_date( $clauses, $query ) {
     global $wpdb;
     
     if ( 'sd_semester_date' === $query->get('orderby') ) {
-        // Join taxonomy tables (this ensures that the aliases tt and t are defined)
+        // Join taxonomy tables (ensuring t and tt are defined)
         $clauses['join'] .= " 
-            LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id 
-            LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
-            LEFT JOIN {$wpdb->terms} AS t ON tt.term_id = t.term_id 
             LEFT JOIN {$wpdb->termmeta} AS tm ON t.term_id = tm.term_id AND tm.meta_key = 'semester_date' 
         ";
         
@@ -38,25 +61,23 @@ function sd_orderby_semester_date( $clauses, $query ) {
         if ( ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
             $order = 'DESC';
         }
-        // Order by the numeric meta value (cast as DECIMAL), then term name, then post date.
         $clauses['orderby'] = "CAST(tm.meta_value AS DECIMAL(10,2)) $order, t.name $order, {$wpdb->posts}.post_date DESC";
         
-        // --- Filtering: Apply conditions if year and/or semester filters are provided ---
+        // --- Filtering: Apply conditions based on selected years and semesters ---
         $selected_years = $query->get('selected_years');
         $selected_semesters = $query->get('selected_semesters');
         
         if (( ! empty( $selected_years ) && is_array($selected_years) ) || ( ! empty( $selected_semesters ) && is_array($selected_semesters) )) {
-            $conditions = array();
-            // Mapping of semester names to the numeric suffix as stored in semester_date.
+            // Mapping from semester names to numeric suffixes (adjust if needed).
             $semesterMap = array(
                 'Spring' => '1',
                 'Summer' => '2',
-                'Fall'   => '3'
-                // Add 'Winter' => '4' if needed.
+                'Fall'   => '3',
+                'Winter' => '4'
             );
             
+            // When both filters are provided, use an IN list.
             if ( ! empty( $selected_years ) && ! empty( $selected_semesters ) ) {
-                // Build a list of exact values (e.g., "2020.2" for Summer 2020).
                 $values = array();
                 foreach ( $selected_years as $year ) {
                     foreach ( $selected_semesters as $sem ) {
@@ -67,31 +88,28 @@ function sd_orderby_semester_date( $clauses, $query ) {
                 }
                 if ( ! empty( $values ) ) {
                     $in = "'" . implode("','", $values) . "'";
-                    $conditions[] = "tm.meta_value IN ($in)";
+                    $clauses['where'] .= " AND tm.meta_value IN ($in) ";
                 }
             } elseif ( ! empty( $selected_years ) ) {
-                // When only years are selected, match values starting with that year (e.g., "2020.%").
-                $yearClauses = array();
+                // Only years provided – match records with any matching year prefix.
+                $yearConditions = array();
                 foreach ( $selected_years as $year ) {
-                    $yearClauses[] = "tm.meta_value LIKE '" . esc_sql( $year ) . ".%'";
+                    $yearConditions[] = "tm.meta_value LIKE '" . esc_sql( $year ) . ".%'";
                 }
-                if ( $yearClauses ) {
-                    $conditions[] = "(" . implode(" OR ", $yearClauses) . ")";
+                if ( $yearConditions ) {
+                    $clauses['where'] .= " AND (" . implode(" OR ", $yearConditions) . ") ";
                 }
             } elseif ( ! empty( $selected_semesters ) ) {
-                // When only semesters are selected, match values ending with the numeric suffix.
-                $semClauses = array();
+                // Only semesters provided – match records ending with the semester number.
+                $semConditions = array();
                 foreach ( $selected_semesters as $sem ) {
                     if ( isset( $semesterMap[ $sem ] ) ) {
-                        $semClauses[] = "tm.meta_value LIKE '%." . esc_sql( $semesterMap[ $sem ] ) . "'";
+                        $semConditions[] = "tm.meta_value LIKE '%." . esc_sql( $semesterMap[ $sem ] ) . "'";
                     }
                 }
-                if ( $semClauses ) {
-                    $conditions[] = "(" . implode(" OR ", $semClauses) . ")";
+                if ( $semConditions ) {
+                    $clauses['where'] .= " AND (" . implode(" OR ", $semConditions) . ") ";
                 }
-            }
-            if ( ! empty( $conditions ) ) {
-                $clauses['where'] .= " AND (" . implode(" AND ", $conditions) . ") ";
             }
         }
     }
