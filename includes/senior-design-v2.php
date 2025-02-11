@@ -252,10 +252,6 @@ function sd_project_display($atts) {
     // Dropdown to toggle multi-selects.
     echo '      <label for="filterGroup2">Filter by Year and Semester</label>';
     echo '      <div class="form-check mb-4" id="filterGroup2">';
-    echo '          <select class="form-control mb-4" name="filter2" id="filter2Option1">';
-    echo '              <option value="option1">All Semesters</option>';
-    echo '              <option value="option2">Select Filters</option>';
-    echo '          </select>';
     // Multi-select for semesters (fixed list).
     echo '          <div class="collapse" id="multiSemesterCollapse">';
     echo '          <label for="multiSemesterSelector">Select Semesters</label>';
@@ -363,7 +359,6 @@ function sd_project_display($atts) {
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const multiYearSelector = document.getElementById('multiYearSelector');
         const searchInput = document.getElementById('searchFilter');
-        const filter2Dropdown = document.getElementById('filter2Option1');
         const filter1Option1 = document.getElementById('filter1Option1');
         const filter1Option2 = document.getElementById('filter1Option2');
         const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
@@ -380,18 +375,6 @@ function sd_project_display($atts) {
             filter1Option1.checked = true;
         } else {
             filter1Option2.checked = true;
-        }
-    
-        if (selectedSemesters || selectedYears) {
-            filter2Dropdown.value = 'option2';
-            multiSemesterCollapse.classList.add('show');
-            multiYearCollapse.classList.add('show');
-        } else {
-            filter2Dropdown.value = 'option1';
-            multiSemesterCollapse.classList.remove('show');
-            multiYearCollapse.classList.remove('show');
-            params.delete('selected_semesters');
-            params.delete('selected_years');
         }
     
         if (search) {
@@ -413,18 +396,6 @@ function sd_project_display($atts) {
             fetchProjects();
         });
         filter1Option2.addEventListener('change', function() {
-            updateURL();
-            fetchProjects();
-        });
-        filter2Dropdown.addEventListener('change', function() {
-            const selectedValue = filter2Dropdown.value;
-            if (selectedValue === 'option2') {
-                multiSemesterCollapse.classList.add('show');
-                multiYearCollapse.classList.add('show');
-            } else {
-                multiSemesterCollapse.classList.remove('show');
-                multiYearCollapse.classList.remove('show');
-            }
             updateURL();
             fetchProjects();
         });
@@ -477,21 +448,16 @@ function sd_project_display($atts) {
             const sortOrderVal = filter1Option1.checked ? 'ASC' : 'DESC';
             params.set('sort_order', sortOrderVal);
     
-            if (filter2Dropdown.value === 'option2') {
-                const selSem = $(multiSemesterSelector).val();
-                const selYear = $(multiYearSelector).val();
-                if (selSem && selSem.length > 0) {
-                    params.set('selected_semesters', selSem.join(','));
-                } else {
-                    params.delete('selected_semesters');
-                }
-                if (selYear && selYear.length > 0) {
-                    params.set('selected_years', selYear.join(','));
-                } else {
-                    params.delete('selected_years');
-                }
+            const selSem = $(multiSemesterSelector).val();
+            const selYear = $(multiYearSelector).val();
+            if (selSem && selSem.length > 0) {
+                params.set('selected_semesters', selSem.join(','));
             } else {
                 params.delete('selected_semesters');
+            }
+            if (selYear && selYear.length > 0) {
+                params.set('selected_years', selYear.join(','));
+            } else {
                 params.delete('selected_years');
             }
     
