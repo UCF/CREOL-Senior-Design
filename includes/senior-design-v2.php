@@ -357,8 +357,6 @@ function sd_project_display($atts) {
         const searchInput = document.getElementById('searchFilter');
         const filter1Option1 = document.getElementById('filter1Option1');
         const filter1Option2 = document.getElementById('filter1Option2');
-        const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
-        const multiYearCollapse = document.getElementById('multiYearCollapse');
         const paginationContainer = document.getElementById('pagination-container');
     
         var params = new URLSearchParams(window.location.search);
