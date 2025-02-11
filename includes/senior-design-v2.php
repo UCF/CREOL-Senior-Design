@@ -2,7 +2,7 @@
 /**
  * Plugin Name: SD Project Display Shortcode
  * Description: Shortcode to display projects with filtering, search, pagination, and sorting by sd_semester (using term meta "semester_date"). Projects are grouped by semester.
- * Version: 1.3.1
+ * Version: 1.3.5
  * Author: Gage Notargiacomo
  */
 
@@ -230,7 +230,7 @@ function sd_project_display($atts) {
     echo '          </div>';
     echo '      </div>';
     echo '      <div class="form-group ml-4">';
-    echo '          <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>';
+    echo '          <button class="btn btn-default" href="#" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>';
     echo '      </div>';
     echo '    </form>';
     echo '  </div>';
@@ -240,7 +240,7 @@ function sd_project_display($atts) {
     echo '<div class="collapse filters-collapse mb-4" id="filtersCollapse">';
     echo '  <div class="card card-block">';
     // Sort order radio buttons.
-    echo '      <label for="filterGroup1">Sort by Semester</label>';
+    echo '      <label for="filterGroup1" class="font-weight-bold">Sort by Semester</label>';
     echo '      <div class="form-check mb-4" id="filterGroup1">';
     echo '          <label class="form-check-label mr-2" for="filter1Option1">';
     echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1"> Oldest';
@@ -250,26 +250,30 @@ function sd_project_display($atts) {
     echo '          </label>';
     echo '      </div>';
     // Dropdown to toggle multi-selects.
-    echo '      <label for="filterGroup2">Filter by Year and Semester</label>';
+    echo '      <label for="filterGroup2" class="font-weight-bold">Filter by Year and Semester</label>';
     echo '      <div class="form-check mb-4" id="filterGroup2">';
+    echo '          <div class="row mb-4">';
     // Multi-select for semesters (fixed list).
     echo '          <label for="multiSemesterSelector">Select Semesters</label>';
     echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more semesters (e.g., Spring, Summer, Fall).</small>';
-    echo '              <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
+    echo '              <select class="form-control multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
     foreach ($semesterOptions as $option) {
         $sel = in_array($option, $selected_semesters) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($option) . '" ' . $sel . '>' . esc_html($option) . '</option>';
     }
     echo '              </select>';
+    echo '          </div>';
     // Multi-select for years (dynamic).
+    echo '          <div class="row mb-4">';
     echo '          <label for="multiYearSelector">Select Years</label>';
     echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more academic years (e.g., 2020, 2021).</small>';
-    echo '              <select class="form-control mb-4 multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
+    echo '              <select class="form-control multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
     foreach ($years as $year) {
         $sel = in_array($year, $selected_years) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($year) . '" ' . $sel . '>' . esc_html($year) . '</option>';
     }
     echo '              </select>';
+    echo '          </div>';
     echo '      </div>';
     echo '  </div>';
     echo '</div>';
