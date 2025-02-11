@@ -2,16 +2,16 @@
 /**
  * Plugin Name: SD Project Display Shortcode
  * Description: Shortcode to display projects with filtering, search, pagination, and sorting by sd_semester (using term meta "semester_date"). Projects are grouped by semester.
- * Version: 1.3.2
- * Author: Gage Notargiacomo
+ * Version: 1.3.1
+ * Author: Your Name
  */
 
 /**
  * Filter function to modify WP_Query clauses when ordering by the taxonomy term meta 'semester_date'
  * and filtering by selected years and semesters.
  *
- * This function performs the full join of the taxonomy tables and then joins termmeta.
- * It orders by the numeric value in "semester_date" and applies additional WHERE conditions
+ * This function performs the full join of the taxonomy tables (term_relationships, term_taxonomy, terms)
+ * and then joins termmeta. It orders by the numeric value in "semester_date" and applies additional WHERE conditions
  * based on the custom query vars "selected_years" and "selected_semesters".
  *
  * @param array    $clauses The query clauses.
@@ -22,7 +22,7 @@ function sd_orderby_semester_date( $clauses, $query ) {
     global $wpdb;
     
     if ( 'sd_semester_date' === $query->get('orderby') ) {
-        // Join taxonomy tables (ensuring aliases tt and t are defined) and then join termmeta.
+        // Join taxonomy tables to define aliases tt and t.
         $clauses['join'] .= " 
             LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id 
             LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
@@ -30,7 +30,7 @@ function sd_orderby_semester_date( $clauses, $query ) {
             LEFT JOIN {$wpdb->termmeta} AS tm ON t.term_id = tm.term_id AND tm.meta_key = 'semester_date' 
         ";
         
-        // Limit to the sd_semester taxonomy.
+        // Ensure we are only dealing with the sd_semester taxonomy.
         $clauses['where'] .= " AND tt.taxonomy = 'sd_semester' ";
         
         // Determine sort order.
@@ -45,7 +45,7 @@ function sd_orderby_semester_date( $clauses, $query ) {
         $selected_years = $query->get('selected_years');
         $selected_semesters = $query->get('selected_semesters');
         
-        // Ensure our custom query vars are arrays (they come as comma‑separated strings from the URL).
+        // Make sure our custom query vars are arrays.
         if ( ! is_array( $selected_years ) ) {
             $selected_years = explode(',', $selected_years);
         }
@@ -110,7 +110,8 @@ add_filter('posts_clauses', 'sd_orderby_semester_date', 10, 2);
 
 /**
  * Shortcode to display projects with filtering, search, pagination, and grouping by semester.
- * Now the two multi-select dropdowns for academic years (dynamic) and semesters (fixed) are always visible.
+ * Includes two multi-select dropdowns: one for academic years (dynamically generated)
+ * and one for semesters (fixed list: Spring, Summer, Fall).
  *
  * @param array $atts Shortcode attributes.
  * @return string HTML output for the projects.
@@ -123,12 +124,12 @@ function sd_project_display($atts) {
     $search     = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';    
     $paged      = (get_query_var('paged')) ? get_query_var('paged') : 1;
     
-    // Convert comma-separated query vars into arrays.
-    $selected_semesters = isset($_GET['selected_semesters'])
-        ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_semesters'])))
+    // IMPORTANT: Split the comma-separated values into proper arrays.
+    $selected_semesters = isset($_GET['selected_semesters']) 
+        ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_semesters']))) 
         : array();
-    $selected_years = isset($_GET['selected_years'])
-        ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_years'])))
+    $selected_years = isset($_GET['selected_years']) 
+        ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_years']))) 
         : array();
     
     // Build a unique cache key (if you choose to use caching).
@@ -151,15 +152,17 @@ function sd_project_display($atts) {
         'selected_semesters' => $selected_semesters,
         'selected_years'     => $selected_years,
     );
+    // No explicit tax_query is needed since filtering is handled in the posts_clauses filter.
     if ( ! empty( $selected_semesters ) || ! empty( $selected_years ) ) {
-        $args['tax_query'] = array(); // Filtering is handled in the posts_clauses filter.
+        $args['tax_query'] = array();
     }
     
+    // Add our custom posts_clauses filter.
     add_filter('posts_clauses', 'sd_orderby_semester_date', 10, 2);
     $query = new WP_Query($args);
     remove_filter('posts_clauses', 'sd_orderby_semester_date', 10);
     
-    // Retrieve all sd_semester terms to build the dynamic year list.
+    // Retrieve all sd_semester terms (to generate the dynamic year list).
     $terms = get_terms(array(
         'taxonomy'   => 'sd_semester',
         'hide_empty' => false,
@@ -168,7 +171,7 @@ function sd_project_display($atts) {
     // Build the dynamic list of years from term meta values.
     $years = array();
     foreach ($terms as $term) {
-        $semester_date = get_term_meta($term->term_id, 'semester_date', true); // Expected format "YYYY.X"
+        $semester_date = get_term_meta($term->term_id, 'semester_date', true); // expected format "YYYY.X"
         if ( ! empty($semester_date) ) {
             $year = substr($semester_date, 0, 4);
             if ( ! in_array($year, $years) ) {
@@ -227,7 +230,7 @@ function sd_project_display($atts) {
     echo '          </div>';
     echo '      </div>';
     echo '      <div class="form-group ml-4">';
-    echo '          <button class="btn btn-default" type="submit">Apply Filters</button>';
+    echo '          <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>';
     echo '      </div>';
     echo '    </form>';
     echo '  </div>';
@@ -246,27 +249,35 @@ function sd_project_display($atts) {
     echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Newest';
     echo '          </label>';
     echo '      </div>';
-    // Directly display the two multi-selects without a toggle.
-    echo '      <label>Filter by Year and Semester</label>';
-    echo '      <div class="form-group" id="filterGroup2">';
+    // Dropdown to toggle multi-selects.
+    echo '      <label for="filterGroup2">Filter by Year and Semester</label>';
+    echo '      <div class="form-check mb-4" id="filterGroup2">';
+    echo '          <select class="form-control mb-4" name="filter2" id="filter2Option1">';
+    echo '              <option value="option1">All Semesters</option>';
+    echo '              <option value="option2">Select Filters</option>';
+    echo '          </select>';
     // Multi-select for semesters (fixed list).
+    echo '          <div class="collapse" id="multiSemesterCollapse">';
     echo '          <label for="multiSemesterSelector">Select Semesters</label>';
     echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more semesters (e.g., Spring, Summer, Fall).</small>';
-    echo '          <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
+    echo '              <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
     foreach ($semesterOptions as $option) {
         $sel = in_array($option, $selected_semesters) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($option) . '" ' . $sel . '>' . esc_html($option) . '</option>';
     }
-    echo '          </select>';
+    echo '              </select>';
+    echo '          </div>';
     // Multi-select for years (dynamic).
+    echo '          <div class="collapse" id="multiYearCollapse">';
     echo '          <label for="multiYearSelector">Select Years</label>';
     echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more academic years (e.g., 2020, 2021).</small>';
-    echo '          <select class="form-control mb-4 multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
+    echo '              <select class="form-control mb-4 multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
     foreach ($years as $year) {
         $sel = in_array($year, $selected_years) ? 'selected="selected"' : '';
         echo '                  <option value="' . esc_attr($year) . '" ' . $sel . '>' . esc_html($year) . '</option>';
     }
-    echo '          </select>';
+    echo '              </select>';
+    echo '          </div>';
     echo '      </div>';
     echo '  </div>';
     echo '</div>';
@@ -352,18 +363,35 @@ function sd_project_display($atts) {
         const multiSemesterSelector = document.getElementById('multiSemesterSelector');
         const multiYearSelector = document.getElementById('multiYearSelector');
         const searchInput = document.getElementById('searchFilter');
+        const filter2Dropdown = document.getElementById('filter2Option1');
         const filter1Option1 = document.getElementById('filter1Option1');
         const filter1Option2 = document.getElementById('filter1Option2');
+        const multiSemesterCollapse = document.getElementById('multiSemesterCollapse');
+        const multiYearCollapse = document.getElementById('multiYearCollapse');
         const paginationContainer = document.getElementById('pagination-container');
     
         var params = new URLSearchParams(window.location.search);
         const sortOrder = params.get('sort_order');
+        const selectedSemesters = params.get('selected_semesters');
+        const selectedYears = params.get('selected_years');
         const search = params.get('search');
     
         if (sortOrder === 'ASC') {
             filter1Option1.checked = true;
         } else {
             filter1Option2.checked = true;
+        }
+    
+        if (selectedSemesters || selectedYears) {
+            filter2Dropdown.value = 'option2';
+            multiSemesterCollapse.classList.add('show');
+            multiYearCollapse.classList.add('show');
+        } else {
+            filter2Dropdown.value = 'option1';
+            multiSemesterCollapse.classList.remove('show');
+            multiYearCollapse.classList.remove('show');
+            params.delete('selected_semesters');
+            params.delete('selected_years');
         }
     
         if (search) {
@@ -385,6 +413,18 @@ function sd_project_display($atts) {
             fetchProjects();
         });
         filter1Option2.addEventListener('change', function() {
+            updateURL();
+            fetchProjects();
+        });
+        filter2Dropdown.addEventListener('change', function() {
+            const selectedValue = filter2Dropdown.value;
+            if (selectedValue === 'option2') {
+                multiSemesterCollapse.classList.add('show');
+                multiYearCollapse.classList.add('show');
+            } else {
+                multiSemesterCollapse.classList.remove('show');
+                multiYearCollapse.classList.remove('show');
+            }
             updateURL();
             fetchProjects();
         });
@@ -437,16 +477,21 @@ function sd_project_display($atts) {
             const sortOrderVal = filter1Option1.checked ? 'ASC' : 'DESC';
             params.set('sort_order', sortOrderVal);
     
-            const selSem = $(multiSemesterSelector).val();
-            const selYear = $(multiYearSelector).val();
-            if (selSem && selSem.length > 0) {
-                params.set('selected_semesters', selSem.join(','));
+            if (filter2Dropdown.value === 'option2') {
+                const selSem = $(multiSemesterSelector).val();
+                const selYear = $(multiYearSelector).val();
+                if (selSem && selSem.length > 0) {
+                    params.set('selected_semesters', selSem.join(','));
+                } else {
+                    params.delete('selected_semesters');
+                }
+                if (selYear && selYear.length > 0) {
+                    params.set('selected_years', selYear.join(','));
+                } else {
+                    params.delete('selected_years');
+                }
             } else {
                 params.delete('selected_semesters');
-            }
-            if (selYear && selYear.length > 0) {
-                params.set('selected_years', selYear.join(','));
-            } else {
                 params.delete('selected_years');
             }
     
