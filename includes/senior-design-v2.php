@@ -249,13 +249,11 @@ function sd_project_display($atts) {
     echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Newest';
     echo '          </label>';
     echo '      </div>';
-    // Dropdown to toggle multi-selects.
     echo '      <label for="filterGroup2" class="font-weight-bold">Filter by Year and Semester</label>';
     echo '      <div class="form-check mb-4" id="filterGroup2">';
-    echo '          <div class="row mb-4">';
-    // Multi-select for semesters (fixed list).
-    echo '          <label for="multiSemesterSelector">Select Semesters</label>';
-    echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more semesters (e.g., Spring, Summer, Fall).</small>';
+    echo '          <div class="mb-4">';
+    echo '              <label for="multiSemesterSelector" class="d-block">Select Semesters</label>';
+    echo '              <small class="form-text text-muted d-block mb-2">Select one or more semesters (e.g., Spring, Summer, Fall).</small>';
     echo '              <select class="form-control multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
     foreach ($semesterOptions as $option) {
         $sel = in_array($option, $selected_semesters) ? 'selected="selected"' : '';
@@ -263,10 +261,9 @@ function sd_project_display($atts) {
     }
     echo '              </select>';
     echo '          </div>';
-    // Multi-select for years (dynamic).
-    echo '          <div class="row mb-4">';
-    echo '          <label for="multiYearSelector">Select Years</label>';
-    echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more academic years (e.g., 2020, 2021).</small>';
+    echo '          <div class="mb-4">';
+    echo '              <label for="multiYearSelector" class="d-block">Select Years</label>';
+    echo '              <small class="form-text text-muted d-block mb-2">Select one or more academic years (e.g., 2020, 2021).</small>';
     echo '              <select class="form-control multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
     foreach ($years as $year) {
         $sel = in_array($year, $selected_years) ? 'selected="selected"' : '';
