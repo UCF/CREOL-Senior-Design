@@ -17,13 +17,9 @@
 function sd_orderby_semester_date( $clauses, $query ) {
     global $wpdb;
     
-    // Only modify the query if the 'orderby' parameter is set to our custom key.
     if ( 'sd_semester_date' === $query->get('orderby') ) {
-        // Join the term relationships, term taxonomy, terms, and termmeta tables.
+        // Join in the termmeta table
         $clauses['join'] .= " 
-            LEFT JOIN {$wpdb->term_relationships} AS tr ON {$wpdb->posts}.ID = tr.object_id 
-            LEFT JOIN {$wpdb->term_taxonomy} AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id 
-            LEFT JOIN {$wpdb->terms} AS t ON tt.term_id = t.term_id 
             LEFT JOIN {$wpdb->termmeta} AS tm ON t.term_id = tm.term_id AND tm.meta_key = 'semester_date' 
         ";
         
@@ -35,10 +31,61 @@ function sd_orderby_semester_date( $clauses, $query ) {
         if ( ! in_array( $order, array( 'ASC', 'DESC' ) ) ) {
             $order = 'DESC';
         }
-        
-        // Order by the term meta value (cast to a decimal for proper numeric ordering),
-        // then by the term name as a fallback, and finally by the post date.
+        // Order by the term meta value (cast to a decimal), then term name, then post date.
         $clauses['orderby'] = "CAST(tm.meta_value AS DECIMAL(10,2)) $order, t.name $order, {$wpdb->posts}.post_date DESC";
+
+        // ***** New filtering based on separate year/semester multi-select *****
+        // Retrieve our custom query vars
+        $selected_years = $query->get('selected_years');
+        $selected_semesters = $query->get('selected_semesters');
+        
+        if ( ( ! empty( $selected_years ) && is_array($selected_years) ) || ( ! empty( $selected_semesters ) && is_array($selected_semesters) ) ) {
+            $conditions = array();
+            // Mapping of semester names to numeric suffixes in semester_date.
+            $semesterMap = array(
+                'Spring' => '1',
+                'Summer' => '2',
+                'Fall'   => '3',
+                'Winter' => '4'
+            );
+            
+            if ( ! empty( $selected_years ) && ! empty( $selected_semesters ) ) {
+                // Build a list of possible exact values (e.g., "2024.1").
+                $values = array();
+                foreach ( $selected_years as $year ) {
+                    foreach ( $selected_semesters as $sem ) {
+                        if ( isset( $semesterMap[ $sem ] ) ) {
+                            $values[] = esc_sql( $year . '.' . $semesterMap[ $sem ] );
+                        }
+                    }
+                }
+                if ( ! empty( $values ) ) {
+                    $in = "'" . implode("','", $values) . "'";
+                    $conditions[] = "tm.meta_value IN ($in)";
+                }
+            } elseif ( ! empty( $selected_years ) ) {
+                $yearClauses = array();
+                foreach ( $selected_years as $year ) {
+                    $yearClauses[] = "tm.meta_value LIKE '" . esc_sql( $year ) . ".%'";
+                }
+                if ( $yearClauses ) {
+                    $conditions[] = "(" . implode(" OR ", $yearClauses) . ")";
+                }
+            } elseif ( ! empty( $selected_semesters ) ) {
+                $semClauses = array();
+                foreach ( $selected_semesters as $sem ) {
+                    if ( isset( $semesterMap[ $sem ] ) ) {
+                        $semClauses[] = "tm.meta_value LIKE '%." . esc_sql( $semesterMap[ $sem ] ) . "'";
+                    }
+                }
+                if ( $semClauses ) {
+                    $conditions[] = "(" . implode(" OR ", $semClauses) . ")";
+                }
+            }
+            if ( ! empty( $conditions ) ) {
+                $clauses['where'] .= " AND (" . implode(" AND ", $conditions) . ") ";
+            }
+        }
     }
     
     return $clauses;
@@ -56,15 +103,15 @@ function sd_project_display($atts) {
     ob_start();
     
     // Get query variables.
-    // Default sort_order is now 'DESC'.
     $sort_order = isset($_GET['sort_order']) ? sanitize_text_field(wp_unslash($_GET['sort_order'])) : 'DESC';
-    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', explode(',', wp_unslash($_GET['selected_semesters']))) : [];
+    $selected_semesters = isset($_GET['selected_semesters']) ? array_map('sanitize_text_field', (array) $_GET['selected_semesters']) : [];
+    $selected_years = isset($_GET['selected_years']) ? array_map('sanitize_text_field', (array) $_GET['selected_years']) : [];
     $search = isset($_GET['search']) ? sanitize_text_field(wp_unslash($_GET['search'])) : '';    
     $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
 
     // Generate a unique cache key based on the query parameters.
-    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'selected_semesters', 'search', 'paged')));
-    $cached_results = false; // Optionally use: get_transient($cache_key);
+    $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'selected_semesters', 'selected_years', 'search', 'paged')));
+    $cached_results = false; // Optionally use get_transient($cache_key);
 
     if ($cached_results !== false) {
         echo $cached_results;
@@ -75,25 +122,20 @@ function sd_project_display($atts) {
         'post_type'      => 'sd_project',
         'posts_per_page' => 10,
         'paged'          => $paged,
-        's'              => $search, // Searches in post title and content.
-        // Use our custom orderby key so that our filter function runs.
+        's'              => $search,
         'orderby'        => 'sd_semester_date',
         'order'          => $sort_order === 'ASC' ? 'ASC' : 'DESC',
+        // Pass our new filtering query vars.
+        'selected_semesters' => $selected_semesters,
+        'selected_years'     => $selected_years,
     );
-    
-    
-    // Semester filtering.
-    if ( ! empty( $selected_semesters ) ) {
-        $args['tax_query'] = array(
-            array(
-                'taxonomy' => 'sd_semester',
-                'field'    => 'slug',
-                'terms'    => $selected_semesters,
-            ),
-        );
+
+    // If you need additional taxonomy queries for other filters, add them here.
+    if ( ! empty( $selected_semesters ) || ! empty( $selected_years ) ) {
+        // Optionally leave tax_query blank if filtering is done solely via the termmeta clause.
+        $args['tax_query'] = array();
     }
     
-    // Add our custom sorting filter.
     add_filter('posts_clauses', 'sd_orderby_semester_date', 10, 2);
     $query = new WP_Query($args);
     remove_filter('posts_clauses', 'sd_orderby_semester_date', 10);
@@ -197,8 +239,20 @@ function sd_project_display($atts) {
     }
     echo '              </select>';
     echo '          </div>';
-    echo '      </div>';
 
+    // Multi-select dropdown for years.
+    echo '          <div class="collapse" id="multiYearCollapse">';
+    echo '          <label for="multiYearSelector">Select Years</label>';
+    echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Click in the box to open the dropdown menu. You can select multiple years in any combination.</small>';
+    echo '              <select class="form-control mb-4 multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
+    foreach ($terms as $term) {
+        $selected = in_array($term->slug, $selected_years) ? 'selected="selected"' : '';
+        echo '                  <option value="' . esc_attr($term->slug) . '" ' . $selected . '>' . esc_html($term->name) . '</option>';
+    }
+    echo '              </select>';
+    echo '          </div>';
+
+    echo '      </div>';
     echo '  </div>';
     echo '</div>';
 
@@ -465,6 +519,17 @@ function sd_project_display($atts) {
         $(function() {
             $('#multiSemesterSelector').select2({
                 placeholder: 'Select semesters',
+                allowClear: true,
+                dropdownParent: $('#filtersCollapse'),
+            }).on('select2:unselecting', function() {
+                updateURL();
+                fetchProjects();
+            });
+        });
+
+        $(function() {
+            $('#multiYearSelector').select2({
+                placeholder: 'Select years',
                 allowClear: true,
                 dropdownParent: $('#filtersCollapse'),
             }).on('select2:unselecting', function() {
