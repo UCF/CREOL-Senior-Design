@@ -253,7 +253,6 @@ function sd_project_display($atts) {
     echo '      <label for="filterGroup2">Filter by Year and Semester</label>';
     echo '      <div class="form-check mb-4" id="filterGroup2">';
     // Multi-select for semesters (fixed list).
-    echo '          <div class="collapse" id="multiSemesterCollapse">';
     echo '          <label for="multiSemesterSelector">Select Semesters</label>';
     echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more semesters (e.g., Spring, Summer, Fall).</small>';
     echo '              <select class="form-control mb-4 multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
@@ -262,9 +261,7 @@ function sd_project_display($atts) {
         echo '                  <option value="' . esc_attr($option) . '" ' . $sel . '>' . esc_html($option) . '</option>';
     }
     echo '              </select>';
-    echo '          </div>';
     // Multi-select for years (dynamic).
-    echo '          <div class="collapse" id="multiYearCollapse">';
     echo '          <label for="multiYearSelector">Select Years</label>';
     echo '          <small class="form-text text-muted" style="margin-bottom: 8px;">Select one or more academic years (e.g., 2020, 2021).</small>';
     echo '              <select class="form-control mb-4 multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
@@ -273,7 +270,6 @@ function sd_project_display($atts) {
         echo '                  <option value="' . esc_attr($year) . '" ' . $sel . '>' . esc_html($year) . '</option>';
     }
     echo '              </select>';
-    echo '          </div>';
     echo '      </div>';
     echo '  </div>';
     echo '</div>';
