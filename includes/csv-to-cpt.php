@@ -1,6 +1,8 @@
 <?php
     /**
-     * This file contains all the code related to the import process of CREOL Senior Design Projects via a CSV file.
+     * Description: This file contains all the code related to the import process of CREOL Senior Design Projects via a CSV file.
+     * Version: 2.0.0
+     * Author: Gage Notargiacomo
      * 
      * Goals:
      *      1. Automate the process of creating posts for CREOL Senior Design Projects each semester.

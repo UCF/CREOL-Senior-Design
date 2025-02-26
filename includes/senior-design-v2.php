@@ -1,9 +1,13 @@
 <?php
 /**
- * Plugin Name: SD Project Display Shortcode
- * Description: Shortcode to display projects with filtering, search, pagination, and sorting by sd_semester (using term meta "semester_date"). Projects are grouped by semester.
- * Version: 1.3.5
+ * Description: Shortcode to display Senior Design projects with filtering, search, pagination, and sorting by sd_semester (using term meta "semester_date"). Projects are grouped by semester. Transient caching is used to improve performance. AJAX is used to update the URL and fetch projects without a page reload.
+ * Version: 2.0.0
  * Author: Gage Notargiacomo
+ * 
+ * TODO:
+ * - Replace AJAX fetch with a more robust solution (e.g., WP REST API).
+ * - Improve search accuracy.
+ * - Add 'did you mean?' suggestions for search.
  */
 
 /**
@@ -134,7 +138,8 @@ function sd_project_display($atts) {
     
     // Build a unique cache key (if you choose to use caching).
     $cache_key = 'sd_project_display_' . md5(serialize(compact('sort_order', 'selected_semesters', 'selected_years', 'search', 'paged')));
-    $cached_results = false; // e.g., get_transient($cache_key);
+    $cached_results = get_transient($cache_key);
+    // $cached_results = false; // Set false to turn caching off.
     if ($cached_results !== false) {
         echo $cached_results;
         return ob_get_clean();
@@ -524,7 +529,7 @@ function sd_project_display($atts) {
     wp_reset_postdata();
     
     // Optionally cache the output.
-    // set_transient($cache_key, ob_get_contents(), HOUR_IN_SECONDS);
+    set_transient($cache_key, ob_get_contents(), HOUR_IN_SECONDS);
     
     return ob_get_clean();
 }
