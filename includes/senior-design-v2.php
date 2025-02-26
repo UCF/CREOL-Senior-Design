@@ -218,136 +218,143 @@ function sd_project_display($atts) {
             color: #333;
         }
     </style>
-    <?php     
-    
-    // Output the search form and filter controls.
-    echo '<div class="container mb-4">';
-    echo '  <div class="row">';
-    echo '    <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">';
-    echo '      <div class="form-group ml-4">';
-    echo '          <div class="input-group" style="width: 100%;">';
-    echo '              <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search..." value="' . esc_attr($search) . '" style="line-height: 1.15 !important;">';
-    echo '          </div>';
-    echo '      </div>';
-    echo '      <div class="form-group ml-4">';
-    echo '          <button class="btn btn-default" href="#" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>';
-    echo '      </div>';
-    echo '    </form>';
-    echo '  </div>';
-    echo '</div>';
-    
-    // Filter collapse area.
-    echo '<div class="collapse filters-collapse mb-4" id="filtersCollapse">';
-    echo '  <div class="card card-block">';
-    // Sort order radio buttons.
-    echo '      <label for="filterGroup1" class="font-weight-bold">Sort by Semester</label>';
-    echo '      <div class="form-check mb-4" id="filterGroup1">';
-    echo '          <label class="form-check-label mr-2" for="filter1Option1">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1"> Oldest';
-    echo '          </label>';
-    echo '          <label class="form-check-label mr-2" for="filter1Option2">';
-    echo '              <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Newest';
-    echo '          </label>';
-    echo '      </div>';
-    echo '      <label for="filterGroup2" class="font-weight-bold">Filter by Year and Semester</label>';
-    echo '      <div class="form-check mb-4" id="filterGroup2">';
-    echo '          <div class="mb-4">';
-    echo '              <label for="multiSemesterSelector" class="d-block">Select Semesters</label>';
-    echo '              <small class="form-text text-muted d-block mb-2">Select one or more semesters (e.g., Spring, Summer, Fall).</small>';
-    echo '              <select class="form-control multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">';
-    foreach ($semesterOptions as $option) {
-        $sel = in_array($option, $selected_semesters) ? 'selected="selected"' : '';
-        echo '                  <option value="' . esc_attr($option) . '" ' . $sel . '>' . esc_html($option) . '</option>';
-    }
-    echo '              </select>';
-    echo '          </div>';
-    echo '          <div class="mb-4">';
-    echo '              <label for="multiYearSelector" class="d-block">Select Years</label>';
-    echo '              <small class="form-text text-muted d-block mb-2">Select one or more academic years (e.g., 2020, 2021).</small>';
-    echo '              <select class="form-control multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">';
-    foreach ($years as $year) {
-        $sel = in_array($year, $selected_years) ? 'selected="selected"' : '';
-        echo '                  <option value="' . esc_attr($year) . '" ' . $sel . '>' . esc_html($year) . '</option>';
-    }
-    echo '              </select>';
-    echo '          </div>';
-    echo '      </div>';
-    echo '  </div>';
-    echo '</div>';
-    
-    // Output the projects.
-    echo '<div id="sd-projects">';
-    if ($query->have_posts()) {
-        $current_semester = '';
-        while ($query->have_posts()) : $query->the_post();
-            // Get the associated sd_semester term.
-            $project_terms = get_the_terms(get_the_ID(), 'sd_semester');
-            if ($project_terms && ! is_wp_error($project_terms)) {
-                $project_semester = $project_terms[0]->name;
-            } else {
-                $project_semester = 'Uncategorized';
-            }
-            // Output a header if the semester changes.
-            if ($project_semester !== $current_semester) {
-                echo '<h3 class="semester-header">' . esc_html($project_semester) . '</h3>';
-                $current_semester = $project_semester;
-            }
-            // Retrieve custom fields.
-            $short_report  = get_field('short_report_file');
-            $long_report   = get_field('long_report_file');
-            $presentation  = get_field('presentation_slides_file');
-            $contributors  = get_field('project_contributors');
-            $sponsor       = get_field('sponsor');
-    
-            echo '<div class="card-box col-12">';
-            echo '  <div class="card sd-card">';
-            echo '      <div class="card-body">';
-            echo '          <h5 class="card-title my-3">Title: ' . get_the_title() . '</h5>';
-            if ($sponsor) {
-                echo '          <p class="my-1"><strong>Sponsor: </strong> ' . esc_html($sponsor) . '</p>';
-            }
-            if ($contributors) {
-                echo '          <p class="my-1"><strong>Members: </strong>' . esc_html($contributors) . '</p>';
-            }
-            if ($short_report || $long_report || $presentation) {
-                echo '          <p class="my-1"><strong>View: </strong>';
-                if ($short_report) {
-                    echo '              <a href="' . esc_url($short_report) . '" target="_blank">Short Report</a> | ';
-                }
-                if ($long_report) {
-                    echo '              <a href="' . esc_url($long_report) . '" target="_blank">Long Report</a> | ';
-                }
-                if ($presentation) {
-                    echo '              <a href="' . esc_url($presentation) . '" target="_blank">Presentation</a>';
-                }
-                echo '          </p>';
-            }
-            echo '      </div>';
-            echo '  </div>';
-            echo '</div>';
-        endwhile;
-        echo '</div>';
-    
-        // Pagination.
-        $total_pages = $query->max_num_pages;
-        if ($total_pages > 1) {
-            echo '<div id="pagination-container">';
-            echo '<nav aria-label="Page navigation">';
-            echo '<ul class="pagination justify-content-center">';
-            $current_page = max(1, get_query_var('paged'));
-            for ($i = 1; $i <= $total_pages; $i++) {
-                if ($i == $current_page) {
-                    echo '<li class="page-item active"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-                } else {
-                    echo '<li class="page-item"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-                }
-            }
-            echo '</ul></nav>';
-            echo '</div>';
-        }
-    } else {
+    <!-- Output the search form and filter controls -->
+    <div class="container mb-4">
+        <div class="row">
+            <form class="form-inline" id="utility-bar" method="GET" action="" style="width: 100%; display: flex; justify-content: end;">
+                <div class="form-group ml-4">
+                    <div class="input-group" style="width: 100%;">
+                        <input class="form-control" type="text" id="searchFilter" name="search" placeholder="Search..." value="<?php echo esc_attr( $search ); ?>" style="line-height: 1.15 !important;">
+                    </div>
+                </div>
+                <div class="form-group ml-4">
+                    <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#filtersCollapse">Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filter collapse area -->
+    <div class="collapse filters-collapse mb-4" id="filtersCollapse">
+        <div class="card card-block">
+            <!-- Sort order radio buttons -->
+            <label for="filterGroup1" class="font-weight-bold">Sort by Semester</label>
+            <div class="form-check mb-4" id="filterGroup1">
+                <label class="form-check-label mr-2" for="filter1Option1">
+                    <input class="form-check-input" type="radio" name="sort_order" value="ASC" id="filter1Option1"> Oldest
+                </label>
+                <label class="form-check-label mr-2" for="filter1Option2">
+                    <input class="form-check-input" type="radio" name="sort_order" value="DESC" id="filter1Option2"> Newest
+                </label>
+            </div>
+            <!-- Filter by Year and Semester -->
+            <label for="filterGroup2" class="font-weight-bold">Filter by Year and Semester</label>
+            <div class="form-check mb-4" id="filterGroup2">
+                <div class="mb-4">
+                    <label for="multiSemesterSelector" class="d-block">Select Semesters</label>
+                    <small class="form-text text-muted d-block mb-2">Select one or more semesters (e.g., Spring, Summer, Fall).</small>
+                    <select class="form-control multi-select" id="multiSemesterSelector" name="selected_semesters[]" multiple="multiple" style="width: 100%;">
+                        <?php foreach ( $semesterOptions as $option ) : 
+                            $sel = in_array( $option, $selected_semesters ) ? 'selected="selected"' : '';
+                        ?>
+                            <option value="<?php echo esc_attr( $option ); ?>" <?php echo $sel; ?>><?php echo esc_html( $option ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="multiYearSelector" class="d-block">Select Years</label>
+                    <small class="form-text text-muted d-block mb-2">Select one or more academic years (e.g., 2020, 2021).</small>
+                    <select class="form-control multi-select" id="multiYearSelector" name="selected_years[]" multiple="multiple" style="width: 100%;">
+                        <?php foreach ( $years as $year ) : 
+                            $sel = in_array( $year, $selected_years ) ? 'selected="selected"' : '';
+                        ?>
+                            <option value="<?php echo esc_attr( $year ); ?>" <?php echo $sel; ?>><?php echo esc_html( $year ); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output the projects -->
+    <div id="sd-projects">
+        <?php if ( $query->have_posts() ) : 
+            $current_semester = '';
+            while ( $query->have_posts() ) :
+                $query->the_post();
+                // Get the associated sd_semester term.
+                $project_terms   = get_the_terms( get_the_ID(), 'sd_semester' );
+                $project_semester = ( $project_terms && ! is_wp_error( $project_terms ) ) ? $project_terms[0]->name : 'Uncategorized';
+                // Output a header if the semester changes.
+                if ( $project_semester !== $current_semester ) : ?>
+                    <h3 class="semester-header"><?php echo esc_html( $project_semester ); ?></h3>
+                <?php
+                    $current_semester = $project_semester;
+                endif;
+                // Retrieve custom fields.
+                $short_report  = get_field( 'short_report_file' );
+                $long_report   = get_field( 'long_report_file' );
+                $presentation  = get_field( 'presentation_slides_file' );
+                $contributors  = get_field( 'project_contributors' );
+                $sponsor       = get_field( 'sponsor' );
+                ?>
+                <div class="card-box col-12">
+                    <div class="card sd-card">
+                        <div class="card-body">
+                            <h5 class="card-title my-3">Title: <?php the_title(); ?></h5>
+                            <?php if ( $sponsor ) : ?>
+                                <p class="my-1"><strong>Sponsor: </strong><?php echo esc_html( $sponsor ); ?></p>
+                            <?php endif; ?>
+                            <?php if ( $contributors ) : ?>
+                                <p class="my-1"><strong>Members: </strong><?php echo esc_html( $contributors ); ?></p>
+                            <?php endif; ?>
+                            <?php if ( $short_report || $long_report || $presentation ) : ?>
+                                <p class="my-1"><strong>View: </strong>
+                                    <?php if ( $short_report ) : ?>
+                                        <a href="<?php echo esc_url( $short_report ); ?>" target="_blank">Short Report</a> |
+                                    <?php endif; ?>
+                                    <?php if ( $long_report ) : ?>
+                                        <a href="<?php echo esc_url( $long_report ); ?>" target="_blank">Long Report</a> |
+                                    <?php endif; ?>
+                                    <?php if ( $presentation ) : ?>
+                                        <a href="<?php echo esc_url( $presentation ); ?>" target="_blank">Presentation</a>
+                                    <?php endif; ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
+    </div>
+
+    <?php
+    // Pagination.
+    $total_pages = $query->max_num_pages;
+    if ( $total_pages > 1 ) : ?>
+        <div id="pagination-container">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <?php 
+                    $current_page = max( 1, get_query_var( 'paged' ) );
+                    for ( $i = 1; $i <= $total_pages; $i++ ) :
+                        if ( $i == $current_page ) : ?>
+                            <li class="page-item active">
+                                <a class="page-link" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php else : ?>
+                            <li class="page-item">
+                                <a class="page-link" href="#" data-page="<?php echo $i; ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php endif;
+                    endfor; ?>
+                </ul>
+            </nav>
+        </div>
+    <?php
+    endif;
+    else :
         echo '<p>No projects found.</p>';
-    }
+    endif;
     ?>
     
     <script>
