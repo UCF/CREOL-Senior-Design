@@ -126,6 +126,7 @@
                 error_log("Created extracted directory: " . $extracted_dir);
                 }
 
+                // Try to open the uploaded zipfile
                 $zip = new ZipArchive;
                 if ($zip->open($upload_path) === TRUE) {
                 for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -143,6 +144,9 @@
                 return;
                 }
 
+                // For the cvs file parsing, the column headers are subject to change
+                // If the headers do change, the code below must be updated
+
                 // Locate and read the CSV file for importing data
                 $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
                 if (!file_exists($csv_file_path)) {
@@ -150,6 +154,7 @@
                 return;
                 }
 
+                // Set variables to determine sizes of batches for processing 
                 if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
                 $headers = fgetcsv($handle); // *These headers are subject to change
                 $batch_size = 10;
@@ -158,6 +163,7 @@
                 set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
                 $batch = [];
 
+                // Process every row
                 while (($rows = fgetcsv($handle)) !== FALSE) {
                     $data = array_combine($headers, $rows);
                     if ($offset > 0) {
@@ -179,6 +185,7 @@
                     }
                 }
 
+                // Process any left over projects
                 if (!empty($batch)) {
                     foreach ($batch as $row) {
                     error_log(print_r($row, true));
@@ -266,6 +273,7 @@
             error_log("Created extracted directory: " . $extracted_dir);
             }
 
+            // Open main zip file
             $zip = new ZipArchive;
             if ($zip->open($zip_file_path) === TRUE) {
             for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -297,6 +305,7 @@
             set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
             $batch = [];
 
+            // Process all files
             while (($rows = fgetcsv($handle)) !== FALSE) {
                 $data = array_combine($headers, $rows);
                 if ($offset > 0) {
@@ -318,6 +327,7 @@
                 }
             }
 
+            // Process remaining files
             if (!empty($batch)) {
                 foreach ($batch as $row) {
                 error_log(print_r($row, true));

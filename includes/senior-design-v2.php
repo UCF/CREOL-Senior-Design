@@ -5,7 +5,6 @@
  * Author: Gage Notargiacomo
  * 
  * TODO:
- * - Replace AJAX fetch with a more robust solution (e.g., WP REST API).
  * - Improve search accuracy.
  * - Add 'did you mean?' suggestions for search.
  */
@@ -378,12 +377,14 @@ function sd_project_display($atts) {
         const selectedYears = params.get('selected_years');
         const search = params.get('search');
     
+        // Set form radios 
         if (sortOrder === 'ASC') {
             filter1Option1.checked = true;
         } else {
             filter1Option2.checked = true;
         }
     
+        // Set search value
         if (search) {
             searchInput.value = search;
         } else {
@@ -391,6 +392,7 @@ function sd_project_display($atts) {
             params.delete('search');
         }
     
+        // On form submit, prevent reload
         form.addEventListener('submit', function(event) {
             event.preventDefault();
             hideProjects();
@@ -398,6 +400,7 @@ function sd_project_display($atts) {
             fetchProjects();
         });
     
+        // On change update results
         filter1Option1.addEventListener('change', function() {
             updateURL();
             fetchProjects();
@@ -416,11 +419,22 @@ function sd_project_display($atts) {
             fetchProjects();
         });
     
+        // Add slight delay from search changing
         searchInput.addEventListener('input', debounce(function() {
             updateURL();
             fetchProjects();
         }, 300));
     
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+
+        // On page change, don't refresh page 
         if (paginationContainer) {
             paginationContainer.addEventListener('click', function(event) {
                 const target = event.target;
@@ -433,15 +447,7 @@ function sd_project_display($atts) {
             });
         }
     
-        function debounce(func, wait) {
-            let timeout;
-            return function(...args) {
-                const context = this;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), wait);
-            };
-        }
-    
+        // Update URL based on form changes
         function updateURL(page = 1) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
@@ -472,6 +478,7 @@ function sd_project_display($atts) {
             history.pushState(null, '', url.pathname + '?' + params.toString());
         }
     
+        // Fetch projects using adjusted URL parameters
         function fetchProjects(page = 1) {
             const url = new URL(window.location);
             const params = new URLSearchParams(url.search);
@@ -496,6 +503,7 @@ function sd_project_display($atts) {
             .catch(error => console.error('Error fetching projects:', error));
         }
     
+        // Hide projects and replace with loading message
         function hideProjects() {
             const projects = document.getElementById('sd-projects');
             const footer = document.getElementById('pagination-container');
@@ -511,6 +519,7 @@ function sd_project_display($atts) {
             }
         }
     
+        // Multi-select logic
         $(function() {
             $('#multiSemesterSelector').select2({
                 placeholder: 'Select semesters',

@@ -1,3 +1,8 @@
+
+
+
+// Unique logic for select2 multi-selects
+
 jQuery(document).ready(function($) {
     $('#multiSemesterSelector').select2({
         placeholder: 'Select semesters',

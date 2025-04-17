@@ -12,6 +12,7 @@ if ( ! defined( 'WPINC' ) ) {
     die;
 }
 
+// Fetch and load styling for select2
 function select2_test_enqueue_scripts() {
     // Enqueue Select2 CSS
     wp_enqueue_style('select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
