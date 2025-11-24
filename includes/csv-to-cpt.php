@@ -148,7 +148,7 @@
                 // If the headers do change, the code below must be updated
 
                 // Locate and read the CSV file for importing data
-                $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
+                $csv_file_path = $extracted_dir . 'SD_Projects_Data.csv';
                 if (!file_exists($csv_file_path)) {
                 error_log('CSV file not found.');
                 return;
@@ -264,7 +264,7 @@
             );
             
             $plugin_dir = plugin_dir_path(__FILE__);
-            $zip_file_path = $plugin_dir . 'data/2024_fall_sd.zip'; // *This ZIP name is subject to change
+            $zip_file_path = $plugin_dir . 'data/SD_Projects.zip';
             global $extracted_dir;
             $extracted_dir = $plugin_dir . 'extracted/';  
             
@@ -291,7 +291,7 @@
             return;
             }
 
-            $csv_file_path = $extracted_dir . 'SD_CSV_Test1.csv'; // *This is subject to change
+            $csv_file_path = $extracted_dir . 'SD_Projects_Data.csv';
             if (!file_exists($csv_file_path)) {
             error_log('CSV file not found.');
             return;
