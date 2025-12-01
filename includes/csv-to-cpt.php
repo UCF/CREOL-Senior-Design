@@ -32,7 +32,8 @@
                 echo "<p>";
                 echo "Upload a ZIP file containing the CSV and project files:";
                 echo "</p>";
-                echo "<form id='upload-zip-form' method='post' enctype='multipart/form-data'>";
+                // Mark the form as chunk-capable so legacy inline JS can skip single-request uploads
+                echo "<form id='upload-zip-form' method='post' enctype='multipart/form-data' data-chunked='1'>";
                 echo "<input type='file' name='sd_project_zip' accept='.zip' required />";
                 echo "<input type='submit' name='upload_sd_project_zip' class='button button-primary' value='Upload ZIP' />";
                 echo "</form>";
@@ -48,6 +49,11 @@
                 ?>
                 <script type="text/javascript">
                     document.getElementById('upload-zip-form').addEventListener('submit', function(e) {
+                        // If the form is handled by the chunked uploader, skip the legacy single-request upload
+                        if (this.dataset && this.dataset.chunked === '1') {
+                            return; // chunked uploader script will handle the submit and prevent default
+                        }
+
                         // Shows the progress bar and starts the upload process
                         document.getElementById('upload-progress-container').style.display = 'block';
                         updateUploadProgress();
@@ -107,6 +113,266 @@
                 </script>
                 <?php
             }
+        });
+
+        /**
+         * Enqueue admin scripts for the chunked uploader on the sd_project list screen.
+         */
+        add_action('admin_enqueue_scripts', function($hook) {
+            $screen = get_current_screen();
+            if (! $screen) return;
+            if ($screen->post_type !== 'sd_project') return;
+
+            $upload_nonce = wp_create_nonce('upload_sd_projects_nonce');
+            wp_enqueue_script('sd-chunked-uploader', plugin_dir_url(__FILE__) . '../src/js/chunked-uploader.js', array('jquery'), '1.0.0', true);
+            wp_localize_script('sd-chunked-uploader', 'sdUploaderArgs', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce' => $upload_nonce,
+                'chunk_size' => 20 * 1024 * 1024, // 20MB default chunk size
+            ));
+        });
+
+        /**
+         * Receives an uploaded chunk and writes it to a temp directory.
+         * Expects: POST upload_id, chunk_index, total_chunks, total_size, filename
+         * and FILES['chunk']
+         */
+        add_action('wp_ajax_sd_upload_chunk', function() {
+            check_ajax_referer('upload_sd_projects_nonce', 'nonce');
+            if (!current_user_can('upload_files')) {
+                wp_send_json_error(array('message' => 'Insufficient permissions'), 403);
+            }
+
+            $upload_id = isset($_POST['upload_id']) ? sanitize_text_field($_POST['upload_id']) : '';
+            $chunk_index = isset($_POST['chunk_index']) ? intval($_POST['chunk_index']) : 0;
+            $total_chunks = isset($_POST['total_chunks']) ? intval($_POST['total_chunks']) : 0;
+            $total_size = isset($_POST['total_size']) ? intval($_POST['total_size']) : 0;
+            $filename = isset($_POST['filename']) ? sanitize_file_name($_POST['filename']) : '';
+
+            if (empty($upload_id) || empty($filename) || !isset($_FILES['chunk'])) {
+                wp_send_json_error(array('message' => 'Missing parameters'), 400);
+            }
+
+            $upload_dir = wp_upload_dir();
+            $base_tmp = trailingslashit($upload_dir['basedir']) . 'sd_uploads/tmp/';
+            if (!file_exists($base_tmp)) {
+                wp_mkdir_p($base_tmp);
+            }
+            $tmp_dir = $base_tmp . $upload_id . '/';
+            if (!file_exists($tmp_dir)) {
+                wp_mkdir_p($tmp_dir);
+            }
+
+            $chunk_file = $tmp_dir . 'chunk.' . $chunk_index;
+            if (!move_uploaded_file($_FILES['chunk']['tmp_name'], $chunk_file)) {
+                // try fallback copy
+                if (!copy($_FILES['chunk']['tmp_name'], $chunk_file)) {
+                    wp_send_json_error(array('message' => 'Failed to save chunk'), 500);
+                }
+            }
+
+            // Update meta
+            $meta_file = $tmp_dir . 'meta.json';
+            $meta = array();
+            if (file_exists($meta_file)) {
+                $content = file_get_contents($meta_file);
+                $meta = $content ? json_decode($content, true) : array();
+            }
+            $meta['filename'] = $filename;
+            $meta['total_chunks'] = $total_chunks;
+            $meta['total_size'] = $total_size;
+            $meta['received_chunks'] = isset($meta['received_chunks']) ? $meta['received_chunks'] : array();
+            $meta['received_chunks'][$chunk_index] = true;
+            $meta['last_activity'] = time();
+            file_put_contents($meta_file, json_encode($meta));
+
+            // If all chunks received, assemble
+            $received_count = count($meta['received_chunks']);
+            if ($total_chunks > 0 && $received_count >= $total_chunks) {
+                $assembled = assemble_uploaded_chunks($tmp_dir, $filename, $total_chunks, $total_size);
+                if ($assembled['success']) {
+                    wp_send_json_success(array('message' => 'Assembled', 'percent' => 100));
+                } else {
+                    wp_send_json_error(array('message' => $assembled['message']), 500);
+                }
+            }
+
+            // return progress info
+            $percent = $total_size > 0 ? round((filesize_of_chunks($tmp_dir) / $total_size) * 100, 2) : 0;
+            wp_send_json_success(array('message' => 'Chunk received', 'percent' => $percent));
+        });
+
+        // Helper: compute bytes present in chunk files
+        function filesize_of_chunks($tmp_dir) {
+            $total = 0;
+            foreach (glob($tmp_dir . 'chunk.*') as $f) {
+                $total += filesize($f);
+            }
+            return $total;
+        }
+
+        // Assemble chunks into single file and run the existing extraction flow
+        function assemble_uploaded_chunks($tmp_dir, $final_filename, $total_chunks, $expected_size) {
+            $upload_dir = wp_upload_dir();
+            $assembled_path = $tmp_dir . 'assembled.zip';
+
+            $out = fopen($assembled_path, 'wb');
+            if (!$out) {
+                return array('success' => false, 'message' => 'Failed opening assembled file for write');
+            }
+            for ($i = 0; $i < $total_chunks; $i++) {
+                $chunk = $tmp_dir . 'chunk.' . $i;
+                if (!file_exists($chunk)) {
+                    fclose($out);
+                    return array('success' => false, 'message' => 'Missing chunk ' . $i);
+                }
+                $in = fopen($chunk, 'rb');
+                if (!$in) {
+                    fclose($out);
+                    return array('success' => false, 'message' => 'Failed to read chunk ' . $i);
+                }
+                while (!feof($in)) {
+                    $data = fread($in, 1048576);
+                    fwrite($out, $data);
+                }
+                fclose($in);
+            }
+            fclose($out);
+
+            // Validate size
+            clearstatcache(true, $assembled_path);
+            $size = filesize($assembled_path);
+            if ($expected_size > 0 && $size != $expected_size) {
+                return array('success' => false, 'message' => 'Assembled size mismatch');
+            }
+
+            // Validate zip can open
+            $zip = new ZipArchive;
+            if ($zip->open($assembled_path) !== TRUE) {
+                return array('success' => false, 'message' => 'Assembled file is not a valid ZIP');
+            }
+            $zip->close();
+
+            // Move assembled to uploads path and extract (works like the existing flow)
+            $dest_path = $upload_dir['path'] . '/' . basename($final_filename);
+            if (!rename($assembled_path, $dest_path)) {
+                // fallback copy
+                if (!copy($assembled_path, $dest_path)) {
+                    return array('success' => false, 'message' => 'Failed to move assembled file');
+                }
+            }
+
+            // Ensure the global extracted dir variable is set so other functions can find inner zips
+            global $extracted_dir;
+            $extracted_dir = $upload_dir['path'] . '/extracted/';
+            if (!file_exists($extracted_dir)) {
+                wp_mkdir_p($extracted_dir);
+            }
+            error_log('Assembled extracted dir: ' . $extracted_dir);
+
+            $zip = new ZipArchive;
+            if ($zip->open($dest_path) === TRUE) {
+                for ($i = 0; $i < $zip->numFiles; $i++) {
+                    $filename = $zip->getNameIndex($i);
+                    $fileinfo = pathinfo($filename);
+                    if (strpos($fileinfo['basename'], '.') !== false) {
+                        copy("zip://$dest_path#$filename", $extracted_dir . $fileinfo['basename']);
+                    }
+                }
+                $zip->close();
+            } else {
+                return array('success' => false, 'message' => 'Failed to open assembled zip after move');
+            }
+
+            // Trigger CSV processing similar to admin_init handler by setting up transients
+            $csv_file_path = $extracted_dir . 'SD_Projects_Data.csv';
+            if (!file_exists($csv_file_path)) {
+                return array('success' => false, 'message' => 'CSV file not found in assembled zip');
+            }
+
+            // Leave offset/total_rows transients to be used by existing batch processing endpoints
+            $total_rows = count_rows($csv_file_path);
+            set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
+            set_transient('sd_projects_import_offset', 0, 12 * HOUR_IN_SECONDS);
+
+            return array('success' => true, 'message' => 'Assembled and extracted');
+        }
+
+        // Status endpoint for upload progress (bytes received)
+        add_action('wp_ajax_sd_upload_status', function() {
+            check_ajax_referer('upload_sd_projects_nonce', 'nonce');
+            if (!current_user_can('upload_files')) {
+                wp_send_json_error(array('message' => 'Insufficient permissions'), 403);
+            }
+            $upload_id = isset($_GET['upload_id']) ? sanitize_text_field($_GET['upload_id']) : '';
+            if (empty($upload_id)) {
+                wp_send_json_error(array('message' => 'Missing upload_id'), 400);
+            }
+            $upload_dir = wp_upload_dir();
+            $tmp_dir = trailingslashit($upload_dir['basedir']) . 'sd_uploads/tmp/' . $upload_id . '/';
+            $meta_file = $tmp_dir . 'meta.json';
+            if (!file_exists($meta_file)) {
+                wp_send_json_success(array('percent' => 0, 'received' => 0, 'total' => 0));
+            }
+            $meta = json_decode(file_get_contents($meta_file), true);
+            $received = filesize_of_chunks($tmp_dir);
+            $total = isset($meta['total_size']) ? intval($meta['total_size']) : 0;
+            $percent = $total > 0 ? round(($received / $total) * 100, 2) : 0;
+            wp_send_json_success(array('percent' => $percent, 'received' => $received, 'total' => $total));
+        });
+
+        // Processes a single batch of CSV rows (called via AJAX repeatedly).
+        add_action('wp_ajax_sd_process_batch', function() {
+            check_ajax_referer('upload_sd_projects_nonce', 'nonce');
+            if (!current_user_can('edit_posts')) {
+                wp_send_json_error(array('message' => 'Insufficient permissions'), 403);
+            }
+
+            $upload_dir = wp_upload_dir();
+            $extracted_dir = $upload_dir['path'] . '/extracted/';
+            $csv_file_path = $extracted_dir . 'SD_Projects_Data.csv';
+            if (!file_exists($csv_file_path)) {
+                wp_send_json_error(array('message' => 'CSV file not found'), 400);
+            }
+
+            $batch_size = 10;
+            $offset = get_transient('sd_projects_import_offset') ?: 0;
+            $total_rows = get_transient('sd_projects_import_total_rows') ?: count_rows($csv_file_path);
+            set_transient('sd_projects_import_total_rows', $total_rows, 12 * HOUR_IN_SECONDS);
+
+            $processed = 0;
+            if (($handle = fopen($csv_file_path, 'r')) !== FALSE) {
+                $headers = fgetcsv($handle);
+                // Skip already processed rows
+                $skipped = 0;
+                while ($skipped < $offset && ($row = fgetcsv($handle)) !== FALSE) {
+                    $skipped++;
+                }
+
+                while ($processed < $batch_size && ($row = fgetcsv($handle)) !== FALSE) {
+                    $data = array_combine($headers, $row);
+                    if ($data) {
+                        process_row($data);
+                    }
+                    $processed++;
+                    $offset++;
+                }
+                fclose($handle);
+            }
+
+            // Update transient
+            set_transient('sd_projects_import_offset', $offset, 12 * HOUR_IN_SECONDS);
+
+            $percent = $total_rows > 0 ? min(100, round(($offset / $total_rows) * 100, 2)) : 0;
+            $status = ($percent < 100) ? 'Processing...' : 'Complete';
+
+            // If complete, cleanup transients
+            if ($percent >= 100) {
+                delete_transient('sd_projects_import_offset');
+                delete_transient('sd_projects_import_total_rows');
+            }
+
+            wp_send_json_success(array('percent' => $percent, 'status' => $status, 'processed' => $processed, 'offset' => $offset));
         });
 
         // Handles the file upload
@@ -351,8 +617,12 @@
         function count_rows($csv_file_path) {
             $row_count = 0;
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
-                while (($data = fgetcsv($handle)) !== FALSE) {
-                    $row_count++;
+                // Read header first (if present) and then count only data rows
+                $header = fgetcsv($handle);
+                if ($header !== FALSE) {
+                    while (($data = fgetcsv($handle)) !== FALSE) {
+                        $row_count++;
+                    }
                 }
                 fclose($handle);
             }
@@ -431,15 +701,46 @@
          * @param int $post_id The ID of the post where ACF fields will be updated.
          */        
         function handle_zip_extraction_and_files($zip_folder_name, $post_id) {
-            global $extracted_dir;
+            // Resolve extracted directory from uploads each request (globals don't persist across requests)
+            $upload_dir = wp_upload_dir();
+            $extracted_dir = trailingslashit($upload_dir['path']) . 'extracted/';
+            if (!file_exists($extracted_dir)) {
+                error_log('Extracted dir does not exist: ' . $extracted_dir);
+                return;
+            }
 
-            // Define the path for the ZIP folder
+            // Define the path for the inner ZIP folder
             $zip_folder_path = $extracted_dir . $zip_folder_name;
-        
-            // Check if the ZIP folder exists
+
+            // Check if the ZIP folder exists; if not, try a case-insensitive / fuzzy lookup in extracted dir
             if (!file_exists($zip_folder_path)) {
                 error_log('ZIP folder ' . $zip_folder_name . ' not found at path: ' . $zip_folder_path);
-                return;
+                // Scan extracted dir for a matching filename (case-insensitive or partial match)
+                $found = false;
+                foreach (glob($extracted_dir . '*') as $f) {
+                    if (!is_file($f)) continue;
+                    $base = basename($f);
+                    if (strtolower($base) === strtolower($zip_folder_name)) {
+                        $zip_folder_path = $f;
+                        $found = true;
+                        break;
+                    }
+                    // Partial match on filename without extension
+                    $target_name_noext = strtolower(pathinfo($zip_folder_name, PATHINFO_FILENAME));
+                    $candidate_noext = strtolower(pathinfo($base, PATHINFO_FILENAME));
+                    if ($candidate_noext === $target_name_noext || strpos($candidate_noext, $target_name_noext) !== false || strpos($target_name_noext, $candidate_noext) !== false) {
+                        $zip_folder_path = $f;
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    // Log available files for debugging
+                    $files_list = array_map('basename', glob($extracted_dir . '*'));
+                    error_log('Available extracted files: ' . implode(', ', $files_list));
+                    return;
+                }
+                error_log('Found matching inner ZIP at: ' . $zip_folder_path);
             }
         
             // Create a temporary directory for extraction if it does not exist
