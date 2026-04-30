@@ -4,10 +4,6 @@
 
 Created as a shortcode plugin for the CREOL WordPress website to display the CPT Senior Design Projects on the CREOL senior design page. WordPress admins also have the ability to bulk add/update the CPT by uploading a ZIP file according to the plugin instructions.
 
-## Documentation
-
-Visit our [Senior Design Wiki](https://github.com/UCF/Senior-Design/wiki) for in-depth information, installation instructions, and more.
-
 ## Changelog
 
 ### 2.0.0 - UI/UX Overhaul
