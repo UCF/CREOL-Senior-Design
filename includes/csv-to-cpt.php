@@ -226,15 +226,52 @@
                     fclose($out);
                     return array('success' => false, 'message' => 'Missing chunk ' . $i);
                 }
+                $chunk_size = filesize($chunk);
+                error_log(sprintf('sd_upload assembling chunk %d: size=%d bytes', $i, $chunk_size));
+                
                 $in = fopen($chunk, 'rb');
                 if (!$in) {
                     fclose($out);
                     return array('success' => false, 'message' => 'Failed to read chunk ' . $i);
                 }
+                $chunk_bytes_read = 0;
                 while (!feof($in)) {
                     $data = fread($in, 1048576);
-                    fwrite($out, $data);
+                    if ($data === false) {
+                        fclose($in);
+                        fclose($out);
+                        return array('success' => false, 'message' => 'Failed to read chunk ' . $i);
+                    }
+                    if ($data === '') {
+                        break;
+                    }
+
+                    $written = 0;
+                    $data_length = strlen($data);
+                    $chunk_bytes_read += $data_length;
+                    while ($written < $data_length) {
+                        $assembled_current_size = ftell($out);
+                        $bytes_written = fwrite($out, substr($data, $written));
+                        if ($bytes_written === false) {
+                            $disk_free = disk_free_space(dirname($assembled_path));
+                            error_log(sprintf('sd_upload WRITE FAIL chunk %d: offset_in_chunk=%d data_len=%d assembled_pos_before=%d disk_free=%s', $i, $written, $data_length, $assembled_current_size, $disk_free !== false ? $disk_free : 'unknown'));
+                            fclose($in);
+                            fclose($out);
+                            return array('success' => false, 'message' => 'Failed to write assembled data for chunk ' . $i);
+                        }
+                        if ($bytes_written === 0) {
+                            $disk_free = disk_free_space(dirname($assembled_path));
+                            error_log(sprintf('sd_upload ZERO-WRITE chunk %d: offset_in_chunk=%d data_len=%d assembled_pos=%d disk_free=%s', $i, $written, $data_length, ftell($out), $disk_free !== false ? $disk_free : 'unknown'));
+                            fclose($in);
+                            fclose($out);
+                            return array('success' => false, 'message' => 'Wrote zero bytes while assembling chunk ' . $i);
+                        }
+                        $written += $bytes_written;
+                        fflush($out);
+                    }
                 }
+                error_log(sprintf('sd_upload chunk %d complete: read=%d bytes (expected=%d)', $i, $chunk_bytes_read, $chunk_size));
+                fflush($out);
                 fclose($in);
             }
             fclose($out);
@@ -242,8 +279,9 @@
             // Validate size
             clearstatcache(true, $assembled_path);
             $size = filesize($assembled_path);
+            error_log(sprintf('sd_upload assembly sizes: expected=%d assembled=%d chunks=%d path=%s', $expected_size, $size, $total_chunks, $assembled_path));
             if ($expected_size > 0 && $size != $expected_size) {
-                return array('success' => false, 'message' => 'Assembled size mismatch');
+                return array('success' => false, 'message' => 'Assembled size mismatch {$size} != expected {$expected_size}');
             }
 
             // Validate zip can open
@@ -261,6 +299,15 @@
                     return array('success' => false, 'message' => 'Failed to move assembled file');
                 }
             }
+
+            // Clean up temporary chunk files to prevent disk exhaustion
+            $temp_files = glob($tmp_dir . '*');
+            foreach ($temp_files as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+            rmdir($tmp_dir);
 
             // Ensure the global extracted dir variable is set so other functions can find inner zips
             global $extracted_dir;
@@ -311,14 +358,21 @@
             $upload_dir = wp_upload_dir();
             $tmp_dir = trailingslashit($upload_dir['basedir']) . 'sd_uploads/tmp/' . $upload_id . '/';
             $meta_file = $tmp_dir . 'meta.json';
+
+            // If the meta file was deleted, check if assembly finished and transients were set by the cleanup routine
             if (!file_exists($meta_file)) {
-                wp_send_json_success(array('percent' => 0, 'received' => 0, 'total' => 0));
+                if (get_transient('sd_projects_import_total_rows') !== false) {
+                    wp_send_json_success(array('percent' => 100, 'received' => 0, 'total' => 0));
+                } else {
+                    wp_send_json_success(array('percent' => 0, 'received' => 0, 'total' => 0));
+                }
+            } else {
+                $meta = json_decode(file_get_contents($meta_file), true);
+                $received = filesize_of_chunks($tmp_dir);
+                $total = isset($meta['total_size']) ? intval($meta['total_size']) : 0;
+                $percent = $total > 0 ? round(($received / $total) * 100, 2) : 0;
+                wp_send_json_success(array('percent' => $percent, 'received' => $received, 'total' => $total));
             }
-            $meta = json_decode(file_get_contents($meta_file), true);
-            $received = filesize_of_chunks($tmp_dir);
-            $total = isset($meta['total_size']) ? intval($meta['total_size']) : 0;
-            $percent = $total > 0 ? round(($received / $total) * 100, 2) : 0;
-            wp_send_json_success(array('percent' => $percent, 'received' => $received, 'total' => $total));
         });
 
         // Processes a single batch of CSV rows (called via AJAX repeatedly).
@@ -343,6 +397,15 @@
             $processed = 0;
             if (($handle = fopen($csv_file_path, 'r')) !== FALSE) {
                 $headers = fgetcsv($handle);
+                
+                // Normalize headers: strip BOM, lowercase, trim whitespace
+                if ($headers) {
+                    $headers[0] = preg_replace('/^[\xef\xbb\xbf]+/', '', $headers[0]);
+                    $headers = array_map(function($header) {
+                        return strtolower(trim($header));
+                    }, $headers);
+                }
+                
                 // Skip already processed rows
                 $skipped = 0;
                 while ($skipped < $offset && ($row = fgetcsv($handle)) !== FALSE) {
@@ -423,6 +486,15 @@
                 // Set variables to determine sizes of batches for processing 
                 if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
                 $headers = fgetcsv($handle); // *These headers are subject to change
+                
+                // Normalize headers: strip BOM, lowercase, trim whitespace
+                if ($headers) {
+                    $headers[0] = preg_replace('/^[\xef\xbb\xbf]+/', '', $headers[0]);
+                    $headers = array_map(function($header) {
+                        return strtolower(trim($header));
+                    }, $headers);
+                }
+                
                 $batch_size = 10;
                 $offset = get_transient('sd_projects_import_offset') ?: 0;
                 $total_rows = count_rows($csv_file_path);
@@ -565,6 +637,15 @@
 
             if (($handle = fopen($csv_file_path, "r")) !== FALSE) {
             $headers = fgetcsv($handle); // *These headers are subject to change
+            
+            // Normalize headers: strip BOM, lowercase, trim whitespace
+            if ($headers) {
+                $headers[0] = preg_replace('/^[\xef\xbb\xbf]+/', '', $headers[0]);
+                $headers = array_map(function($header) {
+                    return strtolower(trim($header));
+                }, $headers);
+            }
+            
             $batch_size = 10;
             $offset = get_transient('sd_projects_import_offset') ?: 0;
             $total_rows = count_rows($csv_file_path);
@@ -631,6 +712,12 @@
 
         // Creates a CPT with processed data from a row of the CSV 
         function process_row($data) {
+            // Validate required title field is present
+            if (empty($data['title'])) {
+                error_log('Process Row Skipped: Missing title. Row data: ' . print_r($data, true));
+                return;
+            }
+            
             // Checks if a post with the same title already exists to prevent duplicates
             $existing_post = get_page_by_title($data['title'], OBJECT, 'sd_project');
         
